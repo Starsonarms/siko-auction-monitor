@@ -78,8 +78,8 @@ sudo apt update && sudo apt upgrade -y
 # Install Python and pip
 sudo apt install python3 python3-pip python3-venv git -y
 
-# Clone repository
-cd /home/pi
+# Clone repository to your home directory
+cd ~
 git clone <your-repo-url>
 cd siko-auction-monitor
 
