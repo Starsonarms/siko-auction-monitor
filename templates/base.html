@@ -87,19 +87,6 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Auto-refresh functionality
-        function autoRefresh(interval = 30000) {
-            if (window.location.pathname === '/') {
-                setTimeout(() => {
-                    location.reload();
-                }, interval);
-            }
-        }
-
-        // Start auto-refresh on dashboard
-        autoRefresh();
-    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

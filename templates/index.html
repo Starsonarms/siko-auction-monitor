@@ -48,8 +48,35 @@
     </div>
 </div>
 
-<div class="row">
+<div class="row mb-4">
     <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-calendar-alt"></i> Time-based Notifications
+            </div>
+            <div class="card-body">
+                <span class="status-indicator status-green"></span>
+                <span>Active</span>
+                <br>
+                <small class="text-muted">Weekdays: 8AM-12AM<br>Weekends: 10AM-12AM</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-bell"></i> Urgent Notifications
+            </div>
+            <div class="card-body">
+                <h3>{{ config.urgent_notification_threshold_minutes }}min</h3>
+                <small class="text-muted">Urgent threshold - bypasses time restrictions</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span><i class="fas fa-list"></i> Search Words</span>
@@ -76,7 +103,7 @@
         </div>
     </div>
 
-    <div class="col-md-6">
+    <div class="col-md-4">
         <div class="card">
             <div class="card-header">
                 <i class="fas fa-tools"></i> System Tests
@@ -89,11 +116,30 @@
                     <button class="btn btn-outline-success" onclick="testHomeAssistant()">
                         <i class="fas fa-home"></i> Test Home Assistant
                     </button>
-                    <button class="btn btn-outline-info" onclick="refreshStatus()">
-                        <i class="fas fa-sync"></i> Refresh Status
-                    </button>
                 </div>
                 <div id="test-results" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span id="auction-header"><i class="fas fa-hammer"></i> Current Auctions</span>
+                <div class="d-flex align-items-center">
+                    <small id="last-updated" class="text-muted me-2"></small>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="refreshAuctions(event)">
+                        <i class="fas fa-sync"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                <div id="current-auctions">
+                    <div class="text-muted text-center">
+                        <i class="fas fa-spinner fa-spin"></i><br>
+                        Loading current auctions...
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -108,10 +154,10 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="addWordForm">
+                <form id="addWordForm" onsubmit="addSearchWord(); return false;">
                     <div class="mb-3">
                         <label for="searchWord" class="form-label">Search Word</label>
-                        <input type="text" class="form-control" id="searchWord" placeholder="e.g., antique, vintage, tools" required>
+                        <input type="text" class="form-control" id="searchWord" placeholder="e.g., antique, vintage, lego technic" required>
                         <div class="form-text">This word will be searched in auction titles, descriptions, and items.</div>
                     </div>
                 </form>
@@ -144,6 +190,12 @@
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addWordModal'));
+                if (modal) modal.hide();
+                // Clear input
+                document.getElementById('searchWord').value = '';
+                // Reload page to show new word
                 location.reload();
             } else {
                 alert('Error: ' + data.error);
@@ -155,10 +207,6 @@
     }
 
     function removeSearchWord(word) {
-        if (!confirm(`Remove search word "${word}"?`)) {
-            return;
-        }
-
         fetch(`/api/search-words/${encodeURIComponent(word)}`, {
             method: 'DELETE'
         })
@@ -184,12 +232,14 @@
         fetch('/api/test-scraper')
         .then(response => response.json())
         .then(data => {
-            document.getElementById('test-results').innerHTML = `
+            // System message only
+            let systemHtml = `
                 <div class="alert alert-${data.status === 'success' ? 'success' : (data.status === 'warning' ? 'warning' : 'danger')}">
                     <strong>Scraper Test:</strong> ${data.message || data.error}
-                    ${data.urls_found !== undefined ? `<br><small>Found ${data.urls_found} auction URLs</small>` : ''}
+                    ${data.auctions_found !== undefined ? `<br><small>Found ${data.auctions_found} auctions</small>` : ''}
                 </div>
             `;
+            document.getElementById('test-results').innerHTML = systemHtml;
         })
         .catch(error => {
             document.getElementById('test-results').innerHTML = `
@@ -232,8 +282,120 @@
         });
     }
 
-    function refreshStatus() {
-        location.reload();
+
+    function updateAuctionResults(auctions) {
+        const container = document.getElementById('current-auctions');
+        const header = document.getElementById('auction-header');
+        
+        // Update header with count
+        const count = auctions ? auctions.length : 0;
+        header.innerHTML = `<i class="fas fa-hammer"></i> Current Auctions (${count})`;
+        
+        if (!auctions || auctions.length === 0) {
+            container.innerHTML = `
+                <div class="text-muted text-center">
+                    <i class="fas fa-search"></i><br>
+                    No auctions currently match your search terms<br>
+                    <small>Try adding more search terms or check back later</small>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = '';
+        for (let auction of auctions) {
+            html += `
+                <div class="border rounded p-2 mb-2 bg-light">
+                    <div class="mb-1">
+                        <strong><a href="${auction.url}" target="_blank" class="text-decoration-none text-primary">${auction.title}</a></strong>
+                    </div>
+                    <div class="small text-muted">
+                        💰 ${auction.current_bid}<br>
+                        🏷️ ${auction.reserve_price}<br>
+                        ⏰ ${auction.time_left}<br>
+                        🔍 "${auction.found_via}"
+                    </div>
+                </div>
+            `;
+        }
+        
+        container.innerHTML = html;
     }
+    
+    function refreshAuctions(event) {
+        let button = null;
+        let originalText = null;
+        
+        if (event && event.target) {
+            button = event.target;
+            originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            button.disabled = true;
+        }
+        
+        // Show loading in auction results
+        document.getElementById('current-auctions').innerHTML = `
+            <div class="text-muted text-center">
+                <i class="fas fa-spinner fa-spin"></i> Loading auctions...
+            </div>
+        `;
+        
+        fetch('/api/test-scraper')
+        .then(response => {
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers.get('content-type'));
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                // Not JSON - probably an error page
+                return response.text().then(text => {
+                    console.log('Non-JSON response:', text.substring(0, 200));
+                    throw new Error('Server returned HTML instead of JSON - check server logs');
+                });
+            }
+            
+            return response.json();
+        })
+        .then(data => {
+            console.log('API response:', data);
+            
+            // Handle test-scraper response
+            updateAuctionResults(data.auctions || []);
+            
+            // Update timestamp
+            const now = new Date();
+            document.getElementById('last-updated').textContent = `Updated: ${now.toLocaleTimeString()}`;
+        })
+        .catch(error => {
+            document.getElementById('current-auctions').innerHTML = `
+                <div class="text-danger text-center">
+                    <i class="fas fa-exclamation-triangle"></i><br>
+                    Error loading auctions: ${error}
+                </div>
+            `;
+            // Update header and timestamp with error
+            document.getElementById('auction-header').innerHTML = '<i class="fas fa-hammer"></i> Current Auctions (0)';
+            document.getElementById('last-updated').textContent = 'Error loading';
+        })
+        .finally(() => {
+            if (button) {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }
+        });
+    }
+    
+    // Auto-load auctions when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('last-updated').textContent = 'Loading...';
+        document.getElementById('auction-header').innerHTML = '<i class="fas fa-hammer"></i> Current Auctions';
+        refreshAuctions();
+    });
+    
+    // Auctions will also load when refresh button is clicked
 </script>
 {% endblock %}

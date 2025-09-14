@@ -6,6 +6,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, f
 from flask_cors import CORS
 import logging
 import os
+from datetime import datetime
 from typing import Dict, List
 from .search_manager import SearchManager
 from .home_assistant import HomeAssistantNotifier
@@ -24,6 +25,15 @@ def create_app():
     
     config = get_config()
     search_manager = SearchManager()
+    
+    @app.after_request
+    def after_request(response):
+        # Add cache-control headers for API endpoints
+        if request.path.startswith('/api/'):
+            response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+            response.headers['Pragma'] = 'no-cache'
+            response.headers['Expires'] = '0'
+        return response
     
     @app.route('/')
     def index():
@@ -82,36 +92,154 @@ def create_app():
         except Exception as e:
             return jsonify({'error': str(e), 'status': 'error'}), 500
     
+    @app.route('/api/config/monitoring', methods=['POST'])
+    def update_monitoring_config():
+        """Update monitoring configuration"""
+        try:
+            data = request.get_json()
+            
+            # Validate input
+            check_interval = data.get('check_interval_minutes')
+            urgent_threshold = data.get('urgent_notification_threshold_minutes')
+            
+            if not isinstance(check_interval, int) or check_interval < 1 or check_interval > 1440:
+                return jsonify({
+                    'status': 'error',
+                    'error': 'Check interval must be between 1 and 1440 minutes'
+                }), 400
+            
+            if not isinstance(urgent_threshold, int) or urgent_threshold < 1 or urgent_threshold > 120:
+                return jsonify({
+                    'status': 'error', 
+                    'error': 'Urgent threshold must be between 1 and 120 minutes'
+                }), 400
+            
+            # Update configuration
+            config.check_interval_minutes = check_interval
+            config.urgent_notification_threshold_minutes = urgent_threshold
+            
+            logger.info(f"Configuration updated: check_interval={check_interval}min, urgent_threshold={urgent_threshold}min")
+            
+            return jsonify({
+                'status': 'success',
+                'message': 'Monitoring settings updated successfully'
+            })
+            
+        except Exception as e:
+            logger.error(f"Error updating monitoring config: {e}")
+            return jsonify({'error': str(e), 'status': 'error'}), 500
+    
+    @app.route('/api/config/time', methods=['POST'])
+    def update_time_config():
+        """Update time-based notification configuration"""
+        try:
+            data = request.get_json()
+            
+            # Validate input
+            weekday_start = data.get('weekday_notification_start_hour')
+            weekday_end = data.get('weekday_notification_end_hour')
+            weekend_start = data.get('weekend_notification_start_hour')
+            weekend_end = data.get('weekend_notification_end_hour')
+            
+            # Validate hours (0-23)
+            for hour, name in [
+                (weekday_start, 'weekday_start'),
+                (weekday_end, 'weekday_end'),
+                (weekend_start, 'weekend_start'),
+                (weekend_end, 'weekend_end')
+            ]:
+                if not isinstance(hour, int) or hour < 0 or hour > 23:
+                    return jsonify({
+                        'status': 'error',
+                        'error': f'{name} must be between 0 and 23'
+                    }), 400
+            
+            # Update configuration
+            config.weekday_notification_start_hour = weekday_start
+            config.weekday_notification_end_hour = weekday_end
+            config.weekend_notification_start_hour = weekend_start
+            config.weekend_notification_end_hour = weekend_end
+            
+            logger.info(f"Time settings updated: weekdays {weekday_start}-{weekday_end}, weekends {weekend_start}-{weekend_end}")
+            
+            return jsonify({
+                'status': 'success',
+                'message': 'Time settings updated successfully'
+            })
+            
+        except Exception as e:
+            logger.error(f"Error updating time config: {e}")
+            return jsonify({'error': str(e), 'status': 'error'}), 500
+    
     @app.route('/api/test-scraper')
     def test_scraper():
-        """Test the scraper functionality"""
+        """Test the scraper functionality using configured search words"""
         try:
             scraper = SikoScraper()
+            search_words = search_manager.get_search_words()
             
-            # Get just the URLs first (faster test)
-            urls = scraper.get_auction_urls()
+            if not search_words:
+                return jsonify({
+                    'status': 'warning',
+                    'message': 'No search words configured. Add search words to test with real searches.',
+                    'auctions_found': 0,
+                    'auctions': []
+                })
             
-            if urls:
-                # Try to scrape one auction for detailed test
-                sample_auction = scraper.scrape_auction_details(urls[0]) if urls else None
-                
+            # Test with actual search terms
+            all_auctions = []
+            total_found = 0
+            
+            for search_word in search_words:  # Test all search words
+                auctions = scraper.search_auctions(search_word)
+                for auction in auctions:
+                    auction['found_via'] = search_word
+                all_auctions.extend(auctions)
+                total_found += len(auctions)
+            
+            # Remove duplicates based on auction ID
+            seen_ids = set()
+            unique_auctions = []
+            for auction in all_auctions:
+                auction_id = auction.get('id')
+                if auction_id and auction_id not in seen_ids:
+                    seen_ids.add(auction_id)
+                    unique_auctions.append(auction)
+            
+            if unique_auctions:
                 return jsonify({
                     'status': 'success',
-                    'urls_found': len(urls),
-                    'sample_urls': urls[:5],  # First 5 URLs
-                    'sample_auction': sample_auction,
-                    'message': f'Scraper working! Found {len(urls)} auction URLs'
+                    'auctions_found': len(unique_auctions),
+                    'search_words_tested': search_words,
+                    'auctions': [{
+                        'title': auction.get('title', 'Unknown'),
+                        'url': auction.get('url', ''),
+                        'current_bid': auction.get('current_bid', 'N/A'),
+                        'reserve_price': auction.get('reserve_price', 'N/A'),
+                        'time_left': auction.get('time_left', 'N/A'),
+                        'found_via': auction.get('found_via', 'Unknown')
+                    } for auction in unique_auctions[:10]],  # Show up to 10 auctions
+                    'message': f'Found {len(unique_auctions)} unique auction{"s" if len(unique_auctions) != 1 else ""} from {len(search_words)} search term{"s" if len(search_words) != 1 else ""}'
                 })
             else:
                 return jsonify({
                     'status': 'warning',
-                    'urls_found': 0,
-                    'message': 'Scraper connected but found no auctions'
+                    'auctions_found': 0,
+                    'search_words_tested': search_words,
+                    'auctions': [],
+                    'message': f'No auctions found for search terms: {", ".join(search_words)}'
                 })
                 
         except Exception as e:
+            import traceback
             logger.error(f"Scraper test failed: {e}")
-            return jsonify({'error': str(e), 'status': 'error'}), 500
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            return jsonify({
+                'error': f'Scraper test failed: {str(e)}',
+                'status': 'error',
+                'auctions': [],
+                'auctions_found': 0
+            }), 500
     
     @app.route('/api/test-homeassistant')
     def test_home_assistant():
@@ -144,6 +272,7 @@ def create_app():
             logger.error(f"Home Assistant test failed: {e}")
             return jsonify({'error': str(e), 'status': 'error'}), 500
     
+    
     @app.route('/api/status')
     def get_status():
         """Get system status"""
@@ -166,6 +295,16 @@ def create_app():
             
         except Exception as e:
             return jsonify({'error': str(e), 'status': 'error'}), 500
+    
+    @app.route('/api/debug')
+    def debug_endpoint():
+        """Simple debug endpoint to test API functionality"""
+        return jsonify({
+            'status': 'success',
+            'message': 'Debug endpoint working',
+            'timestamp': str(datetime.now()),
+            'test_data': ['item1', 'item2', 'item3']
+        })
     
     @app.route('/config')
     def config_page():
@@ -194,11 +333,29 @@ def create_app():
     
     @app.errorhandler(404)
     def not_found(error):
+        if request.path.startswith('/api/'):
+            return jsonify({'error': 'API endpoint not found', 'status': 'error'}), 404
         return render_template('error.html', error="Page not found"), 404
     
     @app.errorhandler(500)
     def internal_error(error):
+        if request.path.startswith('/api/'):
+            return jsonify({'error': 'Internal server error', 'status': 'error'}), 500
         return render_template('error.html', error="Internal server error"), 500
+    
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        # Handle unhandled exceptions for API endpoints
+        if request.path.startswith('/api/'):
+            import traceback
+            logger.error(f"Unhandled exception on {request.path}: {e}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            return jsonify({
+                'error': f'Server error: {str(e)}',
+                'status': 'error'
+            }), 500
+        # For non-API routes, let Flask handle it normally
+        raise e
     
     return app
 

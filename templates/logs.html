@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Logs - Siko Auction Monitor{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>📝 Application Logs</h1>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5>Recent Log Entries</h5>
+                    {% if log_file %}
+                    <small class="text-muted">{{ log_file }}</small>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if log_content %}
+                    <pre class="bg-dark text-light p-3" style="max-height: 500px; overflow-y: auto; font-size: 12px;">{{ log_content }}</pre>
+                    {% else %}
+                    <div class="alert alert-warning">
+                        <h6>⚠️ No log content available</h6>
+                        <p>The log file might not exist yet or might be empty. Run some commands to generate log entries.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <h6>💡 Log Information:</h6>
+                <ul class="mb-0">
+                    <li>Logs are automatically rotated and limited to recent entries</li>
+                    <li>Only the last 100 lines are shown in this interface</li>
+                    <li>For full logs, check the log file directly: <code>{{ log_file or "logs/auction_monitor.log" }}</code></li>
+                    <li>You can also view live logs with: <code>tail -f {{ log_file or "logs/auction_monitor.log" }}</code></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <button class="btn btn-primary" onclick="location.reload()">🔄 Refresh Logs</button>
+            <a href="/" class="btn btn-secondary">← Back to Dashboard</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

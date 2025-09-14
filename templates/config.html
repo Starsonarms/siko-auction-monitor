@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}Configuration - Siko Auction Monitor{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>⚙️ Configuration</h1>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Home Assistant Settings</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>URL:</strong> {{ config.home_assistant_url }}</p>
+                    <p><strong>Service:</strong> {{ config.home_assistant_service }}</p>
+                    <p><strong>Token:</strong> {{ "✅ Configured" if config.home_assistant_token else "❌ Not set" }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Monitoring Settings</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Check Interval:</strong> {{ config.check_interval_minutes }} minutes</p>
+                    <p><strong>Max Auctions per Check:</strong> {{ config.max_auctions_per_check }}</p>
+                    <p><strong>Request Delay:</strong> {{ config.request_delay }}s</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>🔧 Monitoring Settings</h5>
+                </div>
+                <div class="card-body">
+                    <form id="monitoringForm" onsubmit="saveMonitoringSettings(); return false;">
+                        <div class="mb-3">
+                            <label for="checkInterval" class="form-label">Check Interval (minutes)</label>
+                            <input type="number" class="form-control" id="checkInterval" value="{{ config.check_interval_minutes }}" min="1" max="1440" required>
+                            <div class="form-text">How often to check for new auctions (1-1440 minutes)</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="urgentThreshold" class="form-label">Urgent Notification Threshold (minutes)</label>
+                            <input type="number" class="form-control" id="urgentThreshold" value="{{ config.urgent_notification_threshold_minutes }}" min="1" max="120" required>
+                            <div class="form-text">Send urgent notifications when auctions have this many minutes left</div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Save Monitoring Settings</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>🕒 Time-based Notifications</h5>
+                </div>
+                <div class="card-body">
+                    <form id="timeForm" onsubmit="saveTimeSettings(); return false;">
+                        <h6>Weekday Notifications</h6>
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label for="weekdayStart" class="form-label">Start Hour</label>
+                                <input type="number" class="form-control" id="weekdayStart" value="{{ config.weekday_notification_start_hour }}" min="0" max="23" required>
+                            </div>
+                            <div class="col-6">
+                                <label for="weekdayEnd" class="form-label">End Hour</label>
+                                <input type="number" class="form-control" id="weekdayEnd" value="{{ config.weekday_notification_end_hour }}" min="0" max="23" required>
+                            </div>
+                        </div>
+                        
+                        <h6>Weekend Notifications</h6>
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label for="weekendStart" class="form-label">Start Hour</label>
+                                <input type="number" class="form-control" id="weekendStart" value="{{ config.weekend_notification_start_hour }}" min="0" max="23" required>
+                            </div>
+                            <div class="col-6">
+                                <label for="weekendEnd" class="form-label">End Hour</label>
+                                <input type="number" class="form-control" id="weekendEnd" value="{{ config.weekend_notification_end_hour }}" min="0" max="23" required>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success">Save Time Settings</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Web Interface</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Host:</strong> {{ config.web_host }}</p>
+                    <p><strong>Port:</strong> {{ config.web_port }}</p>
+                    <p><strong>Debug Mode:</strong> {{ "Yes" if config.web_debug else "No" }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>File Locations</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Search Words:</strong> {{ config.search_words_file }}</p>
+                    <p><strong>Log File:</strong> {{ config.log_file }}</p>
+                    <p><strong>Log Level:</strong> {{ config.log_level }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <div id="config-results"></div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <h6>💡 Configuration Notes:</h6>
+                <ul>
+                    <li>Changes take effect immediately for new monitoring cycles</li>
+                    <li>Urgent notifications bypass time restrictions</li>
+                    <li>Time settings use 24-hour format (0-23)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function saveMonitoringSettings() {
+        const checkInterval = document.getElementById('checkInterval').value;
+        const urgentThreshold = document.getElementById('urgentThreshold').value;
+        
+        const data = {
+            check_interval_minutes: parseInt(checkInterval),
+            urgent_notification_threshold_minutes: parseInt(urgentThreshold)
+        };
+        
+        fetch('/api/config/monitoring', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showResult('success', 'Monitoring settings saved successfully!');
+            } else {
+                showResult('danger', 'Error: ' + (data.error || 'Failed to save settings'));
+            }
+        })
+        .catch(error => {
+            showResult('danger', 'Error: ' + error);
+        });
+    }
+    
+    function saveTimeSettings() {
+        const weekdayStart = document.getElementById('weekdayStart').value;
+        const weekdayEnd = document.getElementById('weekdayEnd').value;
+        const weekendStart = document.getElementById('weekendStart').value;
+        const weekendEnd = document.getElementById('weekendEnd').value;
+        
+        const data = {
+            weekday_notification_start_hour: parseInt(weekdayStart),
+            weekday_notification_end_hour: parseInt(weekdayEnd),
+            weekend_notification_start_hour: parseInt(weekendStart),
+            weekend_notification_end_hour: parseInt(weekendEnd)
+        };
+        
+        fetch('/api/config/time', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showResult('success', 'Time settings saved successfully!');
+            } else {
+                showResult('danger', 'Error: ' + (data.error || 'Failed to save settings'));
+            }
+        })
+        .catch(error => {
+            showResult('danger', 'Error: ' + error);
+        });
+    }
+    
+    function showResult(type, message) {
+        document.getElementById('config-results').innerHTML = `
+            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+        
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => {
+            const alert = document.querySelector('#config-results .alert');
+            if (alert) {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            }
+        }, 5000);
+    }
+</script>
+{% endblock %}

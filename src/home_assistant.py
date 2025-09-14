@@ -5,7 +5,7 @@ Home Assistant integration for sending notifications
 import requests
 import logging
 from typing import Dict, Optional
-from datetime import datetime
+from datetime import datetime, time
 from .config import get_config
 
 logger = logging.getLogger(__name__)
@@ -28,6 +28,34 @@ class HomeAssistantNotifier:
             'Content-Type': 'application/json',
         }
     
+    def _is_notification_time_allowed(self) -> bool:
+        """Check if current time is within allowed notification hours"""
+        try:
+            now = datetime.now()
+            current_time = now.time()
+            is_weekend = now.weekday() >= 5  # Saturday = 5, Sunday = 6
+            
+            if is_weekend:
+                # Weekends: 10:00 - 00:00 (midnight)
+                start_time = time(10, 0)  # 10 AM
+                end_time = time(23, 59, 59)  # Just before midnight
+            else:
+                # Weekdays: 08:00 - 00:00 (midnight)
+                start_time = time(8, 0)   # 8 AM
+                end_time = time(23, 59, 59)  # Just before midnight
+            
+            is_allowed = start_time <= current_time <= end_time
+            
+            if not is_allowed:
+                day_type = "weekend" if is_weekend else "weekday"
+                logger.info(f"Notification blocked - current time {current_time} is outside {day_type} allowed hours ({start_time}-{end_time})")
+            
+            return is_allowed
+            
+        except Exception as e:
+            logger.error(f"Error checking notification time: {e}")
+            return True  # Default to allowing notifications if check fails
+    
     def test_connection(self) -> bool:
         """Test connection to Home Assistant"""
         try:
@@ -45,22 +73,32 @@ class HomeAssistantNotifier:
             logger.error(f"Failed to connect to Home Assistant: {e}")
             return False
     
-    def send_notification(self, auction: Dict) -> bool:
+    def send_notification(self, auction: Dict, urgent: bool = False) -> bool:
         """Send notification about a matching auction"""
         try:
             if not self.ha_token:
                 logger.error("Home Assistant token not configured")
                 return False
             
+            # Check time restrictions (unless it's an urgent notification)
+            if not urgent and not self._is_notification_time_allowed():
+                logger.info(f"Notification for '{auction.get('title', 'Unknown')}' delayed due to time restrictions")
+                return False
+            
             # Prepare notification data
-            title = f"🔨 New Auction Match: {auction.get('title', 'Unknown')}"
-            message = self._format_message(auction)
+            if urgent:
+                title = f"⚠️ URGENT: 15 min left - {auction.get('title', 'Unknown')}"
+            else:
+                title = f"🔨 New Auction Match: {auction.get('title', 'Unknown')}"
+            
+            message = self._format_message(auction, urgent)
             
             # Send notification via Home Assistant service
-            success = self._send_via_service(title, message, auction)
+            success = self._send_via_service(title, message, auction, urgent)
             
             if success:
-                logger.info(f"Notification sent for auction: {auction.get('title', 'Unknown')}")
+                notification_type = "urgent" if urgent else "regular"
+                logger.info(f"Notification sent for auction ({notification_type}): {auction.get('title', 'Unknown')}")
             else:
                 logger.error(f"Failed to send notification for auction: {auction.get('title', 'Unknown')}")
             
@@ -70,10 +108,16 @@ class HomeAssistantNotifier:
             logger.error(f"Error sending notification: {e}")
             return False
     
-    def _format_message(self, auction: Dict) -> str:
+    def _format_message(self, auction: Dict, urgent: bool = False) -> str:
         """Format the notification message"""
         try:
             lines = []
+            
+            # Urgent notification formatting
+            if urgent:
+                lines.append("⚠️ AUCTION ENDING SOON! ⚠️")
+                if auction.get('time_left'):
+                    lines.append(f"⏰ Time remaining: {auction['time_left']}")
             
             # Basic auction info
             if auction.get('title'):
@@ -85,8 +129,8 @@ class HomeAssistantNotifier:
             if auction.get('end_date'):
                 lines.append(f"📅 Ends: {auction['end_date']}")
             
-            # Matched search word
-            if auction.get('matched_search_word'):
+            # Matched search word (only for regular notifications)
+            if not urgent and auction.get('matched_search_word'):
                 lines.append(f"🔍 Matched: '{auction['matched_search_word']}'")
             
             # Description (truncated)
@@ -106,9 +150,19 @@ class HomeAssistantNotifier:
                 if len(items) > 3:
                     lines.append(f"  ... and {len(items) - 3} more")
             
+            # Add auction details
+            if auction.get('current_bid'):
+                lines.append(f"💰 Current bid: {auction['current_bid']}")
+            
+            if auction.get('reserve_price'):
+                lines.append(f"🏷️ Starting price: {auction['reserve_price']}")
+            
+            if auction.get('time_left'):
+                lines.append(f"⏰ Time left: {auction['time_left']}")
+            
             # Add URL
             if auction.get('url'):
-                lines.append(f"🔗 {auction['url']}")
+                lines.append(f"🔗 View auction: {auction['url']}")
             
             return "\n".join(lines)
             
@@ -116,7 +170,7 @@ class HomeAssistantNotifier:
             logger.error(f"Error formatting message: {e}")
             return f"New auction match found: {auction.get('title', 'Unknown')}"
     
-    def _send_via_service(self, title: str, message: str, auction: Dict) -> bool:
+    def _send_via_service(self, title: str, message: str, auction: Dict, urgent: bool = False) -> bool:
         """Send notification via Home Assistant service call"""
         try:
             # Parse service domain and name
@@ -135,12 +189,28 @@ class HomeAssistantNotifier:
             
             # Add additional data for mobile notifications
             if "mobile_app" in domain:
-                service_data["data"] = {
-                    "url": auction.get('url', ''),
+                notification_data = {
+                    "url": "http://homeassistant.local:8123/siko-akutioner/",  # Dashboard URL
                     "group": "auction_notifications",
                     "tag": f"auction_{auction.get('id', 'unknown')}",
-                    "priority": "high",
+                    "actions": [
+                        {
+                            "action": "view_auction",
+                            "title": "View Auction",
+                            "url": auction.get('url', '')
+                        }
+                    ]
                 }
+                
+                # Set priority based on urgency
+                if urgent:
+                    notification_data["priority"] = "time-sensitive"
+                    notification_data["sound"] = "default"
+                    notification_data["interruption-level"] = "time-sensitive"
+                else:
+                    notification_data["priority"] = "high"
+                
+                service_data["data"] = notification_data
             
             # Make service call
             url = f"{self.ha_url}/api/services/{domain}/{service}"

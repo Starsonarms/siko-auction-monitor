@@ -13,17 +13,18 @@ from dotenv import load_dotenv
 from .scraper import SikoScraper
 from .search_manager import SearchManager
 from .home_assistant import HomeAssistantNotifier
-from .config import Config
+from .config import get_config
 
 # Load environment variables
 load_dotenv()
 
 # Configure logging
+config = get_config()
 logging.basicConfig(
-    level=logging.INFO,
+    level=getattr(logging, config.log_level.upper()),
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('auction_monitor.log'),
+        logging.FileHandler(config.log_file),
         logging.StreamHandler()
     ]
 )
@@ -32,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 class AuctionMonitor:
     def __init__(self):
-        self.config = Config()
+        self.config = config  # Use the global config instance
         self.scraper = SikoScraper()
         self.search_manager = SearchManager()
         self.notifier = HomeAssistantNotifier(
@@ -40,51 +41,93 @@ class AuctionMonitor:
             self.config.home_assistant_token
         )
         self.processed_auctions = set()
+        self.urgent_notifications_sent = set()  # Track urgent notifications sent
 
     def check_auctions(self):
         """Check for new auctions matching search words"""
         try:
             logger.info("Starting auction check...")
             
-            # Get current auctions
-            auctions = self.scraper.get_auctions()
-            logger.info(f"Found {len(auctions)} auctions")
-            
             # Get search words
             search_words = self.search_manager.get_search_words()
             logger.info(f"Monitoring {len(search_words)} search words: {search_words}")
             
-            # Filter auctions by search words
-            matching_auctions = []
+            if not search_words:
+                logger.warning("No search words configured. Add search words to start monitoring.")
+                return
+            
+            # Get auctions using search terms for more targeted results
+            auctions = self.scraper.get_auctions(search_words)
+            logger.info(f"Found {len(auctions)} auctions from search terms")
+            
+            # Process new auctions
+            new_auctions = []
             for auction in auctions:
                 auction_id = auction.get('id', auction.get('url', ''))
                 
                 # Skip if already processed
                 if auction_id in self.processed_auctions:
+                    logger.debug(f"Skipping already processed auction: {auction_id}")
                     continue
                 
-                # Check if auction matches any search word
-                for search_word in search_words:
-                    if self.search_manager.matches_search_word(auction, search_word):
-                        matching_auctions.append(auction)
-                        self.processed_auctions.add(auction_id)
-                        break
+                # Mark as processed and add to new auctions
+                self.processed_auctions.add(auction_id)
+                new_auctions.append(auction)
+                
+                # Add which search word found this auction
+                search_term_used = auction.get('search_term_used', 'unknown')
+                auction['matched_search_word'] = search_term_used
             
-            # Send notifications for matching auctions
-            for auction in matching_auctions:
+            # Send notifications for new matching auctions
+            for auction in new_auctions:
                 try:
                     self.notifier.send_notification(auction)
-                    logger.info(f"Notification sent for auction: {auction.get('title', 'Unknown')}")
+                    logger.info(f"Notification sent for auction: {auction.get('title', 'Unknown')} (found via '{auction.get('matched_search_word', 'unknown')}')")
                 except Exception as e:
                     logger.error(f"Failed to send notification for auction {auction.get('id', 'unknown')}: {e}")
             
-            if matching_auctions:
-                logger.info(f"Found {len(matching_auctions)} new matching auctions")
+            # Check all current auctions for urgent notifications (ending soon)
+            urgent_auctions = []
+            for auction in auctions:
+                auction_id = auction.get('id', auction.get('url', ''))
+                
+                # Skip if we already sent urgent notification for this auction
+                if auction_id in self.urgent_notifications_sent:
+                    continue
+                
+                # Check if auction is ending soon
+                minutes_remaining = auction.get('minutes_remaining')
+                if minutes_remaining and minutes_remaining <= self.config.urgent_notification_threshold_minutes:
+                    urgent_auctions.append(auction)
+                    self.urgent_notifications_sent.add(auction_id)
+            
+            # Send urgent notifications (these bypass time restrictions)
+            for auction in urgent_auctions:
+                try:
+                    success = self.notifier.send_notification(auction, urgent=True)
+                    if success:
+                        logger.info(f"Urgent notification sent for ending auction: {auction.get('title', 'Unknown')} ({auction.get('minutes_remaining')} min left)")
+                    else:
+                        logger.error(f"Failed to send urgent notification for auction: {auction.get('title', 'Unknown')}")
+                except Exception as e:
+                    logger.error(f"Error sending urgent notification for auction {auction.get('id', 'unknown')}: {e}")
+            
+            if new_auctions:
+                logger.info(f"Found {len(new_auctions)} new matching auctions")
+                # Log the auction URLs for debugging
+                for auction in new_auctions:
+                    logger.info(f"  - {auction.get('title', 'Unknown')}: {auction.get('url', 'No URL')}")
             else:
                 logger.info("No new matching auctions found")
+            
+            if urgent_auctions:
+                logger.info(f"Sent {len(urgent_auctions)} urgent notifications for ending auctions")
+            else:
+                logger.debug("No urgent notifications needed")
                 
         except Exception as e:
             logger.error(f"Error during auction check: {e}")
+    
 
     def run_once(self):
         """Run a single check"""
@@ -93,9 +136,9 @@ class AuctionMonitor:
     def run_scheduled(self):
         """Run scheduled monitoring"""
         logger.info("Starting scheduled auction monitoring...")
-        logger.info(f"Checking every {self.config.check_interval_minutes} minutes")
+        logger.info(f"Checking auctions every {self.config.check_interval_minutes} minutes")
         
-        # Schedule the check
+        # Schedule the checks
         schedule.every(self.config.check_interval_minutes).minutes.do(self.check_auctions)
         
         # Run initial check
@@ -139,6 +182,7 @@ def main():
         for word in search_words:
             print(f"  - {word}")
         return
+    
     
     # Run monitoring
     if args.once:
