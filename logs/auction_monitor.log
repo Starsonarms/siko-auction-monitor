@@ -1,0 +1,49 @@
+2025-09-14 16:05:09,615 - __main__ - INFO - Starting auction check...
+2025-09-14 16:05:09,616 - __main__ - INFO - Monitoring 1 search words: ['lego technic']
+2025-09-14 16:05:09,616 - src.scraper - INFO - Searching for auctions with term: lego technic
+2025-09-14 16:05:10,125 - src.scraper - INFO - Found 1 auctions for search term 'lego technic'
+2025-09-14 16:05:10,197 - src.scraper - INFO - Successfully scraped 1 unique auctions
+2025-09-14 16:05:10,197 - __main__ - INFO - Found 1 auctions from search terms
+2025-09-14 16:05:10,524 - src.home_assistant - INFO - Notification sent for auction: LEGO Technic - Sikö Auktioner
+2025-09-14 16:05:10,524 - __main__ - INFO - Notification sent for auction: LEGO Technic - Sikö Auktioner (found via 'lego technic')
+2025-09-14 16:05:10,524 - __main__ - INFO - Found 1 new matching auctions
+2025-09-14 16:05:10,524 - __main__ - INFO -   - LEGO Technic - Sikö Auktioner: https://sikoauktioner.se/auktion/833290
+2025-09-14 16:22:59,113 - src.watchlist_scraper - INFO - Attempting to log in to sikoauktioner.se
+2025-09-14 16:22:59,544 - src.watchlist_scraper - ERROR - Error during login: 404 Client Error: Not Found for url: https://sikoauktioner.se/logga-in
+2025-09-14 16:24:19,805 - src.watchlist_scraper - INFO - Attempting to log in to sikoauktioner.se
+2025-09-14 16:24:20,224 - src.watchlist_scraper - ERROR - Error during login: 404 Client Error: Not Found for url: https://sikoauktioner.se/logga-in
+2025-09-14 16:44:31,411 - src.watchlist_scraper - INFO - Fetching featured auctions from main page
+2025-09-14 16:44:31,827 - src.watchlist_scraper - INFO - Found 24 featured auctions
+2025-09-14 16:44:54,587 - src.watchlist_scraper - INFO - Fetching featured auctions from main page
+2025-09-14 16:44:54,994 - src.watchlist_scraper - INFO - Found 24 featured auctions
+2025-09-14 16:45:09,388 - __main__ - INFO - Starting featured auctions check...
+2025-09-14 16:45:09,388 - src.watchlist_scraper - INFO - Fetching featured auctions from main page
+2025-09-14 16:45:09,797 - src.watchlist_scraper - INFO - Found 24 featured auctions
+2025-09-14 16:45:09,797 - __main__ - INFO - Found 24 featured auctions
+2025-09-14 16:45:11,417 - __main__ - INFO - No urgent watchlist notifications needed
+2025-09-14 16:56:37,272 - __main__ - INFO - Starting auction check...
+2025-09-14 16:56:37,272 - __main__ - INFO - Monitoring 1 search words: ['lego technic']
+2025-09-14 16:56:37,273 - src.scraper - INFO - Searching for auctions with term: lego technic
+2025-09-14 16:56:37,745 - src.scraper - INFO - Found 1 auctions for search term 'lego technic'
+2025-09-14 16:56:37,820 - src.scraper - INFO - Successfully scraped 1 unique auctions
+2025-09-14 16:56:37,820 - __main__ - INFO - Found 1 auctions from search terms
+2025-09-14 16:56:38,195 - src.home_assistant - INFO - Notification sent for auction (regular): LEGO Technic - Sikö Auktioner
+2025-09-14 16:56:38,195 - __main__ - INFO - Notification sent for auction: LEGO Technic - Sikö Auktioner (found via 'lego technic')
+2025-09-14 16:56:38,195 - __main__ - INFO - Found 1 new matching auctions
+2025-09-14 16:56:38,195 - __main__ - INFO -   - LEGO Technic - Sikö Auktioner: https://sikoauktioner.se/auktion/833290
+2025-09-14 17:01:57,277 - __main__ - INFO - Starting auction check...
+2025-09-14 17:01:57,278 - __main__ - INFO - Monitoring 1 search words: ['lego technic']
+2025-09-14 17:01:57,278 - src.scraper - INFO - Searching for auctions with term: lego technic
+2025-09-14 17:01:57,779 - src.scraper - INFO - Found 1 auctions for search term 'lego technic'
+2025-09-14 17:01:57,855 - src.scraper - INFO - Successfully scraped 1 unique auctions
+2025-09-14 17:01:57,855 - __main__ - INFO - Found 1 auctions from search terms
+2025-09-14 17:01:58,167 - src.home_assistant - INFO - Notification sent for auction (regular): LEGO Technic - Sikö Auktioner
+2025-09-14 17:01:58,168 - __main__ - INFO - Notification sent for auction: LEGO Technic - Sikö Auktioner (found via 'lego technic')
+2025-09-14 17:01:58,168 - __main__ - INFO - Found 1 new matching auctions
+2025-09-14 17:01:58,168 - __main__ - INFO -   - LEGO Technic - Sikö Auktioner: https://sikoauktioner.se/auktion/833290
+2025-09-14 18:34:13,432 - src.search_manager - INFO - Saved 4 search words
+2025-09-14 18:34:13,433 - src.search_manager - INFO - Added search word: 'lego technic'
+2025-09-14 18:34:13,433 - __main__ - INFO - Added search word: lego technic
+2025-09-14 18:34:20,073 - src.search_manager - INFO - Saved 5 search words
+2025-09-14 18:34:20,073 - src.search_manager - INFO - Added search word: 'vintage'
+2025-09-14 18:34:20,073 - __main__ - INFO - Added search word: vintage

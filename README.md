@@ -79,6 +79,7 @@ sudo apt update && sudo apt upgrade -y
 sudo apt install python3 python3-pip python3-venv git -y
 
 # Clone repository to your home directory
+# Note: ~ always points to your home directory regardless of username
 cd ~
 git clone <your-repo-url>
 cd siko-auction-monitor
@@ -228,6 +229,10 @@ Examples:
 - Check service file paths are correct
 - Verify virtual environment path
 - Check file permissions
+
+**Wrong directory paths:**
+- Use `cd ~` instead of `cd /home/pi` (works with any username)
+- Find your home directory with `echo $HOME` if unsure
 
 ### Logs
 
