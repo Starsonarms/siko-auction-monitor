@@ -1,0 +1,32 @@
+[Unit]
+Description=Siko Auction Monitor Web Interface
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/siko-auction-monitor
+ExecStart=/home/pi/siko-auction-monitor/venv/bin/python -m src.web_app
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=siko-web
+
+# Environment file
+EnvironmentFile=/home/pi/siko-auction-monitor/.env
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/home/pi/siko-auction-monitor/logs /home/pi/siko-auction-monitor/config
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+[Install]
+WantedBy=multi-user.target

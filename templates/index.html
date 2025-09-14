@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Siko Auction Monitor{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1><i class="fas fa-tachometer-alt"></i> Dashboard</h1>
+        <p class="text-muted">Monitor and manage your auction search words</p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-search"></i> Search Words
+            </div>
+            <div class="card-body">
+                <h3>{{ stats.total_search_words }}</h3>
+                <small class="text-muted">Active search words</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-clock"></i> Check Interval
+            </div>
+            <div class="card-body">
+                <h3>{{ config.check_interval_minutes }}m</h3>
+                <small class="text-muted">Minutes between checks</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-home"></i> Home Assistant
+            </div>
+            <div class="card-body">
+                <span class="status-indicator status-green" id="ha-status"></span>
+                <span id="ha-status-text">Connected</span>
+                <br>
+                <small class="text-muted">{{ config.home_assistant_service }}</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-list"></i> Search Words</span>
+                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addWordModal">
+                    <i class="fas fa-plus"></i> Add
+                </button>
+            </div>
+            <div class="card-body">
+                <div id="search-words-list">
+                    {% if search_words %}
+                        {% for word in search_words %}
+                        <div class="d-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded">
+                            <span><i class="fas fa-search text-muted"></i> {{ word }}</span>
+                            <button class="btn btn-sm btn-danger" onclick="removeSearchWord('{{ word }}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No search words configured. Add some to start monitoring!</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-tools"></i> System Tests
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary" onclick="testScraper()">
+                        <i class="fas fa-spider"></i> Test Scraper
+                    </button>
+                    <button class="btn btn-outline-success" onclick="testHomeAssistant()">
+                        <i class="fas fa-home"></i> Test Home Assistant
+                    </button>
+                    <button class="btn btn-outline-info" onclick="refreshStatus()">
+                        <i class="fas fa-sync"></i> Refresh Status
+                    </button>
+                </div>
+                <div id="test-results" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Search Word Modal -->
+<div class="modal fade" id="addWordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Search Word</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addWordForm">
+                    <div class="mb-3">
+                        <label for="searchWord" class="form-label">Search Word</label>
+                        <input type="text" class="form-control" id="searchWord" placeholder="e.g., antique, vintage, tools" required>
+                        <div class="form-text">This word will be searched in auction titles, descriptions, and items.</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="addSearchWord()">Add Word</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function addSearchWord() {
+        const word = document.getElementById('searchWord').value.trim();
+        if (!word) {
+            alert('Please enter a search word');
+            return;
+        }
+
+        fetch('/api/search-words', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({word: word})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error);
+        });
+    }
+
+    function removeSearchWord(word) {
+        if (!confirm(`Remove search word "${word}"?`)) {
+            return;
+        }
+
+        fetch(`/api/search-words/${encodeURIComponent(word)}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error);
+        });
+    }
+
+    function testScraper() {
+        const button = event.target;
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+        button.disabled = true;
+
+        fetch('/api/test-scraper')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('test-results').innerHTML = `
+                <div class="alert alert-${data.status === 'success' ? 'success' : (data.status === 'warning' ? 'warning' : 'danger')}">
+                    <strong>Scraper Test:</strong> ${data.message || data.error}
+                    ${data.urls_found !== undefined ? `<br><small>Found ${data.urls_found} auction URLs</small>` : ''}
+                </div>
+            `;
+        })
+        .catch(error => {
+            document.getElementById('test-results').innerHTML = `
+                <div class="alert alert-danger">
+                    <strong>Scraper Test Failed:</strong> ${error}
+                </div>
+            `;
+        })
+        .finally(() => {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        });
+    }
+
+    function testHomeAssistant() {
+        const button = event.target;
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+        button.disabled = true;
+
+        fetch('/api/test-homeassistant')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('test-results').innerHTML = `
+                <div class="alert alert-${data.status === 'success' ? 'success' : 'danger'}">
+                    <strong>Home Assistant Test:</strong> ${data.message || data.error}
+                </div>
+            `;
+        })
+        .catch(error => {
+            document.getElementById('test-results').innerHTML = `
+                <div class="alert alert-danger">
+                    <strong>Home Assistant Test Failed:</strong> ${error}
+                </div>
+            `;
+        })
+        .finally(() => {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        });
+    }
+
+    function refreshStatus() {
+        location.reload();
+    }
+</script>
+{% endblock %}
