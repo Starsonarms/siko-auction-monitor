@@ -1,13 +1,14 @@
 {
-  "last_updated": 1757952915.458613,
+  "last_updated": 1757963455.5231295,
   "auctions": {
-    "kettlebell|lego technic|pinup|radiostyrd|vintage": {
-      "timestamp": 1757952915.4586115,
+    "kettlebell|lego technic|pinup|radiostyrd|vikter|vintage": {
+      "timestamp": 1757963455.5231278,
       "search_words": [
         "kettlebell",
         "lego technic",
         "pinup",
         "radiostyrd",
+        "vikter",
         "vintage"
       ],
       "auctions": [
@@ -15,72 +16,89 @@
           "id": "833290",
           "url": "https://sikoauktioner.se/auktion/833290",
           "title": "LEGO Technic - Sikö Auktioner",
-          "description": "etablerat auktionshus med bas i Skåne som förmedlar auktioner för både privatpersoner och företag. Här kan du hitta föremål för såväl finrum som verkstad. Hjärtligt välkommen!",
+          "description": "1d, 22h, 31m, 8sKristianstad",
           "current_bid": "2 600 kr",
           "reserve_price": "3 000 kr",
-          "time_left": "2d, 1h, 26m, 48s",
+          "time_left": "1d, 22h, 31m, 8s",
           "location": "Kristianstad",
           "auction_number": "833290",
-          "image_url": "",
+          "image_url": "https://siko-im460.fra1.cdn.digitaloceanspaces.com/00833290_1.jpg",
           "items": [],
-          "scraped_at": 1757952912.6893916,
+          "scraped_at": 1757963452.3886468,
           "search_term_used": "lego technic",
           "found_via": "lego technic",
-          "cached_at": 1757952915.458609
+          "cached_at": 1757963455.5231252
         },
         {
           "id": "834215",
           "url": "https://sikoauktioner.se/auktion/834215",
           "title": "Radiostyrd - Sikö Auktioner",
-          "description": "Radiostyrd - Sikö Auktioner",
+          "description": "5d, 22h, 43m, 7sKristianstad",
           "current_bid": "200 kr",
           "reserve_price": "500 kr",
-          "time_left": "6d, 1h, 38m, 47s",
+          "time_left": "5d, 22h, 43m, 7s",
           "location": "Kristianstad",
           "auction_number": "834215",
-          "image_url": "",
+          "image_url": "https://siko-im460.fra1.cdn.digitaloceanspaces.com/00834215_1.jpg",
           "items": [],
-          "scraped_at": 1757952913.0811481,
+          "scraped_at": 1757963452.8322182,
           "search_term_used": "radiostyrd",
           "found_via": "radiostyrd",
-          "cached_at": 1757952915.45861
+          "cached_at": 1757963455.5231264
         },
         {
           "id": "834218",
           "url": "https://sikoauktioner.se/auktion/834218",
           "title": "Radiostyrd - Sikö Auktioner",
-          "description": "Radiostyrd - Sikö Auktioner",
+          "description": "5d, 22h, 45m, 6sKristianstad",
           "current_bid": "0 kr",
           "reserve_price": "500 kr",
-          "time_left": "6d, 1h, 40m, 46s",
+          "time_left": "5d, 22h, 45m, 6s",
           "location": "Kristianstad",
           "auction_number": "834218",
-          "image_url": "",
+          "image_url": "https://siko-im460.fra1.cdn.digitaloceanspaces.com/00834218_1.jpg",
           "items": [],
-          "scraped_at": 1757952914.1814544,
+          "scraped_at": 1757963453.945014,
           "search_term_used": "radiostyrd",
           "found_via": "radiostyrd",
-          "cached_at": 1757952915.458611
+          "cached_at": 1757963455.523127
         },
         {
           "id": "834221",
           "url": "https://sikoauktioner.se/auktion/834221",
           "title": "Radiostyrd - Sikö Auktioner",
-          "description": "Radiostyrd - Sikö Auktioner",
+          "description": "5d, 22h, 47m, 5sKristianstad",
           "current_bid": "50 kr",
           "reserve_price": "600 kr",
-          "time_left": "6d, 1h, 42m, 45s",
+          "time_left": "5d, 22h, 47m, 5s",
           "location": "Kristianstad",
           "auction_number": "834221",
-          "image_url": "",
+          "image_url": "https://siko-im460.fra1.cdn.digitaloceanspaces.com/00834221_1.jpg",
           "items": [],
-          "scraped_at": 1757952915.3117857,
+          "scraped_at": 1757963455.0580337,
           "search_term_used": "radiostyrd",
           "found_via": "radiostyrd",
-          "cached_at": 1757952915.4586112
+          "cached_at": 1757963455.5231273
+        },
+        {
+          "id": "834502",
+          "url": "https://sikoauktioner.se/auktion/834502",
+          "title": "Skeppsur - Sikö Auktioner",
+          "description": "Skeppsur och barometer, ljusstakar, vikter mmOm inget annat anges i beskrivningen så är objektet i normalt begagnat skick för sin ålder. Ålders- och bruksslitage kan förväntas, men mer specifika defekter eller större skador finns omnämnda som anmärkningar i objektsbeskrivningen.",
+          "current_bid": "125 kr",
+          "reserve_price": "400 kr",
+          "time_left": "6d, 23h, 44m, 5s",
+          "location": "Kristianstad",
+          "auction_number": "834502",
+          "image_url": "https://siko-im460.fra1.cdn.digitaloceanspaces.com/00834502_1.jpg",
+          "items": [],
+          "scraped_at": 1757963455.347223,
+          "search_term_used": "vikter",
+          "found_via": "vikter",
+          "cached_at": 1757963455.5231278
         }
       ],
-      "count": 4
+      "count": 5
     }
   }
 }

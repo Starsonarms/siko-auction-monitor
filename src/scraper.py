@@ -265,21 +265,107 @@ class SikoScraper:
     def _extract_description(self, soup: BeautifulSoup) -> str:
         """Extract auction description"""
         try:
-            # Look for description in various places
             import re
-            text = soup.get_text()
             
-            # Try to find description that matches the format we see in external context
-            # Look for text that appears to be a description (not just navigation)
+            # First, remove navigation and menu elements to get cleaner text
+            # Clone the soup to avoid modifying the original
+            clean_soup = BeautifulSoup(str(soup), 'html.parser')
+            
+            # Remove navigation elements
+            for nav_element in clean_soup.find_all(['nav', 'header', 'footer', 'menu']):
+                nav_element.decompose()
+            
+            # Remove elements with navigation-related classes or IDs
+            for element in clean_soup.find_all(class_=re.compile(r'nav|menu|header|footer|sidebar', re.I)):
+                element.decompose()
+            
+            # Remove script and style elements
+            for element in clean_soup.find_all(['script', 'style']):
+                element.decompose()
+            
+            # Get clean text
+            text = clean_soup.get_text()
+            
+            # For Siko auctions, the description typically follows this pattern:
+            # "Skeppsur nr. 834502 Skeppsur och barometer, ljusstakar, vikter mm"
+            # We want to extract the part after the auction number
+            
+            # Look for text that comes after any auction number pattern
+            # Simpler and more reliable approach
+            auction_match = re.search(r'nr\. \d+\s+(.+)', text)
+            if auction_match:
+                full_description = auction_match.group(1)
+                
+                # Split on condition text markers to remove them
+                condition_markers = ['Om inget', 'Avslutas:', 'Utropspris:', 'Bjud!']
+                clean_description = full_description
+                
+                for marker in condition_markers:
+                    parts = re.split(marker, clean_description, flags=re.IGNORECASE)
+                    clean_description = parts[0].strip()
+                
+                # Skip if it looks like navigation or generic content
+                if (len(clean_description) < 10 or 
+                    any(skip in clean_description.lower() for skip in 
+                       ['alla auktioner', 'allmoge', 'belysning', 'böcker', 'musik', 'etablerat', 'auktionshus', 'sikö auktioner'])):
+                    pass  # Continue to fallback methods
+                else:
+                    # Remove title word if it's duplicated at the beginning
+                    words = clean_description.split()
+                    
+                    # Get the title to compare
+                    title_elements = clean_soup.select('h1, title')
+                    title_first_word = ''
+                    if title_elements:
+                        title_text = title_elements[0].get_text(strip=True).lower()
+                        title_first_word = title_text.split()[0] if title_text else ''
+                    
+                    # If description starts with title word, skip it
+                    if words and title_first_word and words[0].lower() == title_first_word:
+                        clean_description = ' '.join(words[1:])
+                    
+                    # Final cleanup
+                    clean_description = re.sub(r'\s+', ' ', clean_description).strip()
+                    
+                    # Validate that this looks like a real description
+                    if len(clean_description) > 3:
+                        return clean_description
+            
+            # Fallback method: Look for specific description patterns in the text
+            # Sometimes the description is in a different format
+            
+            # Look for lines that contain typical Swedish auction description words
             lines = text.split('\n')
             for line in lines:
                 line = line.strip()
-                # Look for lines that seem like item descriptions
-                if (len(line) > 10 and 
-                    any(keyword in line.lower() for keyword in ['delar', 'cm', 'kg', 'st', 'antal', 'originalkartonger']) and
-                    not any(skip in line.lower() for skip in ['logga', 'meny', 'kategori', 'sök'])):
-                    return line
+                
+                # Skip short lines and navigation content
+                if (len(line) < 10 or 
+                    any(skip in line.lower() for skip in [
+                        'alla auktioner', 'allmoge', 'belysning', 'böcker', 'musik', 'film', 'cyklar', 'motorfordon',
+                        'glas', 'guld', 'silver', 'smycken', 'hushåll', 'jakt', 'vapen', 'fiske', 'klockor',
+                        'kläder', 'accessoarer', 'konst', 'kuriosa', 'ljud', 'bild', 'mattor', 'textil',
+                        'metaller', 'metallföremål', 'militaria', 'nautica', 'musikinstrument', 'möbler',
+                        'porslin', 'keramik', 'samlarforemal', 'speglar', 'sport', 'leksaker', 'hobby',
+                        'trädgård', 'verktyg', 'bygg', 'övrigt', 'tema:', 'etablerat', 'auktionshus', 'sikö',
+                        'bjud!', 'avslutas:', 'utropspris:', 'boka transport', 'spara i minneslista',
+                        'http', 'www', 'copyright', '©'
+                    ]) or
+                    line.lower().startswith(('tel:', 'email:', 'fax:')) or
+                    re.match(r'^\d+[\s\d]*kr$', line.lower()) or  # Just prices
+                    re.match(r'^\d+d,\s*\d+h,\s*\d+m,\s*\d+s$', line) or  # Time format
+                    line.lower() in ['malmö', 'stockholm', 'göteborg', 'kristianstad', 'helsingborg', 'lund']):
+                    continue
+                
+                # Look for lines that contain typical auction description words
+                if any(keyword in line.lower() for keyword in 
+                       ['och', 'mm', 'med', 'av', 'från', 'samt', 'eller', 'inkl', 'delar', 'st', 'cm', 'kg', 'vintage', 'antik']):
+                    # Additional validation - make sure it's not just a list of categories
+                    if not re.match(r'^[\w\s&,]+$', line) or ' ' in line:  # Contains spaces, likely a sentence
+                        return line
+            
             return ""
+            
         except Exception as e:
             logger.error(f"Error extracting description: {e}")
             return ""
