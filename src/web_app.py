@@ -306,6 +306,106 @@ def create_app():
             'test_data': ['item1', 'item2', 'item3']
         })
     
+    @app.route('/auctions')
+    def auctions_page():
+        """Auctions page - shows current auctions"""
+        try:
+            # Get current auctions using the same logic as test-scraper
+            scraper = SikoScraper()
+            search_words = search_manager.get_search_words()
+            
+            if not search_words:
+                return render_template('auctions.html', 
+                                     auctions=[], 
+                                     search_words=search_words,
+                                     stats={'total_auctions': 0, 'search_words_tested': []},
+                                     config=config)
+            
+            # Get auctions for all search words
+            all_auctions = []
+            for search_word in search_words:
+                auctions = scraper.search_auctions(search_word)
+                for auction in auctions:
+                    auction['found_via'] = search_word
+                all_auctions.extend(auctions)
+            
+            # Remove duplicates based on auction ID
+            seen_ids = set()
+            unique_auctions = []
+            for auction in all_auctions:
+                auction_id = auction.get('id')
+                if auction_id and auction_id not in seen_ids:
+                    seen_ids.add(auction_id)
+                    unique_auctions.append(auction)
+            
+            stats = {
+                'total_auctions': len(unique_auctions),
+                'search_words_tested': search_words
+            }
+            
+            return render_template('auctions.html', 
+                                 auctions=unique_auctions,
+                                 search_words=search_words,
+                                 stats=stats,
+                                 config=config)
+            
+        except Exception as e:
+            logger.error(f"Error loading auctions page: {e}")
+            flash(f"Error loading auctions: {str(e)}", 'error')
+            return render_template('auctions.html', 
+                                 auctions=[], 
+                                 search_words=[],
+                                 stats={'total_auctions': 0, 'search_words_tested': []},
+                                 config=config)
+    
+    @app.route('/api/auctions')
+    def get_auctions():
+        """API endpoint to get current auctions"""
+        try:
+            scraper = SikoScraper()
+            search_words = search_manager.get_search_words()
+            
+            if not search_words:
+                return jsonify({
+                    'status': 'warning',
+                    'message': 'No search words configured',
+                    'auctions': [],
+                    'total_auctions': 0
+                })
+            
+            # Get auctions for all search words
+            all_auctions = []
+            for search_word in search_words:
+                auctions = scraper.search_auctions(search_word)
+                for auction in auctions:
+                    auction['found_via'] = search_word
+                all_auctions.extend(auctions)
+            
+            # Remove duplicates based on auction ID
+            seen_ids = set()
+            unique_auctions = []
+            for auction in all_auctions:
+                auction_id = auction.get('id')
+                if auction_id and auction_id not in seen_ids:
+                    seen_ids.add(auction_id)
+                    unique_auctions.append(auction)
+            
+            return jsonify({
+                'status': 'success',
+                'auctions': unique_auctions,
+                'total_auctions': len(unique_auctions),
+                'search_words_tested': search_words
+            })
+            
+        except Exception as e:
+            logger.error(f"Error getting auctions via API: {e}")
+            return jsonify({
+                'status': 'error',
+                'error': str(e),
+                'auctions': [],
+                'total_auctions': 0
+            }), 500
+    
     @app.route('/config')
     def config_page():
         """Configuration page"""

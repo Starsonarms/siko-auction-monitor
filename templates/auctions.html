@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+
+{% block title %}Auctions - Siko Auction Monitor{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1><i class="fas fa-hammer"></i> Current Auctions</h1>
+                <p class="text-muted">
+                    {% if stats.total_auctions > 0 %}
+                        Found {{ stats.total_auctions }} auction{{ "s" if stats.total_auctions != 1 else "" }} matching your search terms
+                    {% else %}
+                        No auctions currently match your search terms
+                    {% endif %}
+                </p>
+            </div>
+            <div>
+                <button class="btn btn-primary" onclick="refreshAuctions()" id="refresh-btn">
+                    <i class="fas fa-sync"></i> Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-list-ol"></i> Total Auctions
+            </div>
+            <div class="card-body text-center">
+                <h3 class="text-primary">{{ stats.total_auctions }}</h3>
+                <small class="text-muted">Currently matching</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-search"></i> Search Terms
+            </div>
+            <div class="card-body text-center">
+                <h3 class="text-success">{{ stats.search_words_tested|length }}</h3>
+                <small class="text-muted">Active searches</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-clock"></i> Last Updated
+            </div>
+            <div class="card-body text-center">
+                <span id="last-updated" class="small">Just now</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-tags"></i> Search Words
+            </div>
+            <div class="card-body">
+                {% if stats.search_words_tested %}
+                    {% for word in stats.search_words_tested %}
+                        <span class="badge bg-secondary me-1">{{ word }}</span>
+                    {% endfor %}
+                {% else %}
+                    <small class="text-muted">None configured</small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Auctions Content -->
+<div class="row" id="auctions-content">
+    {% if not search_words %}
+        <!-- No search words configured -->
+        <div class="col-12">
+            <div class="alert alert-warning">
+                <h5><i class="fas fa-exclamation-triangle"></i> No Search Words Configured</h5>
+                <p>You need to configure search words to start monitoring auctions.</p>
+                <a href="{{ url_for('index') }}" class="btn btn-primary">
+                    <i class="fas fa-arrow-left"></i> Go to Dashboard to Add Search Words
+                </a>
+            </div>
+        </div>
+    {% elif not auctions %}
+        <!-- No auctions found -->
+        <div class="col-12">
+            <div class="alert alert-info">
+                <h5><i class="fas fa-info-circle"></i> No Auctions Found</h5>
+                <p>No auctions currently match your search terms: 
+                    {% for word in search_words %}
+                        <span class="badge bg-secondary">{{ word }}</span>{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                </p>
+                <p class="mb-0">Try checking back later or adding more search terms.</p>
+            </div>
+        </div>
+    {% else %}
+        <!-- Display auctions -->
+        {% for auction in auctions %}
+        <div class="col-lg-6 col-xl-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="badge bg-primary">{{ auction.found_via }}</span>
+                    {% if auction.get('time_left') %}
+                        <small class="text-muted">
+                            <i class="fas fa-clock"></i> {{ auction.time_left }}
+                        </small>
+                    {% endif %}
+                </div>
+                
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <a href="{{ auction.url }}" target="_blank" class="text-decoration-none">
+                            {{ auction.title }}
+                        </a>
+                    </h6>
+                    
+                    <!-- Auction Details -->
+                    <div class="mb-3">
+                        {% if auction.get('location') %}
+                            <p class="mb-1">
+                                <i class="fas fa-map-marker-alt text-muted"></i> {{ auction.location }}
+                            </p>
+                        {% endif %}
+                        
+                        {% if auction.get('end_date') %}
+                            <p class="mb-1">
+                                <i class="fas fa-calendar text-muted"></i> Ends: {{ auction.end_date }}
+                            </p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Pricing Information -->
+                    <div class="row mb-3">
+                        {% if auction.get('current_bid') %}
+                            <div class="col-6">
+                                <div class="text-center p-2 bg-light rounded">
+                                    <small class="text-muted">Current Bid</small>
+                                    <div class="fw-bold text-success">{{ auction.current_bid }}</div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% if auction.get('reserve_price') %}
+                            <div class="col-6">
+                                <div class="text-center p-2 bg-light rounded">
+                                    <small class="text-muted">Starting Price</small>
+                                    <div class="fw-bold">{{ auction.reserve_price }}</div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Description -->
+                    {% if auction.get('description') %}
+                        <p class="card-text small text-muted">
+                            {{ auction.description[:150] }}{% if auction.description|length > 150 %}...{% endif %}
+                        </p>
+                    {% endif %}
+                    
+                    <!-- Items -->
+                    {% if auction.get('items') and auction.items %}
+                        <div class="mb-3">
+                            <small class="text-muted">
+                                <i class="fas fa-boxes"></i> {{ auction.items|length }} item{{ "s" if auction.items|length != 1 else "" }}
+                            </small>
+                            <div class="mt-1">
+                                {% for item in auction.items[:3] %}
+                                    <div class="small">• {{ item.title if item.get('title') else item }}</div>
+                                {% endfor %}
+                                {% if auction.items|length > 3 %}
+                                    <div class="small text-muted">... and {{ auction.items|length - 3 }} more</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="card-footer bg-transparent">
+                    <div class="d-grid">
+                        <a href="{{ auction.url }}" target="_blank" class="btn btn-primary btn-sm">
+                            <i class="fas fa-external-link-alt"></i> View Auction
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% endif %}
+</div>
+
+<!-- Loading overlay for refresh -->
+<div id="loading-overlay" class="d-none">
+    <div class="row">
+        <div class="col-12 text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading current auctions...</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function refreshAuctions() {
+        const refreshBtn = document.getElementById('refresh-btn');
+        const originalText = refreshBtn.innerHTML;
+        const auctionsContent = document.getElementById('auctions-content');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        
+        // Show loading state
+        refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+        refreshBtn.disabled = true;
+        
+        // Hide auctions and show loading
+        auctionsContent.classList.add('d-none');
+        loadingOverlay.classList.remove('d-none');
+        
+        fetch('/api/auctions')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Reload the page to show updated auctions
+                location.reload();
+            } else {
+                // Show error
+                auctionsContent.classList.remove('d-none');
+                loadingOverlay.classList.add('d-none');
+                
+                // You could add error handling here
+                console.error('Error refreshing auctions:', data.error || data.message);
+                alert('Error refreshing auctions: ' + (data.error || data.message));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error refreshing auctions: ' + error);
+            
+            // Restore UI
+            auctionsContent.classList.remove('d-none');
+            loadingOverlay.classList.add('d-none');
+        })
+        .finally(() => {
+            // Restore button
+            refreshBtn.innerHTML = originalText;
+            refreshBtn.disabled = false;
+        });
+    }
+    
+    // Update timestamp on load
+    document.addEventListener('DOMContentLoaded', function() {
+        const now = new Date();
+        document.getElementById('last-updated').textContent = now.toLocaleTimeString();
+    });
+</script>
+{% endblock %}
