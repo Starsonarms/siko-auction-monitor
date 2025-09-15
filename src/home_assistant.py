@@ -190,7 +190,7 @@ class HomeAssistantNotifier:
             # Add additional data for mobile notifications
             if "mobile_app" in domain or "mobile_app" in service:
                 notification_data = {
-                    "url": "homeassistant://navigate/siko-akutioner/0",  # Deep link to open in companion app
+                    "url": f"{self.ha_url.replace(':8123', ':5000')}/auctions",  # Direct link to auctions page
                     "group": "auction_notifications",
                     "tag": f"auction_{auction.get('id', 'unknown')}",
                     "actions": [
@@ -200,9 +200,9 @@ class HomeAssistantNotifier:
                             "url": auction.get('url', '')
                         },
                         {
-                            "action": "view_dashboard_web",
-                            "title": "Open in Browser",
-                            "url": f"{self.ha_url}/siko-akutioner/0"
+                            "action": "view_auctions_page",
+                            "title": "View All Auctions",
+                            "url": f"{self.ha_url.replace(':8123', ':5000')}/auctions"
                         }
                     ]
                 }
