@@ -1,0 +1,65 @@
+# Home Assistant Dashboard Configuration for Siko Auction Monitor
+# This file should be added to your Home Assistant configuration
+# Path: /config/ui-lovelace-siko-akutioner.yaml (or through the UI)
+
+title: Siko Auction Monitor
+views:
+  - title: Auctions
+    path: 0
+    icon: mdi:gavel
+    cards:
+      # Main Auctions Page in iframe
+      - type: iframe
+        url: http://homeassistant.local:5000/auctions
+        aspect_ratio: 100%
+        title: Current Auctions
+      
+      # Quick Actions Card
+      - type: entities
+        title: Quick Actions
+        entities:
+          - entity: sensor.time
+            name: Last Updated
+            icon: mdi:clock-outline
+        header:
+          type: buttons
+          entities:
+            - entity: script.refresh_auctions  # You would need to create this script
+              name: Refresh
+              icon: mdi:refresh
+              tap_action:
+                action: call-service
+                service: homeassistant.update_entity
+                service_data:
+                  entity_id: sensor.time
+      
+      # Alternative: Direct links card if iframe doesn't work well
+      - type: markdown
+        content: |
+          ## Siko Auction Monitor
+          
+          📋 [View All Auctions](http://homeassistant.local:5000/auctions)
+          
+          🏠 [Dashboard](http://homeassistant.local:5000/)
+          
+          ⚙️ [Configuration](http://homeassistant.local:5000/config)
+          
+          📊 [Logs](http://homeassistant.local:5000/logs)
+          
+          ---
+          
+          ### Quick Actions
+          - Tap notification to open this dashboard
+          - Use "View Auction" to see specific auction on Siko
+          - Use "View Web Auctions" for full web interface
+        title: Siko Auction Monitor
+
+# Alternative minimal configuration if you prefer a simpler approach:
+# views:
+#   - title: Auctions
+#     path: 0  
+#     icon: mdi:gavel
+#     cards:
+#       - type: iframe
+#         url: http://homeassistant.local:5000/auctions
+#         aspect_ratio: 100%
