@@ -190,7 +190,7 @@ class HomeAssistantNotifier:
             # Add additional data for mobile notifications
             if "mobile_app" in domain:
                 notification_data = {
-                    "url": "http://homeassistant.local:8123/siko-akutioner/",  # Dashboard URL
+                    "url": f"{self.ha_url}/siko-akutioner/",  # Dashboard URL
                     "group": "auction_notifications",
                     "tag": f"auction_{auction.get('id', 'unknown')}",
                     "actions": [
