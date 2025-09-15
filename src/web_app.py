@@ -394,11 +394,23 @@ def create_app():
         try:
             log_file = config.log_file
             if os.path.exists(log_file):
-                with open(log_file, 'r') as f:
-                    # Get last 100 lines
-                    lines = f.readlines()
-                    recent_lines = lines[-100:] if len(lines) > 100 else lines
-                    log_content = ''.join(recent_lines)
+                # Try different encodings for Swedish characters
+                encodings_to_try = ['utf-8', 'iso-8859-1', 'cp1252', 'utf-8-sig']
+                log_content = None
+                
+                for encoding in encodings_to_try:
+                    try:
+                        with open(log_file, 'r', encoding=encoding) as f:
+                            # Get last 100 lines
+                            lines = f.readlines()
+                            recent_lines = lines[-100:] if len(lines) > 100 else lines
+                            log_content = ''.join(recent_lines)
+                            break  # Success, stop trying other encodings
+                    except UnicodeDecodeError:
+                        continue  # Try next encoding
+                
+                if log_content is None:
+                    log_content = "Could not read log file with supported encodings."
             else:
                 log_content = "Log file not found."
             
