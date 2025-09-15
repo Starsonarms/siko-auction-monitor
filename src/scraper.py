@@ -360,27 +360,43 @@ class SikoScraper:
         try:
             from urllib.parse import urljoin
             
-            # Try different image selectors common on auction sites
-            image_selectors = [
-                'img[src*="bilder"]',  # Common Swedish auction site pattern
-                'img[src*="images"]',  # English sites
-                'img[src*="foto"]',    # Swedish photo
-                'img[src*="auction"]', # Auction images
-                'img[class*="main"]',  # Main image
-                'img[class*="primary"]', # Primary image
-                '.auction-image img',   # Auction image container
-                '.item-image img',      # Item image container
-                '.hero-image img',      # Hero section
-                'img[alt*="auction"]', # Alt text contains auction
-                'img[alt*="lot"]',     # Alt text contains lot
+            # Find all images first
+            all_images = soup.find_all('img', src=True)
+            
+            if not all_images:
+                return ""
+            
+            # For Siko auctions, look for CDN images first (most likely to be main auction images)
+            for img in all_images:
+                src = img.get('src', '')
+                
+                # Siko uses DigitalOcean Spaces CDN for auction images
+                if 'digitaloceanspaces.com' in src or 'siko-im' in src:
+                    if src.startswith('//'):
+                        return f"https:{src}"
+                    elif src.startswith('http'):
+                        return src
+                    elif src.startswith('/'):
+                        return urljoin(self.base_url, src)
+                    else:
+                        return urljoin(auction_url, src)
+            
+            # Next priority: images with auction-related patterns
+            image_patterns = [
+                'bilder',     # Swedish for pictures
+                'images',     # English
+                'foto',       # Swedish for photo
+                'bild',       # Swedish for picture
+                'thumb',      # Thumbnail
+                'auction',    # Auction images
+                'item',       # Item images
+                'product',    # Product images
             ]
             
-            for selector in image_selectors:
-                images = soup.select(selector)
-                for img in images:
-                    src = img.get('src')
-                    if src:
-                        # Make absolute URL
+            for pattern in image_patterns:
+                for img in all_images:
+                    src = img.get('src', '')
+                    if pattern in src.lower():
                         if src.startswith('http'):
                             return src
                         elif src.startswith('//'):
@@ -390,26 +406,45 @@ class SikoScraper:
                         else:
                             return urljoin(auction_url, src)
             
-            # Fallback: try any image that looks substantial (not icons/buttons)
-            all_images = soup.find_all('img', src=True)
+            # Check for images with good alt text (like the LEGO Technic example)
             for img in all_images:
-                src = img.get('src')
-                alt = img.get('alt', '').lower()
+                alt = img.get('alt', '').lower().strip()
+                src = img.get('src', '')
                 
-                # Skip likely non-content images
-                if any(skip in src.lower() for skip in ['logo', 'icon', 'button', 'arrow', 'menu']):
+                # Skip empty alt text or likely non-content images
+                if not alt or any(skip in alt for skip in ['logo', 'icon', 'button', 'menu', 'arrow']):
                     continue
-                if any(skip in alt for skip in ['logo', 'icon', 'button', 'menu']):
+                    
+                if any(skip in src.lower() for skip in ['logo', 'icon', 'button', 'arrow', 'menu', 'nav']):
                     continue
                 
-                # Prefer images with meaningful alt text or larger dimensions
+                # If alt text seems meaningful (more than just generic words), use it
+                if len(alt) > 3 and alt != 'image' and alt != 'photo':
+                    if src.startswith('http'):
+                        return src
+                    elif src.startswith('//'):
+                        return f"https:{src}"
+                    elif src.startswith('/'):
+                        return urljoin(self.base_url, src)
+                    else:
+                        return urljoin(auction_url, src)
+            
+            # Fallback: any remaining image that's not obviously an icon/logo
+            for img in all_images:
+                src = img.get('src', '')
+                
+                # Skip obvious non-content images
+                if any(skip in src.lower() for skip in ['logo', 'icon', 'button', 'arrow', 'menu', 'nav', 'header', 'footer']):
+                    continue
+                
+                # Check dimensions if available
                 width = img.get('width')
                 height = img.get('height')
                 
                 if width and height:
                     try:
                         w, h = int(width), int(height)
-                        if w > 100 and h > 100:  # Likely content image
+                        if w > 50 and h > 50:  # Reasonable size for content image
                             if src.startswith('http'):
                                 return src
                             elif src.startswith('//'):
@@ -419,10 +454,10 @@ class SikoScraper:
                             else:
                                 return urljoin(auction_url, src)
                     except ValueError:
-                        continue
+                        pass
                 
-                # If no dimensions, check if it has auction-related alt text
-                if alt and any(word in alt for word in ['auction', 'lot', 'item', 'photo', 'bild']):
+                # If no dimensions info, just use the first non-excluded image
+                if src and '.' in src:  # Has file extension
                     if src.startswith('http'):
                         return src
                     elif src.startswith('//'):
