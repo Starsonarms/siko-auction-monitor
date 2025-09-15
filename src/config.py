@@ -5,15 +5,15 @@ Configuration management for Siko Auction Monitor
 import os
 from typing import Optional
 from pydantic_settings import BaseSettings
-from pydantic import HttpUrl
+from pydantic import HttpUrl, Field
 
 class Config(BaseSettings):
     """Application configuration"""
     
     # Home Assistant configuration
-    home_assistant_url: str = "http://homeassistant.local:8123"
-    home_assistant_token: str = ""
-    home_assistant_service: str = "notify.mobile_app_your_iphone"
+    home_assistant_url: str = Field(default="http://homeassistant.local:8123", alias="HA_URL")
+    home_assistant_token: str = Field(default="", alias="HA_TOKEN")
+    home_assistant_service: str = Field(default="notify.mobile_app_your_iphone", alias="HA_SERVICE")
     
     # Monitoring configuration
     check_interval_minutes: int = 15
