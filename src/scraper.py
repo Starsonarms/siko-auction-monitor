@@ -267,69 +267,71 @@ class SikoScraper:
         try:
             import re
             
-            # First, remove navigation and menu elements to get cleaner text
-            # Clone the soup to avoid modifying the original
+            # Get raw text first to ensure we have all content including auction description
+            raw_text = soup.get_text()
+            
+            # Apply selective cleaning - remove only scripts and styles but preserve content
             clean_soup = BeautifulSoup(str(soup), 'html.parser')
             
-            # Remove navigation elements
-            for nav_element in clean_soup.find_all(['nav', 'header', 'footer', 'menu']):
-                nav_element.decompose()
-            
-            # Remove elements with navigation-related classes or IDs
-            for element in clean_soup.find_all(class_=re.compile(r'nav|menu|header|footer|sidebar', re.I)):
-                element.decompose()
-            
-            # Remove script and style elements
+            # Remove only scripts and styles, not content areas
             for element in clean_soup.find_all(['script', 'style']):
                 element.decompose()
             
-            # Get clean text
-            text = clean_soup.get_text()
+            # Get text (less aggressive cleaning for title extraction)
+            text = raw_text  # Use raw text for content extraction
             
-            # For Siko auctions, the description typically follows this pattern:
-            # "Skeppsur nr. 834502 Skeppsur och barometer, ljusstakar, vikter mm"
-            # We want to extract the part after the auction number
+            # For Siko auctions, extract the complete auction section including title and number
+            # We want: "Radiostyrd\nnr. 834215\nRadiostyrd modell, Tamiya, Stadium Rider, 1:10\n\nAnmärkningar: Obegagnad"
             
-            # Look for text that comes after any auction number pattern
-            # Simpler and more reliable approach
-            auction_match = re.search(r'nr\. \d+\s+(.+)', text)
-            if auction_match:
-                full_description = auction_match.group(1)
+            # Look for the auction number first to identify which auction this is
+            auction_number_match = re.search(r'nr\. (\d+)', text)
+            if auction_number_match:
+                auction_number = auction_number_match.group(1)
                 
-                # Split on condition text markers to remove them
-                condition_markers = ['Om inget', 'Avslutas:', 'Utropspris:', 'Bjud!']
-                clean_description = full_description
+                # Try to find the complete auction section (title + nr + description) until "Om inget"
+                # This pattern looks for auction title, followed by the number, then description
+                auction_section_patterns = [
+                    # Pattern 1: Look for the complete section that appears near the end
+                    rf'(\w+\s*nr\. {auction_number}\s+.*?)Om inget',
+                    # Pattern 2: More specific pattern
+                    rf'([A-Za-zÅÄÖåäö]+\s+nr\. {auction_number}.*?)Om inget',
+                    # Pattern 3: Generic fallback
+                    rf'(.*nr\. {auction_number}.*?)Om inget'
+                ]
                 
-                for marker in condition_markers:
-                    parts = re.split(marker, clean_description, flags=re.IGNORECASE)
-                    clean_description = parts[0].strip()
-                
-                # Skip if it looks like navigation or generic content
-                if (len(clean_description) < 10 or 
-                    any(skip in clean_description.lower() for skip in 
-                       ['alla auktioner', 'allmoge', 'belysning', 'böcker', 'musik', 'etablerat', 'auktionshus', 'sikö auktioner'])):
-                    pass  # Continue to fallback methods
-                else:
-                    # Remove title word if it's duplicated at the beginning
-                    words = clean_description.split()
-                    
-                    # Get the title to compare
-                    title_elements = clean_soup.select('h1, title')
-                    title_first_word = ''
-                    if title_elements:
-                        title_text = title_elements[0].get_text(strip=True).lower()
-                        title_first_word = title_text.split()[0] if title_text else ''
-                    
-                    # If description starts with title word, skip it
-                    if words and title_first_word and words[0].lower() == title_first_word:
-                        clean_description = ' '.join(words[1:])
-                    
-                    # Final cleanup
-                    clean_description = re.sub(r'\s+', ' ', clean_description).strip()
-                    
-                    # Validate that this looks like a real description
-                    if len(clean_description) > 3:
-                        return clean_description
+                for pattern in auction_section_patterns:
+                    auction_match = re.search(pattern, text, re.DOTALL | re.IGNORECASE)
+                    if auction_match:
+                        full_auction_desc = auction_match.group(1).strip()
+                        
+                        # Skip if it's too short or contains obvious navigation/bid content
+                        if (len(full_auction_desc) < 10 or 
+                            'bjud!' in full_auction_desc.lower() or
+                            'utropspris:' in full_auction_desc.lower() or
+                            'avslutas:' in full_auction_desc.lower() or
+                            'lägg ditt' in full_auction_desc.lower() or
+                            'alla auktioner' in full_auction_desc.lower() or
+                            len(full_auction_desc) > 500):  # Too long, probably got navigation
+                            continue
+                        
+                        # Clean and format the description
+                        # Remove extra whitespace but preserve line structure
+                        lines = [line.strip() for line in full_auction_desc.split('\n') if line.strip()]
+                        clean_desc = '\n'.join(lines)
+                        
+                        # Replace multiple spaces with single spaces within lines
+                        clean_desc = re.sub(r' +', ' ', clean_desc)
+                        
+                        # Format the auction number section nicely with inline CSS bold formatting
+                        clean_desc = re.sub(rf'(\w+)\s*(nr\. {auction_number})\s*', r'<span style="font-weight: bold;">\1</span><br><span style="font-weight: bold;">\2</span><br>', clean_desc)
+                        
+                        # Add single line break before "Anmärkningar:"
+                        clean_desc = re.sub(r'([^\n])Anmärkningar:', r'\1<br>Anmärkningar:', clean_desc)
+                        
+                        # Final validation - should contain the auction number and some description
+                        if (auction_number in clean_desc and 
+                            len(clean_desc.replace(auction_number, '').strip()) > 10):
+                            return clean_desc
             
             # Fallback method: Look for specific description patterns in the text
             # Sometimes the description is in a different format

@@ -50,7 +50,14 @@ Required settings:
 
 ### 4. Add Search Words
 
-Add your first search words:
+Add your first search words using the management script:
+```bash
+python manage.py add-search antique
+python manage.py add-search "vintage tools"
+python manage.py list-searches
+```
+
+Or use the old method:
 ```bash
 python -m src.main --add-search "antique"
 python -m src.main --add-search "vintage tools"
@@ -59,13 +66,21 @@ python -m src.main --list-searches
 
 ### 5. Test the Setup
 
-Test scraper:
+Test the scraper using the management script:
 ```bash
-python -m src.main --once
+python manage.py test-scraper
+python manage.py test-search tamiya
+python manage.py check-once
 ```
 
-Or use the web interface:
+Start the web interface:
 ```bash
+python manage.py start-web
+```
+
+Or use the old methods:
+```bash
+python -m src.main --once
 python -m src.web_app
 ```
 
@@ -195,7 +210,26 @@ See `HOME_ASSISTANT_DASHBOARD_SETUP.md` for detailed instructions.
 
 ## Usage
 
-### Command Line
+### Management Script (Recommended)
+
+```bash
+# Test functionality
+python manage.py test-scraper        # Test if the auction scraper works
+python manage.py test-ha             # Test Home Assistant connection
+python manage.py test-notification   # Send test notification to phone
+python manage.py test-search WORD    # Test search for specific word
+
+# Run monitoring
+python manage.py check-once          # Run a single auction check
+python manage.py start-monitor       # Start continuous monitoring
+python manage.py start-web           # Start the web interface
+
+# Manage search words
+python manage.py add-search WORD     # Add a search word
+python manage.py list-searches       # List all current search words
+```
+
+### Command Line (Alternative)
 
 ```bash
 # Run once
@@ -334,10 +368,19 @@ Cache files are stored in `cache/auction_cache.json` and managed automatically.
 - **Responsive sizing**: 200px height with proper aspect ratio
 
 ### Smart Descriptions
-- **Actual auction content**: Extracts real descriptions like "och barometer, ljusstakar, vikter mm"
+- **Complete auction information**: Extracts full auction details including title, auction number, and description
+- **Bold formatting**: Auction titles and numbers displayed in bold for better readability
+- **Compact layout**: Clean, single-line spacing without extra empty rows
+- **Full text display**: Shows complete descriptions including "Anmärkningar" (remarks) section
 - **Content filtering**: Removes navigation menus and generic site content
-- **Condition text removal**: Filters out standard condition disclaimers
-- **Title deduplication**: Removes repeated auction titles from descriptions
+- **Condition text removal**: Filters out standard condition disclaimers ("Om inget annat...")
+- **Example output**:
+  ```
+  **Radiostyrd**
+  **nr. 834215** 
+  Radiostyrd modell, Tamiya, Stadium Rider, 1:10
+  Anmärkningar: Obegagnad
+  ```
 
 ## Development
 

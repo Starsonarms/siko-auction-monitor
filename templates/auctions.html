@@ -189,9 +189,10 @@
                     
                     <!-- Description -->
                     {% if auction.get('description') %}
-                        <p class="card-text small text-muted">
-                            {{ auction.description[:150] }}{% if auction.description|length > 150 %}...{% endif %}
-                        </p>
+                        <div class="card-text small text-muted">
+                            {% set desc_preview = auction.description[:300] %}
+                            {{ desc_preview | safe }}{% if auction.description|length > 300 %}...{% endif %}
+                        </div>
                     {% endif %}
                     
                     <!-- Items -->
