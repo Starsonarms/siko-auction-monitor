@@ -106,11 +106,26 @@ mkdir -p logs config
 ### 3. Set up as System Service
 
 ```bash
+# Copy and set up the startup script
+cp scripts/start-service.sh .
+chmod +x start-service.sh
+
+# Edit the script to use your username (replace "pi" with your actual username)
+nano start-service.sh
+# Change: cd /home/pi/siko-auction-monitor
+# To: cd /home/your_username/siko-auction-monitor
+
 # Copy service file
 sudo cp scripts/siko-auction-monitor.service /etc/systemd/system/
 
-# Edit service file with correct paths
+# Edit service file with correct paths and username
 sudo nano /etc/systemd/system/siko-auction-monitor.service
+
+# You need to replace all instances of "pi" with your actual username:
+# - User=pi → User=your_username
+# - Group=pi → Group=your_username  
+# - /home/pi/ → /home/your_username/
+# (Find your username with: whoami)
 
 # Enable and start service
 sudo systemctl daemon-reload
@@ -233,6 +248,17 @@ Examples:
 **Wrong directory paths:**
 - Use `cd ~` instead of `cd /home/pi` (works with any username)
 - Find your home directory with `echo $HOME` if unsure
+
+**Service file errors:**
+- Update all "pi" references in the service file to your actual username
+- Check User=, Group=, WorkingDirectory=, ExecStart=, EnvironmentFile=, and ReadWritePaths=
+- Find your username with `whoami`
+- If you get "CHDIR" errors, the issue is likely `ProtectHome=true` - change it to `ProtectHome=false`
+
+**Service won't start (203/EXEC errors):**
+- Make sure the startup script exists and is executable: `chmod +x start-service.sh`
+- Check that the script uses the correct username in the path
+- Verify the script works manually: `./start-service.sh`
 
 ### Logs
 
