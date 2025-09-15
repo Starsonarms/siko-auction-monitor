@@ -12,6 +12,7 @@ from .search_manager import SearchManager
 from .home_assistant import HomeAssistantNotifier
 from .scraper import SikoScraper
 from .config import get_config
+from .auction_cache import AuctionCache
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +26,45 @@ def create_app():
     
     config = get_config()
     search_manager = SearchManager()
+    auction_cache = AuctionCache()
+    
+    def get_current_auctions():
+        """Shared function to get current auctions with caching"""
+        search_words = search_manager.get_search_words()
+        
+        if not search_words:
+            return [], search_words
+        
+        # Try to get from cache first
+        cached_auctions = auction_cache.get_cached_auctions(search_words)
+        if cached_auctions is not None:
+            logger.debug(f"Using cached auctions ({len(cached_auctions)} items)")
+            return cached_auctions, search_words
+        
+        # Cache miss - fetch fresh data
+        logger.debug("Cache miss - fetching fresh auction data")
+        scraper = SikoScraper()
+        all_auctions = []
+        
+        for search_word in search_words:
+            auctions = scraper.search_auctions(search_word)
+            for auction in auctions:
+                auction['found_via'] = search_word
+            all_auctions.extend(auctions)
+        
+        # Remove duplicates based on auction ID
+        seen_ids = set()
+        unique_auctions = []
+        for auction in all_auctions:
+            auction_id = auction.get('id')
+            if auction_id and auction_id not in seen_ids:
+                seen_ids.add(auction_id)
+                unique_auctions.append(auction)
+        
+        # Cache the results
+        auction_cache.cache_auctions(search_words, unique_auctions)
+        
+        return unique_auctions, search_words
     
     @app.after_request
     def after_request(response):
@@ -175,8 +215,7 @@ def create_app():
     def test_scraper():
         """Test the scraper functionality using configured search words"""
         try:
-            scraper = SikoScraper()
-            search_words = search_manager.get_search_words()
+            unique_auctions, search_words = get_current_auctions()
             
             if not search_words:
                 return jsonify({
@@ -185,26 +224,6 @@ def create_app():
                     'auctions_found': 0,
                     'auctions': []
                 })
-            
-            # Test with actual search terms
-            all_auctions = []
-            total_found = 0
-            
-            for search_word in search_words:  # Test all search words
-                auctions = scraper.search_auctions(search_word)
-                for auction in auctions:
-                    auction['found_via'] = search_word
-                all_auctions.extend(auctions)
-                total_found += len(auctions)
-            
-            # Remove duplicates based on auction ID
-            seen_ids = set()
-            unique_auctions = []
-            for auction in all_auctions:
-                auction_id = auction.get('id')
-                if auction_id and auction_id not in seen_ids:
-                    seen_ids.add(auction_id)
-                    unique_auctions.append(auction)
             
             if unique_auctions:
                 return jsonify({
@@ -310,33 +329,8 @@ def create_app():
     def auctions_page():
         """Auctions page - shows current auctions"""
         try:
-            # Get current auctions using the same logic as test-scraper
-            scraper = SikoScraper()
-            search_words = search_manager.get_search_words()
-            
-            if not search_words:
-                return render_template('auctions.html', 
-                                     auctions=[], 
-                                     search_words=search_words,
-                                     stats={'total_auctions': 0, 'search_words_tested': []},
-                                     config=config)
-            
-            # Get auctions for all search words
-            all_auctions = []
-            for search_word in search_words:
-                auctions = scraper.search_auctions(search_word)
-                for auction in auctions:
-                    auction['found_via'] = search_word
-                all_auctions.extend(auctions)
-            
-            # Remove duplicates based on auction ID
-            seen_ids = set()
-            unique_auctions = []
-            for auction in all_auctions:
-                auction_id = auction.get('id')
-                if auction_id and auction_id not in seen_ids:
-                    seen_ids.add(auction_id)
-                    unique_auctions.append(auction)
+            # Use cached auction data
+            unique_auctions, search_words = get_current_auctions()
             
             stats = {
                 'total_auctions': len(unique_auctions),
@@ -362,8 +356,8 @@ def create_app():
     def get_auctions():
         """API endpoint to get current auctions"""
         try:
-            scraper = SikoScraper()
-            search_words = search_manager.get_search_words()
+            # Use cached auction data
+            unique_auctions, search_words = get_current_auctions()
             
             if not search_words:
                 return jsonify({
@@ -372,23 +366,6 @@ def create_app():
                     'auctions': [],
                     'total_auctions': 0
                 })
-            
-            # Get auctions for all search words
-            all_auctions = []
-            for search_word in search_words:
-                auctions = scraper.search_auctions(search_word)
-                for auction in auctions:
-                    auction['found_via'] = search_word
-                all_auctions.extend(auctions)
-            
-            # Remove duplicates based on auction ID
-            seen_ids = set()
-            unique_auctions = []
-            for auction in all_auctions:
-                auction_id = auction.get('id')
-                if auction_id and auction_id not in seen_ids:
-                    seen_ids.add(auction_id)
-                    unique_auctions.append(auction)
             
             return jsonify({
                 'status': 'success',

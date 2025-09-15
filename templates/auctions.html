@@ -108,6 +108,34 @@
         {% for auction in auctions %}
         <div class="col-lg-6 col-xl-4 mb-4">
             <div class="card h-100">
+                <!-- Auction Image -->
+                {% if auction.get('image_url') %}
+                    <img src="{{ auction.image_url }}" class="card-img-top auction-image" alt="{{ auction.title }}" 
+                         style="height: 200px; object-fit: cover; cursor: pointer;" 
+                         onclick="window.open('{{ auction.url }}', '_blank')" 
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" 
+                         title="Click to view auction">
+                    <div class="card-img-top bg-light d-none align-items-center justify-content-center image-placeholder" 
+                         style="height: 200px; cursor: pointer;" 
+                         onclick="window.open('{{ auction.url }}', '_blank')" 
+                         title="Click to view auction">
+                        <div class="text-center text-muted">
+                            <i class="fas fa-image fa-3x mb-2"></i>
+                            <div>No Image Available</div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center image-placeholder" 
+                         style="height: 200px; cursor: pointer;" 
+                         onclick="window.open('{{ auction.url }}', '_blank')" 
+                         title="Click to view auction">
+                        <div class="text-center text-muted">
+                            <i class="fas fa-image fa-3x mb-2"></i>
+                            <div>No Image Available</div>
+                        </div>
+                    </div>
+                {% endif %}
+                
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span class="badge bg-primary">{{ auction.found_via }}</span>
                     {% if auction.get('time_left') %}
@@ -119,7 +147,7 @@
                 
                 <div class="card-body">
                     <h6 class="card-title">
-                        <a href="{{ auction.url }}" target="_blank" class="text-decoration-none">
+                        <a href="{{ auction.url }}" target="_blank" class="auction-title">
                             {{ auction.title }}
                         </a>
                     </h6>
@@ -211,6 +239,45 @@
 {% endblock %}
 
 {% block scripts %}
+<style>
+.auction-image {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.auction-image:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: box-shadow 0.3s ease;
+}
+
+.image-placeholder {
+    transition: background-color 0.3s ease;
+}
+
+.image-placeholder:hover {
+    background-color: #f8f9fa !important;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+.auction-title {
+    color: #2c3e50;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.auction-title:hover {
+    color: #3498db;
+    text-decoration: none;
+}
+</style>
+
 <script>
     function refreshAuctions() {
         const refreshBtn = document.getElementById('refresh-btn');

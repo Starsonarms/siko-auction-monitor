@@ -90,6 +90,7 @@ class SikoScraper:
                 'time_left': self._extract_time_left(soup),
                 'location': self._extract_location(soup),
                 'auction_number': self._extract_auction_number(soup),
+                'image_url': self._extract_image(soup, auction_url),
                 'items': [],  # Single items rather than collections for this site
             }
             
@@ -352,6 +353,89 @@ class SikoScraper:
             return ""
         except Exception as e:
             logger.error(f"Error extracting location: {e}")
+            return ""
+    
+    def _extract_image(self, soup: BeautifulSoup, auction_url: str) -> str:
+        """Extract main auction image URL"""
+        try:
+            from urllib.parse import urljoin
+            
+            # Try different image selectors common on auction sites
+            image_selectors = [
+                'img[src*="bilder"]',  # Common Swedish auction site pattern
+                'img[src*="images"]',  # English sites
+                'img[src*="foto"]',    # Swedish photo
+                'img[src*="auction"]', # Auction images
+                'img[class*="main"]',  # Main image
+                'img[class*="primary"]', # Primary image
+                '.auction-image img',   # Auction image container
+                '.item-image img',      # Item image container
+                '.hero-image img',      # Hero section
+                'img[alt*="auction"]', # Alt text contains auction
+                'img[alt*="lot"]',     # Alt text contains lot
+            ]
+            
+            for selector in image_selectors:
+                images = soup.select(selector)
+                for img in images:
+                    src = img.get('src')
+                    if src:
+                        # Make absolute URL
+                        if src.startswith('http'):
+                            return src
+                        elif src.startswith('//'):
+                            return f"https:{src}"
+                        elif src.startswith('/'):
+                            return urljoin(self.base_url, src)
+                        else:
+                            return urljoin(auction_url, src)
+            
+            # Fallback: try any image that looks substantial (not icons/buttons)
+            all_images = soup.find_all('img', src=True)
+            for img in all_images:
+                src = img.get('src')
+                alt = img.get('alt', '').lower()
+                
+                # Skip likely non-content images
+                if any(skip in src.lower() for skip in ['logo', 'icon', 'button', 'arrow', 'menu']):
+                    continue
+                if any(skip in alt for skip in ['logo', 'icon', 'button', 'menu']):
+                    continue
+                
+                # Prefer images with meaningful alt text or larger dimensions
+                width = img.get('width')
+                height = img.get('height')
+                
+                if width and height:
+                    try:
+                        w, h = int(width), int(height)
+                        if w > 100 and h > 100:  # Likely content image
+                            if src.startswith('http'):
+                                return src
+                            elif src.startswith('//'):
+                                return f"https:{src}"
+                            elif src.startswith('/'):
+                                return urljoin(self.base_url, src)
+                            else:
+                                return urljoin(auction_url, src)
+                    except ValueError:
+                        continue
+                
+                # If no dimensions, check if it has auction-related alt text
+                if alt and any(word in alt for word in ['auction', 'lot', 'item', 'photo', 'bild']):
+                    if src.startswith('http'):
+                        return src
+                    elif src.startswith('//'):
+                        return f"https:{src}"
+                    elif src.startswith('/'):
+                        return urljoin(self.base_url, src)
+                    else:
+                        return urljoin(auction_url, src)
+            
+            return ""  # No suitable image found
+            
+        except Exception as e:
+            logger.error(f"Error extracting image: {e}")
             return ""
     
     def _extract_text(self, soup: BeautifulSoup, selectors: str, field_name: str) -> str:
