@@ -1,8 +1,8 @@
 {
-  "last_updated": 1758049667.8414497,
+  "last_updated": 1758050038.241249,
   "auctions": {
     "kettlebell|pinup|radiostyrd|vikter": {
-      "timestamp": 1758049667.8414435,
+      "timestamp": 1758050038.241241,
       "search_words": [
         "kettlebell",
         "pinup",
@@ -17,16 +17,16 @@
           "description": "<span style=\"font-weight: bold;\">Radiostyrd</span><br><span style=\"font-weight: bold;\">nr. 834215</span><br>Radiostyrd modell, Tamiya, Stadium Rider, 1:10<br>Anmärkningar: Obegagnad",
           "current_bid": "200 kr",
           "reserve_price": "500 kr",
-          "time_left": "4d, 22h, 46m, 16s",
+          "time_left": "4d, 22h, 40m, 5s",
           "location": "Kristianstad",
           "auction_number": "834215",
           "image_url": "https://siko-im460.fra1.cdn.digitaloceanspaces.com/00834215_1.jpg",
           "items": [],
-          "scraped_at": 1758049665.3947678,
+          "scraped_at": 1758050035.6869323,
           "search_term_used": "radiostyrd",
           "found_via": "radiostyrd",
           "is_hidden": false,
-          "cached_at": 1758049667.841442
+          "cached_at": 1758050038.241238
         },
         {
           "id": "834218",
@@ -35,16 +35,16 @@
           "description": "<span style=\"font-weight: bold;\">Radiostyrd</span><br><span style=\"font-weight: bold;\">nr. 834218</span><br>Radiostyrd bil, Kyosho VW Golf VR6, 1:10<br>Anmärkningar: Ej testad",
           "current_bid": "0 kr",
           "reserve_price": "500 kr",
-          "time_left": "4d, 22h, 48m, 15s",
+          "time_left": "4d, 22h, 42m, 4s",
           "location": "Kristianstad",
           "auction_number": "834218",
           "image_url": "https://siko-im460.fra1.cdn.digitaloceanspaces.com/00834218_1.jpg",
           "items": [],
-          "scraped_at": 1758049666.523443,
+          "scraped_at": 1758050036.8260887,
           "search_term_used": "radiostyrd",
           "found_via": "radiostyrd",
           "is_hidden": false,
-          "cached_at": 1758049667.8414426
+          "cached_at": 1758050038.2412398
         },
         {
           "id": "834221",
@@ -53,16 +53,16 @@
           "description": "<span style=\"font-weight: bold;\">Radiostyrd</span><br><span style=\"font-weight: bold;\">nr. 834221</span><br>Radiostyrd bil, Kyosho, Jordan Yamaha 192, 1:10<br>Anmärkningar: Ej testad",
           "current_bid": "50 kr",
           "reserve_price": "600 kr",
-          "time_left": "4d, 22h, 50m, 13s",
+          "time_left": "4d, 22h, 44m, 3s",
           "location": "Kristianstad",
           "auction_number": "834221",
           "image_url": "https://siko-im460.fra1.cdn.digitaloceanspaces.com/00834221_1.jpg",
           "items": [],
-          "scraped_at": 1758049667.6222932,
+          "scraped_at": 1758050037.9641438,
           "search_term_used": "radiostyrd",
           "found_via": "radiostyrd",
           "is_hidden": false,
-          "cached_at": 1758049667.841443
+          "cached_at": 1758050038.2412405
         },
         {
           "id": "834502",
@@ -71,16 +71,16 @@
           "description": "<span style=\"font-weight: bold;\">Skeppsur</span><br><span style=\"font-weight: bold;\">nr. 834502</span><br>Skeppsur och barometer, ljusstakar, vikter mm",
           "current_bid": "200 kr",
           "reserve_price": "400 kr",
-          "time_left": "5d, 23h, 47m, 13s",
+          "time_left": "5d, 23h, 41m, 3s",
           "location": "Kristianstad",
           "auction_number": "834502",
           "image_url": "https://siko-im460.fra1.cdn.digitaloceanspaces.com/00834502_1.jpg",
           "items": [],
-          "scraped_at": 1758049667.8413923,
+          "scraped_at": 1758050038.2411637,
           "search_term_used": "vikter",
           "found_via": "vikter",
           "is_hidden": false,
-          "cached_at": 1758049667.8414433
+          "cached_at": 1758050038.2412407
         }
       ],
       "count": 4
