@@ -9,6 +9,7 @@ import os
 from datetime import datetime
 from typing import Dict, List
 from .search_manager import SearchManager
+from .blacklist_manager import BlacklistManager
 from .home_assistant import HomeAssistantNotifier
 from .scraper import SikoScraper
 from .config import get_config
@@ -26,6 +27,7 @@ def create_app():
     
     config = get_config()
     search_manager = SearchManager()
+    blacklist_manager = BlacklistManager()
     auction_cache = AuctionCache()
     
     def get_current_auctions():
@@ -60,6 +62,9 @@ def create_app():
             if auction_id and auction_id not in seen_ids:
                 seen_ids.add(auction_id)
                 unique_auctions.append(auction)
+        
+        # Filter out blacklisted auctions
+        unique_auctions = blacklist_manager.filter_auctions(unique_auctions)
         
         # Cache the results
         auction_cache.cache_auctions(search_words, unique_auctions)
@@ -128,6 +133,69 @@ def create_app():
                 return jsonify({'message': f'Removed search word: {word}', 'status': 'success'})
             else:
                 return jsonify({'error': 'Search word not found', 'status': 'error'}), 404
+                
+        except Exception as e:
+            return jsonify({'error': str(e), 'status': 'error'}), 500
+    
+    @app.route('/api/blacklist', methods=['GET'])
+    def get_blacklisted_auctions():
+        """Get all blacklisted auction IDs"""
+        try:
+            blacklisted_ids = blacklist_manager.get_blacklisted_ids()
+            return jsonify({
+                'blacklisted_ids': blacklisted_ids,
+                'count': len(blacklisted_ids),
+                'status': 'success'
+            })
+        except Exception as e:
+            return jsonify({'error': str(e), 'status': 'error'}), 500
+    
+    @app.route('/api/blacklist', methods=['POST'])
+    def add_to_blacklist():
+        """Add an auction to the blacklist"""
+        try:
+            data = request.get_json()
+            auction_id = data.get('auction_id', '').strip()
+            auction_title = data.get('auction_title', '')
+            auction_url = data.get('auction_url', '')
+            
+            if not auction_id:
+                return jsonify({'error': 'Auction ID cannot be empty', 'status': 'error'}), 400
+            
+            success = blacklist_manager.add_auction(auction_id, auction_title, auction_url)
+            if success:
+                # Invalidate cache to reflect the change immediately
+                auction_cache.invalidate_cache()
+                return jsonify({
+                    'message': f'Auction {auction_id} hidden successfully',
+                    'status': 'success'
+                })
+            else:
+                return jsonify({
+                    'message': f'Auction {auction_id} was already hidden',
+                    'status': 'warning'
+                })
+                
+        except Exception as e:
+            return jsonify({'error': str(e), 'status': 'error'}), 500
+    
+    @app.route('/api/blacklist/<auction_id>', methods=['DELETE'])
+    def remove_from_blacklist(auction_id):
+        """Remove an auction from the blacklist"""
+        try:
+            success = blacklist_manager.remove_auction(auction_id)
+            if success:
+                # Invalidate cache to reflect the change immediately
+                auction_cache.invalidate_cache()
+                return jsonify({
+                    'message': f'Auction {auction_id} unhidden successfully',
+                    'status': 'success'
+                })
+            else:
+                return jsonify({
+                    'error': 'Auction not found in blacklist',
+                    'status': 'error'
+                }), 404
                 
         except Exception as e:
             return jsonify({'error': str(e), 'status': 'error'}), 500

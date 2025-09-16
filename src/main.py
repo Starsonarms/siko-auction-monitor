@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 
 from .scraper import SikoScraper
 from .search_manager import SearchManager
+from .blacklist_manager import BlacklistManager
 from .home_assistant import HomeAssistantNotifier
 from .config import get_config
 
@@ -36,6 +37,7 @@ class AuctionMonitor:
         self.config = config  # Use the global config instance
         self.scraper = SikoScraper()
         self.search_manager = SearchManager()
+        self.blacklist_manager = BlacklistManager()
         self.notifier = HomeAssistantNotifier(
             self.config.home_assistant_url,
             self.config.home_assistant_token
@@ -59,6 +61,10 @@ class AuctionMonitor:
             # Get auctions using search terms for more targeted results
             auctions = self.scraper.get_auctions(search_words)
             logger.info(f"Found {len(auctions)} auctions from search terms")
+            
+            # Filter out blacklisted auctions
+            auctions = self.blacklist_manager.filter_auctions(auctions)
+            logger.info(f"After blacklist filtering: {len(auctions)} auctions remaining")
             
             # Process new auctions
             new_auctions = []
