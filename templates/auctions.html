@@ -75,22 +75,6 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-tags"></i> Search Words
-            </div>
-            <div class="card-body">
-                {% if stats.search_words_tested %}
-                    {% for word in stats.search_words_tested %}
-                        <span class="badge bg-secondary me-1">{{ word }}</span>
-                    {% endfor %}
-                {% else %}
-                    <small class="text-muted">None configured</small>
-                {% endif %}
-            </div>
-        </div>
-    </div>
 </div>
 
 <!-- Auctions Content -->
@@ -122,7 +106,7 @@
     {% else %}
         <!-- Display auctions -->
         {% for auction in auctions %}
-        <div class="col-md-6 col-lg-4 mb-3">
+        <div class="col-6 col-lg-4 mb-3">
             <div class="card">
                 <!-- Auction Image -->
                 {% if auction.get('image_url') %}
@@ -325,8 +309,19 @@
 /* Compact card styling */
 .card {
     font-size: 0.9rem;
-    min-width: 280px;
-    max-width: 400px;
+    width: 100%; /* Ensure cards fill their column */
+}
+
+/* Ensure Bootstrap grid works properly */
+#auctions-content .row {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+#auctions-content [class*='col-'] {
+    flex: 0 0 auto;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
 }
 
 .card-title {
