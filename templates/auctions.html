@@ -106,7 +106,7 @@
     {% else %}
         <!-- Display auctions -->
         {% for auction in auctions %}
-        <div class="col-6 col-lg-4 mb-3">
+        <div class="col-auction mb-3">
             <div class="card">
                 <!-- Auction Image -->
                 {% if auction.get('image_url') %}
@@ -312,16 +312,26 @@
     width: 100%; /* Ensure cards fill their column */
 }
 
-/* Ensure Bootstrap grid works properly */
-#auctions-content .row {
-    display: flex;
-    flex-wrap: wrap;
+/* Force proper grid wrapping - AGGRESSIVE OVERRIDE */
+#auctions-content {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    margin: -0.75rem;
 }
 
-#auctions-content [class*='col-'] {
-    flex: 0 0 auto;
-    padding-left: 0.75rem;
-    padding-right: 0.75rem;
+#auctions-content > .col-auction {
+    flex: 0 0 50% !important; /* Force 2 per row */
+    max-width: 50% !important;
+    padding: 0.75rem !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+}
+
+@media (min-width: 992px) {
+    #auctions-content > .col-auction {
+        flex: 0 0 33.333333% !important; /* Force 3 per row on large screens */
+        max-width: 33.333333% !important;
+    }
 }
 
 .card-title {
