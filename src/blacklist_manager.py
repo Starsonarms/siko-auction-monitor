@@ -16,14 +16,16 @@ class BlacklistManager:
     
     def __init__(self):
         self.config = get_config()
-        self.blacklist_file = os.path.join(self.config.config_dir, 'blacklisted_auctions.json')
+        # Use the same config directory as search_words_file
+        config_dir = os.path.dirname(self.config.search_words_file)
+        self.blacklist_file = os.path.join(config_dir, 'blacklisted_auctions.json')
         self._ensure_config_dir()
         self._blacklisted_ids: Set[str] = set()
         self.load_blacklist()
     
     def _ensure_config_dir(self):
         """Ensure config directory exists"""
-        os.makedirs(self.config.config_dir, exist_ok=True)
+        os.makedirs(os.path.dirname(self.blacklist_file), exist_ok=True)
     
     def load_blacklist(self):
         """Load blacklisted auction IDs from file"""

@@ -30,21 +30,31 @@ def create_app():
     blacklist_manager = BlacklistManager()
     auction_cache = AuctionCache()
     
-    def get_current_auctions():
-        """Shared function to get current auctions with caching"""
+    def get_current_auctions(include_hidden=False):
+        """Shared function to get current auctions with caching
+        
+        Args:
+            include_hidden (bool): If True, include hidden/blacklisted auctions
+                                 If False, filter out hidden auctions (default behavior)
+        """
         search_words = search_manager.get_search_words()
         
         if not search_words:
             return [], search_words
         
-        # Try to get from cache first
-        cached_auctions = auction_cache.get_cached_auctions(search_words)
-        if cached_auctions is not None:
-            logger.debug(f"Using cached auctions ({len(cached_auctions)} items)")
-            return cached_auctions, search_words
+        # For dashboard view (include_hidden=True), we don't use cache to always get fresh data
+        # including hidden auctions for management
+        cache_key_suffix = "_with_hidden" if include_hidden else ""
         
-        # Cache miss - fetch fresh data
-        logger.debug("Cache miss - fetching fresh auction data")
+        # Try to get from cache first (only for non-hidden view)
+        if not include_hidden:
+            cached_auctions = auction_cache.get_cached_auctions(search_words)
+            if cached_auctions is not None:
+                logger.debug(f"Using cached auctions ({len(cached_auctions)} items)")
+                return cached_auctions, search_words
+        
+        # Cache miss or include_hidden=True - fetch fresh data
+        logger.debug("Fetching fresh auction data")
         scraper = SikoScraper()
         all_auctions = []
         
@@ -63,11 +73,16 @@ def create_app():
                 seen_ids.add(auction_id)
                 unique_auctions.append(auction)
         
-        # Filter out blacklisted auctions
-        unique_auctions = blacklist_manager.filter_auctions(unique_auctions)
+        # Mark which auctions are hidden for UI display
+        blacklisted_ids = blacklist_manager.get_blacklisted_ids()
+        for auction in unique_auctions:
+            auction['is_hidden'] = auction.get('id') in blacklisted_ids
         
-        # Cache the results
-        auction_cache.cache_auctions(search_words, unique_auctions)
+        # Filter out blacklisted auctions unless include_hidden is True
+        if not include_hidden:
+            unique_auctions = blacklist_manager.filter_auctions(unique_auctions)
+            # Cache the filtered results
+            auction_cache.cache_auctions(search_words, unique_auctions)
         
         return unique_auctions, search_words
     
@@ -200,6 +215,29 @@ def create_app():
         except Exception as e:
             return jsonify({'error': str(e), 'status': 'error'}), 500
     
+    @app.route('/api/blacklist/clear', methods=['DELETE'])
+    def clear_blacklist():
+        """Remove all auctions from the blacklist"""
+        try:
+            blacklisted_ids = blacklist_manager.get_blacklisted_ids()
+            count = len(blacklisted_ids)
+            
+            # Clear all blacklisted auctions
+            for auction_id in blacklisted_ids:
+                blacklist_manager.remove_auction(auction_id)
+            
+            # Invalidate cache to reflect the change immediately
+            auction_cache.invalidate_cache()
+            
+            return jsonify({
+                'message': f'All {count} hidden auctions have been unhidden',
+                'status': 'success',
+                'count': count
+            })
+                
+        except Exception as e:
+            return jsonify({'error': str(e), 'status': 'error'}), 500
+    
     @app.route('/api/config/monitoring', methods=['POST'])
     def update_monitoring_config():
         """Update monitoring configuration"""
@@ -281,9 +319,9 @@ def create_app():
     
     @app.route('/api/test-scraper')
     def test_scraper():
-        """Test the scraper functionality using configured search words"""
+        """Test the scraper functionality using configured search words (filtered view)"""
         try:
-            unique_auctions, search_words = get_current_auctions()
+            unique_auctions, search_words = get_current_auctions(include_hidden=False)
             
             if not search_words:
                 return jsonify({
@@ -304,7 +342,9 @@ def create_app():
                         'current_bid': auction.get('current_bid', 'N/A'),
                         'reserve_price': auction.get('reserve_price', 'N/A'),
                         'time_left': auction.get('time_left', 'N/A'),
-                        'found_via': auction.get('found_via', 'Unknown')
+                        'found_via': auction.get('found_via', 'Unknown'),
+                        'id': auction.get('id'),
+                        'is_hidden': auction.get('is_hidden', False)
                     } for auction in unique_auctions[:10]],  # Show up to 10 auctions
                     'message': f'Found {len(unique_auctions)} unique auction{"s" if len(unique_auctions) != 1 else ""} from {len(search_words)} search term{"s" if len(search_words) != 1 else ""}'
                 })
@@ -326,6 +366,64 @@ def create_app():
                 'status': 'error',
                 'auctions': [],
                 'auctions_found': 0
+            }), 500
+    
+    @app.route('/api/test-scraper/dashboard')
+    def test_scraper_dashboard():
+        """Test the scraper functionality for dashboard (includes hidden auctions)"""
+        try:
+            unique_auctions, search_words = get_current_auctions(include_hidden=True)
+            
+            if not search_words:
+                return jsonify({
+                    'status': 'warning',
+                    'message': 'No search words configured. Add search words to test with real searches.',
+                    'auctions_found': 0,
+                    'hidden_count': 0,
+                    'auctions': []
+                })
+            
+            # Count hidden auctions
+            hidden_count = sum(1 for auction in unique_auctions if auction.get('is_hidden', False))
+            
+            if unique_auctions:
+                return jsonify({
+                    'status': 'success',
+                    'auctions_found': len(unique_auctions),
+                    'hidden_count': hidden_count,
+                    'search_words_tested': search_words,
+                    'auctions': [{
+                        'title': auction.get('title', 'Unknown'),
+                        'url': auction.get('url', ''),
+                        'current_bid': auction.get('current_bid', 'N/A'),
+                        'reserve_price': auction.get('reserve_price', 'N/A'),
+                        'time_left': auction.get('time_left', 'N/A'),
+                        'found_via': auction.get('found_via', 'Unknown'),
+                        'id': auction.get('id'),
+                        'is_hidden': auction.get('is_hidden', False)
+                    } for auction in unique_auctions[:15]],  # Show up to 15 auctions
+                    'message': f'Found {len(unique_auctions)} unique auction{"s" if len(unique_auctions) != 1 else ""} from {len(search_words)} search term{"s" if len(search_words) != 1 else ""} ({hidden_count} hidden)'
+                })
+            else:
+                return jsonify({
+                    'status': 'warning',
+                    'auctions_found': 0,
+                    'hidden_count': 0,
+                    'search_words_tested': search_words,
+                    'auctions': [],
+                    'message': f'No auctions found for search terms: {", ".join(search_words)}'
+                })
+                
+        except Exception as e:
+            import traceback
+            logger.error(f"Dashboard scraper test failed: {e}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            return jsonify({
+                'error': f'Scraper test failed: {str(e)}',
+                'status': 'error',
+                'auctions': [],
+                'auctions_found': 0,
+                'hidden_count': 0
             }), 500
     
     @app.route('/api/test-homeassistant')
@@ -422,10 +520,10 @@ def create_app():
     
     @app.route('/api/auctions')
     def get_auctions():
-        """API endpoint to get current auctions"""
+        """API endpoint to get current auctions (filtered, no hidden auctions)"""
         try:
-            # Use cached auction data
-            unique_auctions, search_words = get_current_auctions()
+            # Use cached auction data (filtered)
+            unique_auctions, search_words = get_current_auctions(include_hidden=False)
             
             if not search_words:
                 return jsonify({
@@ -449,6 +547,43 @@ def create_app():
                 'error': str(e),
                 'auctions': [],
                 'total_auctions': 0
+            }), 500
+    
+    @app.route('/api/auctions/dashboard')
+    def get_dashboard_auctions():
+        """API endpoint to get auctions for dashboard (includes hidden auctions for management)"""
+        try:
+            # Get all auctions including hidden ones
+            unique_auctions, search_words = get_current_auctions(include_hidden=True)
+            
+            if not search_words:
+                return jsonify({
+                    'status': 'warning',
+                    'message': 'No search words configured',
+                    'auctions': [],
+                    'total_auctions': 0,
+                    'hidden_count': 0
+                })
+            
+            # Count hidden auctions
+            hidden_count = sum(1 for auction in unique_auctions if auction.get('is_hidden', False))
+            
+            return jsonify({
+                'status': 'success',
+                'auctions': unique_auctions,
+                'total_auctions': len(unique_auctions),
+                'hidden_count': hidden_count,
+                'search_words_tested': search_words
+            })
+            
+        except Exception as e:
+            logger.error(f"Error getting dashboard auctions via API: {e}")
+            return jsonify({
+                'status': 'error',
+                'error': str(e),
+                'auctions': [],
+                'total_auctions': 0,
+                'hidden_count': 0
             }), 500
     
     @app.route('/config')

@@ -52,6 +52,22 @@
     <div class="col-md-3">
         <div class="card">
             <div class="card-header">
+                <i class="fas fa-eye-slash"></i> Hidden Auctions
+            </div>
+            <div class="card-body text-center">
+                <h3 class="text-warning" id="hidden-count">0</h3>
+                <small class="text-muted">Currently hidden</small>
+                <div class="mt-2">
+                    <button class="btn btn-sm btn-outline-primary" id="unhide-all-btn" onclick="unhideAllAuctions()" style="display: none;">
+                        <i class="fas fa-eye"></i> Unhide All
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-header">
                 <i class="fas fa-clock"></i> Last Updated
             </div>
             <div class="card-body text-center">
@@ -214,10 +230,13 @@
                 </div>
                 
                 <div class="card-footer bg-transparent">
-                    <div class="d-grid">
+                    <div class="d-grid gap-2">
                         <a href="{{ auction.url }}" target="_blank" class="btn btn-primary btn-sm">
                             <i class="fas fa-external-link-alt"></i> View Auction
                         </a>
+                        <button class="btn btn-outline-warning btn-sm hide-btn" onclick="hideAuction('{{ auction.get('id', '') }}', '{{ auction.title|replace("'", "\\'")|replace('"', '\\"') }}')">
+                            <i class="fas fa-eye-slash"></i> Hide This Auction
+                        </button>
                     </div>
                 </div>
             </div>
@@ -277,6 +296,43 @@
     color: #3498db;
     text-decoration: none;
 }
+
+/* Blacklist/Hide functionality styles */
+.hidden-auction {
+    opacity: 0.7;
+    border-left: 4px solid #ffc107 !important;
+}
+
+.hide-btn {
+    transition: all 0.3s ease;
+}
+
+.hide-btn:hover {
+    transform: scale(1.05);
+}
+
+.unhide-btn {
+    transition: all 0.3s ease;
+}
+
+.unhide-btn:hover {
+    transform: scale(1.05);
+}
+
+.temp-alert {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
 </style>
 
 <script>
@@ -293,6 +349,9 @@
         // Hide auctions and show loading
         auctionsContent.classList.add('d-none');
         loadingOverlay.classList.remove('d-none');
+        
+        // Also update the hidden count during refresh
+        updateHiddenCount();
         
         fetch('/api/auctions')
         .then(response => response.json())
@@ -325,10 +384,134 @@
         });
     }
     
-    // Update timestamp on load
+    function hideAuction(auctionId, auctionTitle) {
+        if (!auctionId) {
+            alert('Unable to hide auction: No auction ID available');
+            return;
+        }
+        
+        if (!confirm(`Hide "${auctionTitle}" from future results?\n\nYou can unhide it later from the dashboard or by using the "Unhide All" button.`)) {
+            return;
+        }
+        
+        fetch('/api/blacklist', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                auction_id: auctionId,
+                auction_title: auctionTitle
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success' || data.status === 'warning') {
+                // Show success message
+                showTemporaryMessage(data.message, data.status === 'success' ? 'success' : 'warning');
+                
+                // Refresh the auctions to remove the hidden one
+                setTimeout(() => {
+                    location.reload();
+                }, 500);
+            } else {
+                alert('Error hiding auction: ' + (data.error || data.message));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error hiding auction: ' + error);
+        });
+    }
+    
+    function unhideAllAuctions() {
+        if (!confirm('Unhide all hidden auctions?\n\nThis will make all previously hidden auctions visible again.')) {
+            return;
+        }
+        
+        const btn = document.getElementById('unhide-all-btn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Unhiding...';
+        btn.disabled = true;
+        
+        fetch('/api/blacklist/clear', {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showTemporaryMessage(data.message, 'success');
+                
+                // Update hidden count immediately
+                updateHiddenCount();
+                
+                // Refresh the page to show unhidden auctions
+                setTimeout(() => {
+                    location.reload();
+                }, 500);
+            } else {
+                alert('Error unhiding auctions: ' + (data.error || data.message));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error unhiding auctions: ' + error);
+        })
+        .finally(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+    }
+    
+    function updateHiddenCount() {
+        fetch('/api/blacklist')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const count = data.count || 0;
+                document.getElementById('hidden-count').textContent = count;
+                
+                // Show/hide the unhide all button
+                const unhideBtn = document.getElementById('unhide-all-btn');
+                if (count > 0) {
+                    unhideBtn.style.display = 'block';
+                } else {
+                    unhideBtn.style.display = 'none';
+                }
+            }
+        })
+        .catch(error => {
+            console.log('Error getting hidden count:', error);
+        });
+    }
+    
+    function showTemporaryMessage(message, type) {
+        // Create a temporary alert
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'warning'} alert-dismissible fade show position-fixed temp-alert`;
+        alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(alertDiv);
+        
+        // Auto-remove after 3 seconds
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.parentNode.removeChild(alertDiv);
+            }
+        }, 3000);
+    }
+    
+    // Update timestamp and hidden count on load
     document.addEventListener('DOMContentLoaded', function() {
         const now = new Date();
         document.getElementById('last-updated').textContent = now.toLocaleTimeString();
+        
+        // Load hidden count
+        updateHiddenCount();
     });
 </script>
 {% endblock %}

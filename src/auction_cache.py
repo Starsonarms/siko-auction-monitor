@@ -146,6 +146,18 @@ class AuctionCache:
             logger.error(f"Error getting cache stats: {e}")
             return {}
     
+    def invalidate_cache(self):
+        """Invalidate cache (lighter than clear_cache - just marks entries as expired)"""
+        try:
+            # Just mark all entries as expired by setting their timestamp to 0
+            # This is much faster than clearing and recreating the cache file
+            for entry in self.cache_data.values():
+                entry['timestamp'] = 0
+            
+            logger.debug("Cache invalidated (all entries marked as expired)")
+        except Exception as e:
+            logger.error(f"Error invalidating cache: {e}")
+    
     def cleanup_expired(self):
         """Remove expired cache entries"""
         try:
