@@ -232,11 +232,11 @@ Access at `http://your-pi-ip:5000`:
 
 #### Key Web Features
 
-- **Visual Auction Cards**: 200px images with hover effects and clickable auction links
+- **Compact Visual Auction Cards**: 150px images with hover effects and clickable auction links (4 per row on desktop)
 - **One-Click Blacklist Management**: Hide unwanted auctions instantly - they'll never appear again
 - **Smart Hidden Auction Handling**: Dashboard shows all auctions (including hidden) for easy management
 - **Real-time Caching**: Lightning-fast page switching with 5-minute data caching and data sharing between pages
-- **Responsive Design**: Works perfectly on mobile, tablet, and desktop
+- **Responsive Design**: Works perfectly on mobile (1 per row), tablet (2 per row), and desktop (4 per row)
 - **Smart Descriptions**: Actual auction descriptions instead of generic site content
 - **Time Controls**: Configure weekday/weekend notification schedules
 - **Live Statistics**: Real-time auction counts, hidden auction counts, and search word management
@@ -364,13 +364,13 @@ Cache files are stored in `cache/auction_cache.json` and managed automatically.
 - **Fallback handling**: Graceful placeholder for auctions without images
 - **Clickable images**: Tap to open auction page
 - **Hover effects**: Professional visual feedback
-- **Responsive sizing**: 200px height with proper aspect ratio
+- **Compact responsive design**: 150px height optimized for 4-per-row desktop layout
 
 ### Smart Descriptions
 - **Complete auction information**: Extracts full auction details including title, auction number, and description
 - **Bold formatting**: Auction titles and numbers displayed in bold for better readability
-- **Compact layout**: Clean, single-line spacing without extra empty rows
-- **Full text display**: Shows complete descriptions including "Anmärkningar" (remarks) section
+- **Compact layout**: Clean, optimized spacing for 4-per-row card layout
+- **Optimized text display**: Shows essential descriptions (120 characters) with full details on click
 - **Content filtering**: Removes navigation menus and generic site content
 - **Condition text removal**: Filters out standard condition disclaimers ("Om inget annat...")
 - **Example output**:
