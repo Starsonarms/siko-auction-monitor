@@ -106,17 +106,17 @@
     {% else %}
         <!-- Display auctions -->
         {% for auction in auctions %}
-        <div class="col-auction mb-3">
-            <div class="card">
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
                 <!-- Auction Image -->
                 {% if auction.get('image_url') %}
                     <img src="{{ auction.image_url }}" class="card-img-top auction-image" alt="{{ auction.title }}" 
-                         style="height: 160px; object-fit: cover; cursor: pointer;"
+                         style="height: 200px; object-fit: cover; cursor: pointer;"
                          onclick="window.open('{{ auction.url }}', '_blank')" 
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" 
                          title="Click to view auction">
                     <div class="card-img-top bg-light d-none align-items-center justify-content-center image-placeholder" 
-                         style="height: 160px; cursor: pointer;"
+                         style="height: 200px; cursor: pointer;"
                          onclick="window.open('{{ auction.url }}', '_blank')" 
                          title="Click to view auction">
                         <div class="text-center text-muted">
@@ -126,7 +126,7 @@
                     </div>
                 {% else %}
                     <div class="card-img-top bg-light d-flex align-items-center justify-content-center image-placeholder" 
-                         style="height: 160px; cursor: pointer;"
+                         style="height: 200px; cursor: pointer;"
                          onclick="window.open('{{ auction.url }}', '_blank')" 
                          title="Click to view auction">
                         <div class="text-center text-muted">
@@ -153,7 +153,7 @@
                     </h6>
                     
                     <!-- Auction Details -->
-                    <div class="mb-2">
+                    <div class="mb-3">
                         {% if auction.get('location') %}
                             <div class="small text-muted mb-1">
                                 <i class="fas fa-map-marker-alt"></i> {{ auction.location }}
@@ -168,35 +168,47 @@
                     </div>
                     
                     <!-- Pricing Information -->
-                    <div class="d-flex justify-content-between mb-2">
+                    <div class="row mb-3">
                         {% if auction.get('current_bid') %}
-                            <div class="text-center flex-fill me-1">
-                                <small class="text-muted d-block">Current</small>
-                                <span class="fw-bold text-success small">{{ auction.current_bid }}</span>
+                            <div class="col-6">
+                                <div class="text-center p-2 bg-light rounded">
+                                    <small class="text-muted">Current Bid</small>
+                                    <div class="fw-bold text-success">{{ auction.current_bid }}</div>
+                                </div>
                             </div>
                         {% endif %}
                         {% if auction.get('reserve_price') %}
-                            <div class="text-center flex-fill ms-1">
-                                <small class="text-muted d-block">Starting</small>
-                                <span class="fw-bold small">{{ auction.reserve_price }}</span>
+                            <div class="col-6">
+                                <div class="text-center p-2 bg-light rounded">
+                                    <small class="text-muted">Starting Price</small>
+                                    <div class="fw-bold">{{ auction.reserve_price }}</div>
+                                </div>
                             </div>
                         {% endif %}
                     </div>
                     
                     <!-- Description -->
                     {% if auction.get('description') %}
-                        <div class="small text-muted mb-2" style="line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                            {% set desc_preview = auction.description[:60] %}
-                            {{ desc_preview | safe }}{% if auction.description|length > 60 %}...{% endif %}
+                        <div class="card-text small text-muted mb-3">
+                            {% set desc_preview = auction.description[:200] %}
+                            {{ desc_preview | safe }}{% if auction.description|length > 200 %}...{% endif %}
                         </div>
                     {% endif %}
                     
                     <!-- Items -->
                     {% if auction.get('items') and auction.items %}
-                        <div class="mb-2">
+                        <div class="mb-3">
                             <small class="text-muted">
                                 <i class="fas fa-boxes"></i> {{ auction.items|length }} item{{ "s" if auction.items|length != 1 else "" }}
                             </small>
+                            <div class="mt-1">
+                                {% for item in auction.items[:3] %}
+                                    <div class="small">• {{ item.title if item.get('title') else item }}</div>
+                                {% endfor %}
+                                {% if auction.items|length > 3 %}
+                                    <div class="small text-muted">... and {{ auction.items|length - 3 }} more</div>
+                                {% endif %}
+                            </div>
                         </div>
                     {% endif %}
                 </div>
@@ -312,33 +324,7 @@
     width: 100%; /* Ensure cards fill their column */
 }
 
-/* Force proper grid wrapping - AGGRESSIVE OVERRIDE */
-#auctions-content {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    margin: -0.75rem;
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow: hidden !important;
-}
-
-#auctions-content > .col-auction {
-    flex: 0 0 calc(50% - 1.5rem) !important; /* Force 2 per row with padding */
-    max-width: calc(50% - 1.5rem) !important;
-    width: calc(50% - 1.5rem) !important;
-    padding: 0.75rem !important;
-    margin: 0 !important;
-    box-sizing: content-box !important;
-    flex-shrink: 0 !important;
-}
-
-@media (min-width: 992px) {
-    #auctions-content > .col-auction {
-        flex: 0 0 calc(33.333333% - 1.5rem) !important; /* Force 3 per row on large screens */
-        max-width: calc(33.333333% - 1.5rem) !important;
-        width: calc(33.333333% - 1.5rem) !important;
-    }
-}
+/* Simple grid fix */
 
 .card-title {
     font-size: 1rem;
@@ -425,9 +411,7 @@
             return;
         }
         
-        if (!confirm(`Hide "${auctionTitle}" from future results?\n\nYou can unhide it later from the dashboard or by using the "Unhide All" button.`)) {
-            return;
-        }
+        console.log('Hiding auction:', auctionId, auctionTitle);
         
         fetch('/api/blacklist', {
             method: 'POST',
@@ -454,15 +438,13 @@
             }
         })
         .catch(error => {
-            console.error('Error:', error);
-            alert('Error hiding auction: ' + error);
+            console.error('Fetch error:', error);
+            console.error('Error details:', error.message);
+            alert('Error hiding auction: ' + error.message + '\n\nCheck if the web server is running on localhost:5000');
         });
     }
     
     function unhideAllAuctions() {
-        if (!confirm('Unhide all hidden auctions?\n\nThis will make all previously hidden auctions visible again.')) {
-            return;
-        }
         
         const btn = document.getElementById('unhide-all-btn');
         const originalText = btn.innerHTML;

@@ -195,7 +195,7 @@ else:
             print("❌ Auction check failed:", result.stderr.strip())
     
     elif command == "start-web":
-        print("🌐 Starting web interface at http://localhost:5000")
+        print("Starting web interface at http://localhost:5000")
         print("Press Ctrl+C to stop")
         result = run_command('-m src.web_app')
         print(result.stdout.strip())

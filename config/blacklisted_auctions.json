@@ -1,5 +1,7 @@
 {
-  "blacklisted_ids": [],
-  "count": 0,
-  "last_updated": "0"
+  "blacklisted_ids": [
+    "834502"
+  ],
+  "count": 1,
+  "last_updated": "1"
 }

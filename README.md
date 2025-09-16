@@ -12,6 +12,7 @@ Perfect for running on a Raspberry Pi as a continuous monitoring service.
 - 🖼️ **Visual Auction Cards**: Beautiful auction displays with images, prices, and descriptions
 - ⚡ **Lightning Fast**: Advanced caching system for instant page loading (>95% speed improvement)
 - 📋 **Dedicated Auctions Page**: Browse all current matching auctions with detailed information
+- 🚫 **Smart Blacklist System**: Hide false-positive auctions with one-click - they'll never appear again
 - 🎯 **Smart Notifications**: Deep links that open directly in Home Assistant companion app
 - 🤖 **Automated**: Runs continuously as a background service
 - 🍓 **Raspberry Pi Ready**: Optimized for deployment on Raspberry Pi
@@ -212,14 +213,19 @@ python manage.py start-web           # Start the web interface
 # Manage search words
 python manage.py add-search WORD     # Add a search word
 python manage.py list-searches       # List all current search words
+
+# Manage hidden auctions (blacklist)
+python manage.py hide-auction ID     # Hide a specific auction by ID
+python manage.py unhide-auction ID   # Unhide a previously hidden auction
+python manage.py list-hidden         # List all currently hidden auctions
 ```
 
 ### Web Interface
 
 Access at `http://your-pi-ip:5000`:
 
-- 🏠 **Dashboard**: Overview with search words, stats, and current auctions preview
-- 🔨 **Auctions**: Dedicated page with visual auction cards, images, and detailed information
+- 🏠 **Dashboard**: Overview with search words, stats, and current auctions preview (including hidden auctions for management)
+- 🔨 **Auctions**: Dedicated page with visual auction cards, images, detailed information, and hide/unhide controls
 - ⚙️ **Config**: Manage monitoring settings, time-based notifications, and view configuration
 - 📝 **Logs**: View application logs with real-time updates
 - 🔧 **System Tests**: Test scraper and Home Assistant connection with detailed results
@@ -227,11 +233,13 @@ Access at `http://your-pi-ip:5000`:
 #### Key Web Features
 
 - **Visual Auction Cards**: 200px images with hover effects and clickable auction links
-- **Real-time Caching**: Lightning-fast page switching with 5-minute data caching
+- **One-Click Blacklist Management**: Hide unwanted auctions instantly - they'll never appear again
+- **Smart Hidden Auction Handling**: Dashboard shows all auctions (including hidden) for easy management
+- **Real-time Caching**: Lightning-fast page switching with 5-minute data caching and data sharing between pages
 - **Responsive Design**: Works perfectly on mobile, tablet, and desktop
 - **Smart Descriptions**: Actual auction descriptions instead of generic site content
 - **Time Controls**: Configure weekday/weekend notification schedules
-- **Live Statistics**: Real-time auction counts and search word management
+- **Live Statistics**: Real-time auction counts, hidden auction counts, and search word management
 
 ### Search Words
 
@@ -245,6 +253,26 @@ Examples:
 - `"antique"` - matches any auction containing "antique"
 - `"vintage tools"` - matches auctions with both "vintage" and "tools"
 - `"möbler"` - matches Swedish furniture auctions
+
+### Hidden Auctions (Blacklist)
+
+Sometimes search words match auctions you're not interested in. The blacklist system allows you to hide these false positives:
+
+**Web Interface (Recommended):**
+- **Auctions Page**: Click "Hide This Auction" button on any auction card
+- **Dashboard**: Unhide individual auctions by clicking the unhide button on hidden auctions
+- **Bulk Management**: Use "Unhide All" button on auctions page to clear all hidden auctions
+
+**Command Line:**
+- `python manage.py hide-auction 834502` - Hide auction by ID
+- `python manage.py unhide-auction 834502` - Unhide auction by ID
+- `python manage.py list-hidden` - See all hidden auctions
+
+Hidden auctions:
+- Never appear in notifications or monitoring results
+- Are filtered out of auction searches
+- Can be managed through both web interface and command line
+- Persist across application restarts
 
 ## Configuration
 
@@ -263,6 +291,7 @@ Examples:
 
 - `.env` - Environment configuration
 - `config/search_words.json` - Search words storage
+- `config/blacklisted_auctions.json` - Hidden auctions storage
 - `logs/auction_monitor.log` - Application logs
 
 ## Troubleshooting
@@ -363,6 +392,7 @@ siko-auction-monitor/
 │   ├── main.py              # Main application
 │   ├── scraper.py           # Web scraper with image extraction
 │   ├── search_manager.py    # Search word management
+│   ├── blacklist_manager.py # Hidden auctions management
 │   ├── home_assistant.py    # HA integration with deep links
 │   ├── config.py           # Configuration management
 │   ├── web_app.py          # Web interface with caching
