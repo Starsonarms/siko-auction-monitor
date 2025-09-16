@@ -225,7 +225,7 @@ python manage.py list-hidden         # List all currently hidden auctions
 Access at `http://your-pi-ip:5000`:
 
 - 🏠 **Dashboard**: Overview with search words, stats, and current auctions preview (including hidden auctions for management)
-- 🔨 **Auctions**: Dedicated page with visual auction cards, images, detailed information, and hide/unhide controls
+- 🔨 **Auctions**: Dedicated page with compact statistics bar, visual auction cards, images, detailed information, and hide/unhide controls
 - ⚙️ **Config**: Manage monitoring settings, time-based notifications, and view configuration
 - 📝 **Logs**: View application logs with real-time updates
 - 🔧 **System Tests**: Test scraper and Home Assistant connection with detailed results
@@ -236,10 +236,10 @@ Access at `http://your-pi-ip:5000`:
 - **One-Click Blacklist Management**: Hide unwanted auctions instantly - they'll never appear again
 - **Smart Hidden Auction Handling**: Dashboard shows all auctions (including hidden) for easy management
 - **Real-time Caching**: Lightning-fast page switching with 5-minute data caching and data sharing between pages
-- **Responsive Design**: Works perfectly on mobile (1 per row), tablet (2 per row), and desktop (4 per row)
+- **Mobile-Optimized Design**: Compact statistics bar and responsive cards - mobile (1 per row), tablet (2 per row), desktop (4 per row)
 - **Smart Descriptions**: Actual auction descriptions instead of generic site content
 - **Time Controls**: Configure weekday/weekend notification schedules
-- **Live Statistics**: Real-time auction counts, hidden auction counts, and search word management
+- **Compact Statistics Bar**: Real-time auction counts, search terms badges, and hidden auction management in one space-efficient bar
 
 ### Search Words
 

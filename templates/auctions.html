@@ -25,53 +25,27 @@
     </div>
 </div>
 
-<!-- Statistics Cards -->
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-list-ol"></i> Total Auctions
+<!-- Compact Statistics Bar -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center p-2 bg-light rounded small">
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+                <span><i class="fas fa-list-ol text-primary"></i> <strong>{{ stats.total_auctions }}</strong> auctions</span>
+                <span><i class="fas fa-search text-success"></i> <strong>{{ stats.search_words_tested|length }}</strong> searches</span>
+                <span><i class="fas fa-eye-slash text-warning"></i> <strong id="hidden-count">0</strong> hidden</span>
+                {% if stats.search_words_tested %}
+                    <div class="d-flex align-items-center gap-1 flex-wrap">
+                        {% for word in stats.search_words_tested %}
+                            <span class="badge bg-secondary bg-opacity-75" style="font-size: 0.7rem;">{{ word }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
-            <div class="card-body text-center">
-                <h3 class="text-primary">{{ stats.total_auctions }}</h3>
-                <small class="text-muted">Currently matching</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-search"></i> Search Terms
-            </div>
-            <div class="card-body text-center">
-                <h3 class="text-success">{{ stats.search_words_tested|length }}</h3>
-                <small class="text-muted">Active searches</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-eye-slash"></i> Hidden Auctions
-            </div>
-            <div class="card-body text-center">
-                <h3 class="text-warning" id="hidden-count">0</h3>
-                <small class="text-muted">Currently hidden</small>
-                <div class="mt-2">
-                    <button class="btn btn-sm btn-outline-primary" id="unhide-all-btn" onclick="unhideAllAuctions()" style="display: none;">
-                        <i class="fas fa-eye"></i> Unhide All
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-clock"></i> Last Updated
-            </div>
-            <div class="card-body text-center">
-                <span id="last-updated" class="small">Just now</span>
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-sm btn-outline-primary" id="unhide-all-btn" onclick="unhideAllAuctions()" style="display: none;">
+                    <i class="fas fa-eye"></i> Unhide All
+                </button>
+                <small class="text-muted" id="last-updated">Just now</small>
             </div>
         </div>
     </div>
@@ -322,6 +296,21 @@
 .card {
     font-size: 0.85rem;
     width: 100%; /* Ensure cards fill their column */
+}
+
+/* Compact statistics bar */
+@media (max-width: 768px) {
+    .d-flex.justify-content-between {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start !important;
+    }
+    
+    .d-flex.align-items-center.gap-2 {
+        align-self: flex-end;
+        width: 100%;
+        justify-content: space-between;
+    }
 }
 
 /* Simple grid fix */
