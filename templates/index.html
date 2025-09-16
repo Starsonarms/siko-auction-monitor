@@ -425,6 +425,22 @@
             // Handle test-scraper/dashboard response
             updateAuctionResults(data.auctions || [], data.hidden_count || 0);
             
+            // Cache auction data for auctions page to avoid reloading
+            if (data.status === 'success' && data.auctions) {
+                const cacheData = {
+                    auctions: data.auctions,
+                    timestamp: Date.now(),
+                    total_auctions: data.auctions_found || data.auctions.length,
+                    search_words_tested: data.search_words_tested || []
+                };
+                try {
+                    localStorage.setItem('auctionData', JSON.stringify(cacheData));
+                    console.log('Cached auction data for auctions page');
+                } catch (e) {
+                    console.log('Could not cache auction data:', e);
+                }
+            }
+            
             // Update timestamp
             const now = new Date();
             document.getElementById('last-updated').textContent = `Updated: ${now.toLocaleTimeString()}`;

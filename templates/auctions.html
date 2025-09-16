@@ -122,31 +122,31 @@
     {% else %}
         <!-- Display auctions -->
         {% for auction in auctions %}
-        <div class="col-lg-6 col-xl-4 mb-4">
+        <div class="col-md-6 col-lg-4 col-xl-3 mb-3">
             <div class="card h-100">
                 <!-- Auction Image -->
                 {% if auction.get('image_url') %}
                     <img src="{{ auction.image_url }}" class="card-img-top auction-image" alt="{{ auction.title }}" 
-                         style="height: 200px; object-fit: cover; cursor: pointer;" 
+                         style="height: 150px; object-fit: cover; cursor: pointer;" 
                          onclick="window.open('{{ auction.url }}', '_blank')" 
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" 
                          title="Click to view auction">
                     <div class="card-img-top bg-light d-none align-items-center justify-content-center image-placeholder" 
-                         style="height: 200px; cursor: pointer;" 
+                         style="height: 150px; cursor: pointer;" 
                          onclick="window.open('{{ auction.url }}', '_blank')" 
                          title="Click to view auction">
                         <div class="text-center text-muted">
-                            <i class="fas fa-image fa-3x mb-2"></i>
+                            <i class="fas fa-image fa-2x mb-2"></i>
                             <div>No Image Available</div>
                         </div>
                     </div>
                 {% else %}
                     <div class="card-img-top bg-light d-flex align-items-center justify-content-center image-placeholder" 
-                         style="height: 200px; cursor: pointer;" 
+                         style="height: 150px; cursor: pointer;" 
                          onclick="window.open('{{ auction.url }}', '_blank')" 
                          title="Click to view auction">
                         <div class="text-center text-muted">
-                            <i class="fas fa-image fa-3x mb-2"></i>
+                            <i class="fas fa-image fa-2x mb-2"></i>
                             <div>No Image Available</div>
                         </div>
                     </div>
@@ -161,15 +161,15 @@
                     {% endif %}
                 </div>
                 
-                <div class="card-body">
-                    <h6 class="card-title">
+                <div class="card-body py-2">
+                    <h6 class="card-title mb-2">
                         <a href="{{ auction.url }}" target="_blank" class="auction-title">
                             {{ auction.title }}
                         </a>
                     </h6>
                     
                     <!-- Auction Details -->
-                    <div class="mb-3">
+                    <div class="mb-2">
                         {% if auction.get('location') %}
                             <p class="mb-1">
                                 <i class="fas fa-map-marker-alt text-muted"></i> {{ auction.location }}
@@ -184,10 +184,10 @@
                     </div>
                     
                     <!-- Pricing Information -->
-                    <div class="row mb-3">
+                    <div class="row mb-2">
                         {% if auction.get('current_bid') %}
                             <div class="col-6">
-                                <div class="text-center p-2 bg-light rounded">
+                                <div class="text-center p-2 bg-light rounded pricing-info">
                                     <small class="text-muted">Current Bid</small>
                                     <div class="fw-bold text-success">{{ auction.current_bid }}</div>
                                 </div>
@@ -195,7 +195,7 @@
                         {% endif %}
                         {% if auction.get('reserve_price') %}
                             <div class="col-6">
-                                <div class="text-center p-2 bg-light rounded">
+                                <div class="text-center p-2 bg-light rounded pricing-info">
                                     <small class="text-muted">Starting Price</small>
                                     <div class="fw-bold">{{ auction.reserve_price }}</div>
                                 </div>
@@ -205,15 +205,15 @@
                     
                     <!-- Description -->
                     {% if auction.get('description') %}
-                        <div class="card-text small text-muted">
-                            {% set desc_preview = auction.description[:300] %}
-                            {{ desc_preview | safe }}{% if auction.description|length > 300 %}...{% endif %}
+                        <div class="card-text small text-muted mb-2">
+                            {% set desc_preview = auction.description[:150] %}
+                            {{ desc_preview | safe }}{% if auction.description|length > 150 %}...{% endif %}
                         </div>
                     {% endif %}
                     
                     <!-- Items -->
                     {% if auction.get('items') and auction.items %}
-                        <div class="mb-3">
+                        <div class="mb-2">
                             <small class="text-muted">
                                 <i class="fas fa-boxes"></i> {{ auction.items|length }} item{{ "s" if auction.items|length != 1 else "" }}
                             </small>
@@ -333,6 +333,28 @@
         opacity: 1;
     }
 }
+
+/* Compact card styling */
+.card {
+    font-size: 0.9rem;
+}
+
+.card-title {
+    font-size: 1rem;
+    line-height: 1.3;
+}
+
+.card-body {
+    padding: 0.75rem;
+}
+
+.card-footer {
+    padding: 0.5rem 0.75rem;
+}
+
+.pricing-info {
+    font-size: 0.85rem;
+}
 </style>
 
 <script>
@@ -352,6 +374,13 @@
         
         // Also update the hidden count during refresh
         updateHiddenCount();
+        
+        // Clear any cached data since we're doing a fresh refresh
+        try {
+            localStorage.removeItem('auctionData');
+        } catch (e) {
+            console.log('Could not clear cached data:', e);
+        }
         
         fetch('/api/auctions')
         .then(response => response.json())
@@ -512,6 +541,38 @@
         
         // Load hidden count
         updateHiddenCount();
+        
+        // Try to load cached auction data from dashboard first
+        loadCachedAuctionsIfAvailable();
     });
+    
+    function loadCachedAuctionsIfAvailable() {
+        try {
+            const cachedData = localStorage.getItem('auctionData');
+            if (cachedData) {
+                const data = JSON.parse(cachedData);
+                const cacheAge = Date.now() - data.timestamp;
+                
+                // Use cached data if it's less than 2 minutes old
+                if (cacheAge < 2 * 60 * 1000) {
+                    console.log('Using cached auction data from dashboard');
+                    
+                    // Filter out hidden auctions for the auctions page
+                    const visibleAuctions = data.auctions.filter(auction => !auction.is_hidden);
+                    
+                    // Update the page content using server-side rendering approach
+                    // We'll just show a message that data is preloaded
+                    const lastUpdated = new Date(data.timestamp);
+                    document.getElementById('last-updated').textContent = `${lastUpdated.toLocaleTimeString()} (cached from dashboard)`;
+                    document.getElementById('last-updated').style.color = '#28a745'; // Green to indicate cached data
+                    
+                    return true; // Indicate we used cached data
+                }
+            }
+        } catch (e) {
+            console.log('Could not load cached auction data:', e);
+        }
+        return false; // No cached data used
+    }
 </script>
 {% endblock %}
