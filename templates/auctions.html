@@ -317,20 +317,26 @@
     display: flex !important;
     flex-wrap: wrap !important;
     margin: -0.75rem;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
 }
 
 #auctions-content > .col-auction {
-    flex: 0 0 50% !important; /* Force 2 per row */
-    max-width: 50% !important;
+    flex: 0 0 calc(50% - 1.5rem) !important; /* Force 2 per row with padding */
+    max-width: calc(50% - 1.5rem) !important;
+    width: calc(50% - 1.5rem) !important;
     padding: 0.75rem !important;
     margin: 0 !important;
-    box-sizing: border-box !important;
+    box-sizing: content-box !important;
+    flex-shrink: 0 !important;
 }
 
 @media (min-width: 992px) {
     #auctions-content > .col-auction {
-        flex: 0 0 33.333333% !important; /* Force 3 per row on large screens */
-        max-width: 33.333333% !important;
+        flex: 0 0 calc(33.333333% - 1.5rem) !important; /* Force 3 per row on large screens */
+        max-width: calc(33.333333% - 1.5rem) !important;
+        width: calc(33.333333% - 1.5rem) !important;
     }
 }
 
