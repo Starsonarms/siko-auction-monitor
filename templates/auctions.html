@@ -122,17 +122,17 @@
     {% else %}
         <!-- Display auctions -->
         {% for auction in auctions %}
-        <div class="col-sm-6 col-md-4 col-lg-3 col-xl-3 mb-3">
+        <div class="col-md-6 col-lg-4 mb-3">
             <div class="card">
                 <!-- Auction Image -->
                 {% if auction.get('image_url') %}
                     <img src="{{ auction.image_url }}" class="card-img-top auction-image" alt="{{ auction.title }}" 
-                         style="height: 120px; object-fit: cover; cursor: pointer;"
+                         style="height: 160px; object-fit: cover; cursor: pointer;"
                          onclick="window.open('{{ auction.url }}', '_blank')" 
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" 
                          title="Click to view auction">
                     <div class="card-img-top bg-light d-none align-items-center justify-content-center image-placeholder" 
-                         style="height: 120px; cursor: pointer;"
+                         style="height: 160px; cursor: pointer;"
                          onclick="window.open('{{ auction.url }}', '_blank')" 
                          title="Click to view auction">
                         <div class="text-center text-muted">
@@ -142,7 +142,7 @@
                     </div>
                 {% else %}
                     <div class="card-img-top bg-light d-flex align-items-center justify-content-center image-placeholder" 
-                         style="height: 120px; cursor: pointer;"
+                         style="height: 160px; cursor: pointer;"
                          onclick="window.open('{{ auction.url }}', '_blank')" 
                          title="Click to view auction">
                         <div class="text-center text-muted">
@@ -161,7 +161,7 @@
                     {% endif %}
                 </div>
                 
-                <div class="card-body py-2">
+                <div class="card-body">
                     <h6 class="card-title mb-2">
                         <a href="{{ auction.url }}" target="_blank" class="auction-title">
                             {{ auction.title }}
@@ -324,30 +324,31 @@
 
 /* Compact card styling */
 .card {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
+    min-width: 280px;
+    max-width: 400px;
 }
 
 .card-title {
-    font-size: 0.95rem;
-    line-height: 1.2;
+    font-size: 1rem;
+    line-height: 1.3;
 }
 
 .card-body {
-    padding: 0.5rem;
+    padding: 0.75rem;
 }
 
 .card-footer {
-    padding: 0.4rem 0.5rem;
+    padding: 0.5rem 0.75rem;
 }
 
 .card-header {
-    padding: 0.4rem 0.5rem;
-    font-size: 0.8rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
 }
 
 .pricing-info {
-    font-size: 0.8rem;
-    padding: 0.3rem !important;
+    font-size: 0.85rem;
 }
 </style>
 
