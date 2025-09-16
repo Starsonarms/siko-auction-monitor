@@ -102,16 +102,16 @@ def main():
             print("   Example: python manage.py hide-auction 834502")
             sys.exit(1)
         auction_id = sys.argv[2]
-        print(f"🙈 Hiding auction: {auction_id}")
+        print(f"Hiding auction: {auction_id}")
         
         # Create a simple script to avoid shell escaping issues
         script_content = f'''from src.blacklist_manager import BlacklistManager
 bm = BlacklistManager()
 result = bm.add_auction("{auction_id}")
 if result:
-    print("\u2705 Auction hidden successfully")
+    print("Auction hidden successfully")
 else:
-    print("⚠️ Auction was already hidden")
+    print("Auction was already hidden")
 '''
         with open('temp_hide_script.py', 'w', encoding='utf-8') as f:
             f.write(script_content)
@@ -133,16 +133,16 @@ else:
             print("   Example: python manage.py unhide-auction 834502")
             sys.exit(1)
         auction_id = sys.argv[2]
-        print(f"👁️ Unhiding auction: {auction_id}")
+        print(f"Unhiding auction: {auction_id}")
         
         # Create a simple script to avoid shell escaping issues
         script_content = f'''from src.blacklist_manager import BlacklistManager
 bm = BlacklistManager()
 result = bm.remove_auction("{auction_id}")
 if result:
-    print("✅ Auction unhidden successfully")
+    print("Auction unhidden successfully")
 else:
-    print("⚠️ Auction was not in blacklist")
+    print("Auction was not in blacklist")
 '''
         with open('temp_unhide_script.py', 'w', encoding='utf-8') as f:
             f.write(script_content)
@@ -159,11 +159,33 @@ else:
             pass
     
     elif command == "list-hidden":
-        print("🙈 Hidden auctions:")
-        result = run_command('-c "from src.blacklist_manager import BlacklistManager; bm = BlacklistManager(); ids = bm.get_blacklisted_ids(); print(f\"Total hidden: {len(ids)}\") if ids else print(\"No hidden auctions\"); [print(f\"  - {id}\") for id in ids[:10]]; print(\"  ... and more\") if len(ids) > 10 else None"')
+        print("Hidden auctions:")
+        # Create a simple script to avoid shell escaping issues
+        script_content = '''from src.blacklist_manager import BlacklistManager
+bm = BlacklistManager()
+ids = bm.get_blacklisted_ids()
+if ids:
+    print(f"Total hidden: {len(ids)}")
+    for id in ids[:10]:
+        print(f"  - {id}")
+    if len(ids) > 10:
+        print("  ... and more")
+else:
+    print("No hidden auctions")
+'''
+        with open('temp_list_script.py', 'w', encoding='utf-8') as f:
+            f.write(script_content)
+        
+        result = run_command('temp_list_script.py')
         print(result.stdout.strip())
         if result.returncode != 0:
             print("❌ Failed to list hidden auctions:", result.stderr.strip())
+        
+        # Clean up temp file
+        try:
+            os.remove('temp_list_script.py')
+        except:
+            pass
     
     elif command == "check-once":
         print("🔍 Running single auction check...")
