@@ -50,41 +50,25 @@ Required settings:
 
 ### 4. Add Search Words
 
-Add your first search words using the management script:
 ```bash
 python manage.py add-search antique
 python manage.py add-search "vintage tools"
 python manage.py list-searches
 ```
 
-Or use the old method:
-```bash
-python -m src.main --add-search "antique"
-python -m src.main --add-search "vintage tools"
-python -m src.main --list-searches
-```
-
 ### 5. Test the Setup
 
-Test the scraper using the management script:
 ```bash
+# Test the scraper
 python manage.py test-scraper
 python manage.py test-search tamiya
 python manage.py check-once
-```
 
-Start the web interface:
-```bash
+# Start the web interface
 python manage.py start-web
 ```
 
-Or use the old methods:
-```bash
-python -m src.main --once
-python -m src.web_app
-```
-
-Visit `http://your-pi-ip:5000` to access the web interface.
+Visit `http://localhost:5000` to access the web interface.
 
 ## Raspberry Pi Deployment
 
@@ -181,8 +165,9 @@ You can find available services in Home Assistant:
 ### 3. Test Notification
 
 ```bash
-# Test from command line
-python -c "from src.home_assistant import HomeAssistantNotifier; HomeAssistantNotifier().send_test_notification()"
+# Test Home Assistant connection and notification
+python manage.py test-ha
+python manage.py test-notification
 ```
 
 Or use the web interface test button.
@@ -210,7 +195,7 @@ See `HOME_ASSISTANT_DASHBOARD_SETUP.md` for detailed instructions.
 
 ## Usage
 
-### Management Script (Recommended)
+### Command Line Management
 
 ```bash
 # Test functionality
@@ -227,21 +212,6 @@ python manage.py start-web           # Start the web interface
 # Manage search words
 python manage.py add-search WORD     # Add a search word
 python manage.py list-searches       # List all current search words
-```
-
-### Command Line (Alternative)
-
-```bash
-# Run once
-python -m src.main --once
-
-# Run continuously (scheduled)
-python -m src.main
-
-# Manage search words
-python -m src.main --add-search "keyword"
-python -m src.main --remove-search "keyword"
-python -m src.main --list-searches
 ```
 
 ### Web Interface
@@ -388,6 +358,7 @@ Cache files are stored in `cache/auction_cache.json` and managed automatically.
 
 ```
 siko-auction-monitor/
+├── manage.py               # Management script (recommended interface)
 ├── src/
 │   ├── main.py              # Main application
 │   ├── scraper.py           # Web scraper with image extraction
