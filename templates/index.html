@@ -419,17 +419,18 @@
             // Handle test-scraper/dashboard response
             updateAuctionResults(data.auctions || [], data.hidden_count || 0);
             
-            // Cache auction data for auctions page to avoid reloading
+            // Cache auction data for reuse
             if (data.status === 'success' && data.auctions) {
                 const cacheData = {
                     auctions: data.auctions,
                     timestamp: Date.now(),
                     total_auctions: data.auctions_found || data.auctions.length,
-                    search_words_tested: data.search_words_tested || []
+                    search_words_tested: data.search_words_tested || [],
+                    hidden_count: data.hidden_count || 0
                 };
                 try {
                     localStorage.setItem('auctionData', JSON.stringify(cacheData));
-                    console.log('Cached auction data for auctions page');
+                    console.log('Cached auction data, valid for', {{ config.check_interval_minutes }}, 'minutes');
                 } catch (e) {
                     console.log('Could not cache auction data:', e);
                 }
@@ -458,13 +459,47 @@
         });
     }
     
-    // Auto-load auctions when page loads
+    // Check if we have cached auction data first
+    function loadCachedAuctions() {
+        try {
+            const cachedData = localStorage.getItem('auctionData');
+            if (cachedData) {
+                const data = JSON.parse(cachedData);
+                const cacheAge = Date.now() - data.timestamp;
+                
+                // Use cached data if it's less than the check interval (config.check_interval_minutes)
+                const maxCacheAge = {{ config.check_interval_minutes }} * 60 * 1000; // Convert to milliseconds
+                
+                if (cacheAge < maxCacheAge) {
+                    console.log('Using cached auction data, age:', Math.floor(cacheAge / 1000), 'seconds');
+                    updateAuctionResults(data.auctions || [], data.hidden_count || 0);
+                    
+                    const cacheTime = new Date(data.timestamp);
+                    document.getElementById('last-updated').textContent = `Updated: ${cacheTime.toLocaleTimeString()}`;
+                    document.getElementById('auction-header').innerHTML = `<i class="fas fa-hammer"></i> Current Auctions (${data.auctions ? data.auctions.length : 0})`;
+                    
+                    return true; // Indicate we used cached data
+                }
+            }
+        } catch (e) {
+            console.log('Error loading cached auction data:', e);
+        }
+        return false; // No valid cached data
+    }
+    
+    // Auto-load auctions when page loads - try cache first
     document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('last-updated').textContent = 'Loading...';
-        document.getElementById('auction-header').innerHTML = '<i class="fas fa-hammer"></i> Current Auctions';
-        refreshAuctions();
+        // Try to load from cache first
+        const usedCache = loadCachedAuctions();
+        
+        if (!usedCache) {
+            // No cached data or cache is too old, fetch fresh data
+            document.getElementById('last-updated').textContent = 'Loading...';
+            document.getElementById('auction-header').innerHTML = '<i class="fas fa-hammer"></i> Current Auctions';
+            refreshAuctions();
+        }
     });
     
-    // Auctions will also load when refresh button is clicked
+    // Manual refresh will always fetch fresh data
 </script>
 {% endblock %}
