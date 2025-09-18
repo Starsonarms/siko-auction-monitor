@@ -3,80 +3,62 @@
 {% block title %}Dashboard - Siko Auction Monitor{% endblock %}
 
 {% block content %}
-<div class="row">
+<!-- Header -->
+<div class="row mb-4">
     <div class="col-12">
         <h1><i class="fas fa-tachometer-alt"></i> Dashboard</h1>
-        <p class="text-muted">Monitor and manage your auction search words</p>
+        <p class="text-muted">Monitor and manage your auction search system</p>
     </div>
 </div>
 
+<!-- System Status -->
 <div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-search"></i> Search Words
-            </div>
+    <div class="col-12">
+        <h4 class="mb-3">System Status</h4>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
             <div class="card-body">
-                <h3>{{ stats.total_search_words }}</h3>
-                <small class="text-muted">Active search words</small>
+                <h2 class="text-primary">{{ stats.total_search_words }}</h2>
+                <small class="text-muted">Search Words</small>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-clock"></i> Check Interval
-            </div>
+    <div class="col-md-3">
+        <div class="card text-center">
             <div class="card-body">
-                <h3>{{ config.check_interval_minutes }}m</h3>
-                <small class="text-muted">Minutes between checks</small>
+                <h2 class="text-info">{{ config.check_interval_minutes }}m</h2>
+                <small class="text-muted">Check Interval</small>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-home"></i> Home Assistant
-            </div>
+    <div class="col-md-3">
+        <div class="card text-center">
             <div class="card-body">
-                <span class="status-indicator status-green" id="ha-status"></span>
-                <span id="ha-status-text">Connected</span>
-                <br>
-                <small class="text-muted">{{ config.home_assistant_service }}</small>
+                <div class="mb-2">
+                    <span class="status-indicator status-green" id="ha-status"></span>
+                    <span id="ha-status-text" class="text-success">Connected</span>
+                </div>
+                <small class="text-muted">Home Assistant</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h2 class="text-warning">{{ config.urgent_notification_threshold_minutes }}m</h2>
+                <small class="text-muted">Urgent Threshold</small>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Management -->
 <div class="row mb-4">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-calendar-alt"></i> Time-based Notifications
-            </div>
-            <div class="card-body">
-                <span class="status-indicator status-green"></span>
-                <span>Active</span>
-                <br>
-                <small class="text-muted">Weekdays: 8AM-12AM<br>Weekends: 10AM-12AM</small>
-            </div>
-        </div>
+    <div class="col-12">
+        <h4 class="mb-3">Management</h4>
     </div>
     <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-bell"></i> Urgent Notifications
-            </div>
-            <div class="card-body">
-                <h3>{{ config.urgent_notification_threshold_minutes }}min</h3>
-                <small class="text-muted">Urgent threshold - bypasses time restrictions</small>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-md-4">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span><i class="fas fa-list"></i> Search Words</span>
@@ -89,27 +71,30 @@
                     {% if search_words %}
                         {% for word in search_words %}
                         <div class="d-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded">
-                            <span><i class="fas fa-search text-muted"></i> {{ word }}</span>
-                            <button class="btn btn-sm btn-danger" onclick="removeSearchWord('{{ word }}')">
+                            <span><i class="fas fa-search text-muted me-2"></i>{{ word }}</span>
+                            <button class="btn btn-sm btn-outline-danger" onclick="removeSearchWord('{{ word }}')" title="Remove">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
                         {% endfor %}
                     {% else %}
-                        <p class="text-muted">No search words configured. Add some to start monitoring!</p>
+                        <div class="text-muted text-center py-3">
+                            <i class="fas fa-search fa-2x mb-2"></i><br>
+                            No search words configured.<br>
+                            <small>Add some to start monitoring!</small>
+                        </div>
                     {% endif %}
                 </div>
             </div>
         </div>
     </div>
-
-    <div class="col-md-4">
+    <div class="col-md-6">
         <div class="card">
             <div class="card-header">
                 <i class="fas fa-tools"></i> System Tests
             </div>
             <div class="card-body">
-                <div class="d-grid gap-2">
+                <div class="d-grid gap-2 mb-3">
                     <button class="btn btn-outline-primary" onclick="testScraper()">
                         <i class="fas fa-spider"></i> Test Scraper
                     </button>
@@ -117,26 +102,35 @@
                         <i class="fas fa-home"></i> Test Home Assistant
                     </button>
                 </div>
-                <div id="test-results" class="mt-3"></div>
+                <div id="test-results"></div>
             </div>
         </div>
     </div>
-    
-    <div class="col-md-4">
+</div>
+
+<!-- Current Auctions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h4 class="mb-3">Current Auctions</h4>
+    </div>
+    <div class="col-12">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <span id="auction-header"><i class="fas fa-hammer"></i> Current Auctions</span>
-                <div class="d-flex align-items-center">
-                    <small id="last-updated" class="text-muted me-2"></small>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="refreshAuctions(event)">
-                        <i class="fas fa-sync"></i>
+                <span id="auction-header"><i class="fas fa-hammer"></i> Loading...</span>
+                <div class="d-flex align-items-center gap-3">
+                    <small id="last-updated" class="text-muted">Loading...</small>
+                    <button class="btn btn-sm btn-outline-primary" onclick="refreshAuctions(event)">
+                        <i class="fas fa-sync"></i> Refresh
                     </button>
+                    <a href="/auctions" class="btn btn-sm btn-primary">
+                        <i class="fas fa-eye"></i> View All
+                    </a>
                 </div>
             </div>
-            <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+            <div class="card-body" style="max-height: 500px; overflow-y: auto;">
                 <div id="current-auctions">
-                    <div class="text-muted text-center">
-                        <i class="fas fa-spinner fa-spin"></i><br>
+                    <div class="text-muted text-center py-4">
+                        <i class="fas fa-spinner fa-spin fa-2x mb-3"></i><br>
                         Loading current auctions...
                     </div>
                 </div>
