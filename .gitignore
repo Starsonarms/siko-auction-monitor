@@ -53,3 +53,4 @@ Thumbs.db
 auction_data/
 notifications.db
 search_history.json
+cache/auction_cache.json
