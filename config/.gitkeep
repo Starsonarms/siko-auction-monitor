@@ -1,0 +1,2 @@
+# This file ensures the config directory is preserved in git
+# Configuration files in this directory are ignored to protect user settings

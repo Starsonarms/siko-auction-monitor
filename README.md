@@ -71,6 +71,23 @@ python manage.py start-web
 
 Visit `http://localhost:5000` to access the web interface.
 
+## Updating
+
+To update to the latest version while preserving your settings:
+
+```bash
+# Pull latest changes
+git pull origin main
+
+# Initialize any missing config files (your existing settings are preserved)
+python3 init_config.py
+
+# Restart the service if running as a system service
+sudo systemctl restart siko-auction-monitor.service
+```
+
+> **Your settings are safe**: The `.env` file and all configuration files in `config/` are protected by `.gitignore` and will never be overwritten by updates.
+
 ## Raspberry Pi Deployment
 
 ### 1. Install on Pi
@@ -96,16 +113,20 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 2. Configure
+### 3. Configure
 
 ```bash
-# Copy configuration
-cp .env.example .env
+# Initialize configuration (creates .env from example if needed)
+python3 init_config.py
+
+# Edit your settings
 nano .env
 
 # Create directories
 mkdir -p logs config
 ```
+
+> **Note**: Your `.env` file and `config/*.json` files are protected by `.gitignore` and will not be overwritten when you pull updates.
 
 ### 3. Set up as System Service
 

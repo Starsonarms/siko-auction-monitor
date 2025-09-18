@@ -54,3 +54,7 @@ auction_data/
 notifications.db
 search_history.json
 cache/auction_cache.json
+
+# Configuration directories (protect user settings)
+config/*.json
+!config/.gitkeep
