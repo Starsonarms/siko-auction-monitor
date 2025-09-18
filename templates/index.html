@@ -7,37 +7,33 @@
 <div class="row mb-4">
     <div class="col-12">
         <h1><i class="fas fa-tachometer-alt"></i> Dashboard</h1>
-        <p class="text-muted">Monitor and manage your auction search system</p>
     </div>
 </div>
 
-<!-- System Status -->
+<!-- Quick Stats -->
 <div class="row mb-4">
-    <div class="col-12">
-        <h4 class="mb-3">System Status</h4>
-    </div>
     <div class="col-md-3">
         <div class="card text-center">
-            <div class="card-body">
-                <h2 class="text-primary">{{ stats.total_search_words }}</h2>
+            <div class="card-body py-3">
+                <h2 class="text-primary mb-2">{{ stats.total_search_words }}</h2>
                 <small class="text-muted">Search Words</small>
             </div>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card text-center">
-            <div class="card-body">
-                <h2 class="text-info">{{ config.check_interval_minutes }}m</h2>
+            <div class="card-body py-3">
+                <h2 class="text-info mb-2">{{ config.check_interval_minutes }}m</h2>
                 <small class="text-muted">Check Interval</small>
             </div>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card text-center">
-            <div class="card-body">
-                <div class="mb-2">
-                    <span class="status-indicator status-green" id="ha-status"></span>
-                    <span id="ha-status-text" class="text-success">Connected</span>
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center justify-content-center mb-2">
+                    <span class="status-indicator status-green me-2" id="ha-status"></span>
+                    <h2 class="text-success mb-0" id="ha-status-text">OK</h2>
                 </div>
                 <small class="text-muted">Home Assistant</small>
             </div>
@@ -45,93 +41,82 @@
     </div>
     <div class="col-md-3">
         <div class="card text-center">
-            <div class="card-body">
-                <h2 class="text-warning">{{ config.urgent_notification_threshold_minutes }}m</h2>
+            <div class="card-body py-3">
+                <h2 class="text-warning mb-2">{{ config.urgent_notification_threshold_minutes }}m</h2>
                 <small class="text-muted">Urgent Threshold</small>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Management -->
-<div class="row mb-4">
-    <div class="col-12">
-        <h4 class="mb-3">Management</h4>
-    </div>
-    <div class="col-md-6">
-        <div class="card">
+<!-- Management & Current Auctions -->
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span><i class="fas fa-list"></i> Search Words</span>
                 <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addWordModal">
-                    <i class="fas fa-plus"></i> Add
+                    <i class="fas fa-plus"></i>
                 </button>
             </div>
             <div class="card-body">
                 <div id="search-words-list">
                     {% if search_words %}
                         {% for word in search_words %}
-                        <div class="d-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded">
-                            <span><i class="fas fa-search text-muted me-2"></i>{{ word }}</span>
+                        <div class="d-flex justify-content-between align-items-center mb-2 p-1 bg-light rounded">
+                            <span class="small"><i class="fas fa-search text-muted me-1"></i>{{ word }}</span>
                             <button class="btn btn-sm btn-outline-danger" onclick="removeSearchWord('{{ word }}')" title="Remove">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
                         {% endfor %}
                     {% else %}
-                        <div class="text-muted text-center py-3">
-                            <i class="fas fa-search fa-2x mb-2"></i><br>
-                            No search words configured.<br>
-                            <small>Add some to start monitoring!</small>
+                        <div class="text-muted text-center py-2">
+                            <i class="fas fa-search fa-lg mb-1"></i><br>
+                            <small>No search words configured.<br>Add some to start monitoring!</small>
                         </div>
                     {% endif %}
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-6">
-        <div class="card">
+    <div class="col-md-3">
+        <div class="card h-100">
             <div class="card-header">
-                <i class="fas fa-tools"></i> System Tests
+                <i class="fas fa-tools"></i> Tests
             </div>
             <div class="card-body">
-                <div class="d-grid gap-2 mb-3">
-                    <button class="btn btn-outline-primary" onclick="testScraper()">
+                <div class="d-grid gap-2 mb-2">
+                    <button class="btn btn-outline-primary btn-sm" onclick="testScraper()">
                         <i class="fas fa-spider"></i> Test Scraper
                     </button>
-                    <button class="btn btn-outline-success" onclick="testHomeAssistant()">
-                        <i class="fas fa-home"></i> Test Home Assistant
+                    <button class="btn btn-outline-success btn-sm" onclick="testHomeAssistant()">
+                        <i class="fas fa-home"></i> Test HA
                     </button>
                 </div>
                 <div id="test-results"></div>
             </div>
         </div>
     </div>
-</div>
-
-<!-- Current Auctions -->
-<div class="row mb-4">
-    <div class="col-12">
-        <h4 class="mb-3">Current Auctions</h4>
-    </div>
-    <div class="col-12">
-        <div class="card">
+    <div class="col-md-5">
+        <div class="card h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <span id="auction-header"><i class="fas fa-hammer"></i> Loading...</span>
-                <div class="d-flex align-items-center gap-3">
+                <span id="auction-header" class="small"><i class="fas fa-hammer"></i> Loading...</span>
+                <div class="d-flex align-items-center gap-2">
                     <small id="last-updated" class="text-muted">Loading...</small>
-                    <button class="btn btn-sm btn-outline-primary" onclick="refreshAuctions(event)">
-                        <i class="fas fa-sync"></i> Refresh
+                    <button class="btn btn-sm btn-outline-primary" onclick="refreshAuctions(event)" title="Refresh">
+                        <i class="fas fa-sync"></i>
                     </button>
-                    <a href="/auctions" class="btn btn-sm btn-primary">
-                        <i class="fas fa-eye"></i> View All
+                    <a href="/auctions" class="btn btn-sm btn-primary" title="View All">
+                        <i class="fas fa-eye"></i>
                     </a>
                 </div>
             </div>
-            <div class="card-body" style="max-height: 500px; overflow-y: auto;">
+            <div class="card-body p-2" style="max-height: 400px; overflow-y: auto;">
                 <div id="current-auctions">
-                    <div class="text-muted text-center py-4">
-                        <i class="fas fa-spinner fa-spin fa-2x mb-3"></i><br>
-                        Loading current auctions...
+                    <div class="text-muted text-center py-3">
+                        <i class="fas fa-spinner fa-spin fa-lg mb-2"></i><br>
+                        <small>Loading auctions...</small>
                     </div>
                 </div>
             </div>
@@ -278,18 +263,39 @@
 
 
     function updateAuctionResults(auctions, hiddenCount = 0) {
+        console.log('updateAuctionResults called with:', auctions, hiddenCount);
         const container = document.getElementById('current-auctions');
         const header = document.getElementById('auction-header');
         
-        // Update header with count and hidden count on separate lines
-        const count = auctions ? auctions.length : 0;
-        let headerHtml = `<i class="fas fa-hammer"></i> Current Auctions (${count})`;
-        if (hiddenCount > 0) {
-            headerHtml += `<br><small class="text-muted">${hiddenCount} hidden</small>`;
+        // Force clear any loading state first
+        if (container) {
+            container.innerHTML = '';
+            console.log('Cleared container content before update');
+        }
+        
+        if (!container) {
+            console.error('Container current-auctions not found!');
+            return;
+        }
+        if (!header) {
+            console.error('Header auction-header not found!');
+            return;
+        }
+        
+        // Show all auctions (visible and hidden) but with different styling
+        const allAuctions = auctions || [];
+        console.log('All auctions:', allAuctions);
+        const visibleCount = allAuctions.filter(auction => !auction.is_hidden).length;
+        const actualHiddenCount = allAuctions.filter(auction => auction.is_hidden).length;
+        
+        // Update header with total count and hidden count
+        let headerHtml = `<i class="fas fa-hammer"></i> Current Auctions (${allAuctions.length})`;
+        if (actualHiddenCount > 0) {
+            headerHtml += `<br><small class="text-muted">${actualHiddenCount} hidden</small>`;
         }
         header.innerHTML = headerHtml;
         
-        if (!auctions || auctions.length === 0) {
+        if (!allAuctions || allAuctions.length === 0) {
             container.innerHTML = `
                 <div class="text-muted text-center">
                     <i class="fas fa-search"></i><br>
@@ -301,31 +307,40 @@
         }
         
         let html = '';
-        for (let auction of auctions) {
+        for (let auction of allAuctions) {
             const isHidden = auction.is_hidden || false;
-            const hiddenClass = isHidden ? 'bg-warning bg-opacity-25 border-warning' : 'bg-light';
-            const hiddenBadge = isHidden ? '<span class="badge bg-warning text-dark me-1"><i class="fas fa-eye-slash"></i> Hidden</span>' : '';
+            const hiddenClass = isHidden ? 'bg-warning bg-opacity-25 border-warning' : '';
+            const hiddenBadge = isHidden ? '<span class="badge bg-warning text-dark me-1"><small><i class="fas fa-eye-slash"></i></small></span>' : '';
+            const titleClass = isHidden ? 'text-muted' : 'text-primary';
+            const auctionTitle = auction.title || 'No title';
+            const escapedTitle = auctionTitle.replace(/'/g, "\\'").replace(/"/g, '\\"');
+            const truncatedTitle = auctionTitle.length > 50 ? auctionTitle.substring(0, 50) + '...' : auctionTitle;
             
-            html += `
-                <div class="border rounded p-2 mb-2 ${hiddenClass}">
-                    <div class="mb-1 d-flex justify-content-between align-items-start">
-                        <div>
-                            ${hiddenBadge}
-                            <strong><a href="${auction.url}" target="_blank" class="text-decoration-none ${isHidden ? 'text-muted' : 'text-primary'}">${auction.title}</a></strong>
-                        </div>
-                        ${isHidden ? `<button class="btn btn-sm btn-outline-success" onclick="unhideAuction('${auction.id}', '${auction.title.replace(/'/g, "\\'").replace(/"/g, '\\"')}')"><i class="fas fa-eye"></i></button>` : ''}
-                    </div>
-                    <div class="small ${isHidden ? 'text-muted' : 'text-muted'}">
-                        💰 ${auction.current_bid}<br>
-                        🏷️ ${auction.reserve_price}<br>
-                        ⏰ ${auction.time_left}<br>
-                        🔍 "${auction.found_via}"
-                    </div>
-                </div>
-            `;
+            html += '<div class="border-bottom py-1 px-1 mb-1 ' + hiddenClass + '">' +
+                '<div class="d-flex justify-content-between align-items-start">' +
+                '<div class="flex-grow-1">' +
+                hiddenBadge +
+                '<a href="' + (auction.url || '#') + '" target="_blank" class="text-decoration-none ' + titleClass + ' small fw-bold">' +
+                truncatedTitle +
+                '</a>' +
+                '<div class="text-muted" style="font-size: 0.75rem;">' +
+                '💰 ' + (auction.current_bid || 'N/A') + ' • ' +
+                '⏰ ' + (auction.time_left || 'N/A') + ' • ' +
+                '🔍 ' + (auction.found_via || 'Unknown') +
+                '</div>' +
+                '</div>' +
+                (isHidden ? '<button class="btn btn-xs btn-outline-success" onclick="unhideAuction(\'' + (auction.id || '') + '\', \'' + escapedTitle + '\')" title="Unhide"><i class="fas fa-eye"></i></button>' : '') +
+                '</div>' +
+                '</div>';
         }
         
+        console.log('About to set container innerHTML, html length:', html.length);
+        console.log('Current container content before update:', container.innerHTML.substring(0, 50) + '...');
         container.innerHTML = html;
+        console.log('Container innerHTML set successfully');
+        console.log('New container content length:', container.innerHTML.length);
+        console.log('Container children count:', container.children.length);
+        console.log('First 50 chars of new content:', container.innerHTML.substring(0, 50) + '...');
     }
     
     function unhideAuction(auctionId, auctionTitle) {
@@ -334,7 +349,7 @@
             return;
         }
         
-        fetch(`/api/blacklist/${encodeURIComponent(auctionId)}`, {
+        fetch('/api/blacklist/' + encodeURIComponent(auctionId), {
             method: 'DELETE'
         })
         .then(response => response.json())
@@ -344,7 +359,7 @@
                 showTemporaryMessage(data.message, 'success');
                 
                 // Refresh the auctions to show the unhidden one
-                refreshAuctions();
+                refreshAuctions(null);
             } else {
                 alert('Error unhiding auction: ' + (data.error || data.message));
             }
@@ -375,23 +390,47 @@
         }, 3000);
     }
     
+    let isRefreshing = false;
+    
     function refreshAuctions(event) {
+        console.log('refreshAuctions called with event:', event);
+        
+        // Prevent multiple simultaneous refreshes
+        if (isRefreshing) {
+            console.log('Already refreshing, ignoring click completely');
+            return;
+        }
+        
+        isRefreshing = true;
+        console.log('Starting refresh, flag set to true');
         let button = null;
-        let originalText = null;
         
         if (event && event.target) {
-            button = event.target;
-            originalText = button.innerHTML;
-            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            button.disabled = true;
+            // Find the actual button element (might be clicking on the icon)
+            button = event.target.closest('button');
+            if (button) {
+                // Clear any existing content first, then set spinner
+                button.innerHTML = '';
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                button.disabled = true;
+                console.log('Button cleared and set to spinner state');
+            } else {
+                console.error('Could not find button element');
+            }
         }
         
         // Show loading in auction results
-        document.getElementById('current-auctions').innerHTML = `
-            <div class="text-muted text-center">
-                <i class="fas fa-spinner fa-spin"></i> Loading auctions...
-            </div>
-        `;
+        const auctionsContainer = document.getElementById('current-auctions');
+        console.log('Setting loading state in content area');
+        if (auctionsContainer) {
+            auctionsContainer.innerHTML = `
+                <div class="text-muted text-center">
+                    <i class="fas fa-spinner fa-spin"></i> Loading auctions...
+                </div>
+            `;
+        } else {
+            console.error('current-auctions element not found!');
+        }
         
         fetch('/api/test-scraper/dashboard')
         .then(response => {
@@ -416,7 +455,13 @@
         .then(data => {
             console.log('API response:', data);
             
+            if (!data) {
+                console.error('No data received from API');
+                throw new Error('No data received from server');
+            }
+            
             // Handle test-scraper/dashboard response
+            console.log('About to call updateAuctionResults with:', data.auctions);
             updateAuctionResults(data.auctions || [], data.hidden_count || 0);
             
             // Cache auction data for reuse
@@ -441,42 +486,64 @@
             document.getElementById('last-updated').textContent = `Updated: ${now.toLocaleTimeString()}`;
         })
         .catch(error => {
-            document.getElementById('current-auctions').innerHTML = `
-                <div class="text-danger text-center">
-                    <i class="fas fa-exclamation-triangle"></i><br>
-                    Error loading auctions: ${error}
-                </div>
-            `;
+            console.error('Fetch error details:', error);
+            console.error('Error type:', typeof error);
+            console.error('Error message:', error.message);
+            console.error('Error stack:', error.stack);
+            
+            const container = document.getElementById('current-auctions');
+            if (container) {
+                container.innerHTML = `
+                    <div class="text-danger text-center">
+                        <i class="fas fa-exclamation-triangle"></i><br>
+                        Error loading auctions: ${error}<br>
+                        <small>Check console for details</small>
+                    </div>
+                `;
+            }
+            
             // Update header and timestamp with error
-            document.getElementById('auction-header').innerHTML = '<i class="fas fa-hammer"></i> Current Auctions (0)';
-            document.getElementById('last-updated').textContent = 'Error loading';
+            const header = document.getElementById('auction-header');
+            const timestamp = document.getElementById('last-updated');
+            if (header) header.innerHTML = '<i class="fas fa-hammer"></i> Current Auctions (0)';
+            if (timestamp) timestamp.textContent = 'Error loading';
         })
         .finally(() => {
+            isRefreshing = false; // Reset the flag
             if (button) {
-                button.innerHTML = originalText;
+                // Clear and restore the original refresh icon
+                button.innerHTML = '';
+                button.innerHTML = '<i class="fas fa-sync"></i>';
                 button.disabled = false;
+                console.log('Button cleared and restored to sync state, innerHTML:', button.innerHTML);
             }
+            console.log('refreshAuctions completed, flag reset');
         });
     }
     
     // Check if we have cached auction data first
     function loadCachedAuctions() {
+        console.log('loadCachedAuctions called');
         try {
             const cachedData = localStorage.getItem('auctionData');
+            console.log('Cached data from localStorage:', cachedData);
             if (cachedData) {
                 const data = JSON.parse(cachedData);
                 const cacheAge = Date.now() - data.timestamp;
+                console.log('Cache age (ms):', cacheAge);
                 
                 // Use cached data if it's less than the check interval (config.check_interval_minutes)
                 const maxCacheAge = {{ config.check_interval_minutes }} * 60 * 1000; // Convert to milliseconds
                 
                 if (cacheAge < maxCacheAge) {
                     console.log('Using cached auction data, age:', Math.floor(cacheAge / 1000), 'seconds');
-                    updateAuctionResults(data.auctions || [], data.hidden_count || 0);
+                    
+                    // Pass all auctions to updateAuctionResults (it will handle both visible and hidden display)
+                    const allAuctions = data.auctions || [];
+                    updateAuctionResults(allAuctions, 0);
                     
                     const cacheTime = new Date(data.timestamp);
                     document.getElementById('last-updated').textContent = `Updated: ${cacheTime.toLocaleTimeString()}`;
-                    document.getElementById('auction-header').innerHTML = `<i class="fas fa-hammer"></i> Current Auctions (${data.auctions ? data.auctions.length : 0})`;
                     
                     return true; // Indicate we used cached data
                 }
@@ -487,16 +554,42 @@
         return false; // No valid cached data
     }
     
+    // Listen for storage changes (cache updates from other tabs/windows)
+    window.addEventListener('storage', function(e) {
+        // Only react to changes in the auctionData cache key
+        if (e.key === 'auctionData' && e.newValue) {
+            console.log('Detected cache update from another tab, refreshing auction list');
+            
+            try {
+                const updatedData = JSON.parse(e.newValue);
+                // Update the dashboard with the new cached data (shows both visible and hidden)
+                const allAuctions = updatedData.auctions || [];
+                updateAuctionResults(allAuctions, 0);
+                
+                // Update the timestamp
+                const cacheTime = new Date(updatedData.timestamp);
+                document.getElementById('last-updated').textContent = `Updated: ${cacheTime.toLocaleTimeString()}`;
+                
+                console.log('Dashboard updated with cached data from storage event');
+            } catch (error) {
+                console.log('Error parsing updated cache data:', error);
+            }
+        }
+    });
+    
     // Auto-load auctions when page loads - try cache first
     document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOMContentLoaded fired');
         // Try to load from cache first
         const usedCache = loadCachedAuctions();
+        console.log('Used cache:', usedCache);
         
         if (!usedCache) {
             // No cached data or cache is too old, fetch fresh data
+            console.log('No cache, refreshing auctions');
             document.getElementById('last-updated').textContent = 'Loading...';
             document.getElementById('auction-header').innerHTML = '<i class="fas fa-hammer"></i> Current Auctions';
-            refreshAuctions();
+            refreshAuctions(null); // Pass null instead of undefined
         }
     });
     

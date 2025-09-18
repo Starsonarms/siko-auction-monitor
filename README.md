@@ -255,8 +255,10 @@ Access at `http://your-pi-ip:5000`:
 
 - **Compact Visual Auction Cards**: 150px images with hover effects and clickable auction links (4 per row on desktop)
 - **One-Click Blacklist Management**: Hide unwanted auctions instantly - they'll never appear again
-- **Smart Hidden Auction Handling**: Dashboard shows all auctions (including hidden) for easy management
-- **Real-time Caching**: Lightning-fast page switching with 5-minute data caching and data sharing between pages
+- **Smart Hidden Auction Handling**: Dashboard shows all auctions (including hidden) with visual indicators for easy management
+- **Real-time Cache Synchronization**: Instant updates across browser tabs when auctions are hidden/unhidden
+- **Robust Refresh System**: Clean loading states with spinner animations and concurrency protection
+- **Enhanced Description Display**: Increased to 300 characters for better auction preview (previously 120)
 - **Mobile-Optimized Design**: Compact statistics bar and responsive cards - mobile (1 per row), tablet (2 per row), desktop (4 per row)
 - **Smart Descriptions**: Actual auction descriptions instead of generic site content
 - **Time Controls**: Configure weekday/weekend notification schedules
@@ -378,6 +380,14 @@ The system includes an advanced caching mechanism for optimal performance:
 
 Cache files are stored in `cache/auction_cache.json` and managed automatically.
 
+### Dashboard Enhancements (v2024.1)
+
+- **Real-time Tab Synchronization**: When you hide an auction on the auctions page, it immediately appears as hidden on the dashboard (and vice versa) without refreshing
+- **Visual Hidden Auction Indicators**: Hidden auctions appear with warning backgrounds, eye-slash badges, and muted text colors
+- **Smart Refresh Button**: Clean icon swapping (sync ⟷ spinner) with concurrency protection to prevent multiple simultaneous requests
+- **Cross-tab Storage Events**: Changes made in one browser tab instantly reflect in all other open tabs
+- **Enhanced Description Preview**: Auction descriptions now show 300 characters instead of 120 for better content visibility
+
 ## Visual Features
 
 ### Auction Images
@@ -391,7 +401,7 @@ Cache files are stored in `cache/auction_cache.json` and managed automatically.
 - **Complete auction information**: Extracts full auction details including title, auction number, and description
 - **Bold formatting**: Auction titles and numbers displayed in bold for better readability
 - **Compact layout**: Clean, optimized spacing for 4-per-row card layout
-- **Optimized text display**: Shows essential descriptions (120 characters) with full details on click
+- **Enhanced text display**: Shows comprehensive descriptions (300 characters) with full details on click
 - **Content filtering**: Removes navigation menus and generic site content
 - **Condition text removal**: Filters out standard condition disclaimers ("Om inget annat...")
 - **Example output**:

@@ -164,8 +164,8 @@
                     <!-- Description -->
                     {% if auction.get('description') %}
                         <div class="card-text small text-muted mb-2">
-                            {% set desc_preview = auction.description[:120] %}
-                            {{ desc_preview | safe }}{% if auction.description|length > 120 %}...{% endif %}
+                            {% set desc_preview = auction.description[:300] %}
+                            {{ desc_preview | safe }}{% if auction.description|length > 300 %}...{% endif %}
                         </div>
                     {% endif %}
                     
@@ -418,10 +418,26 @@
                 // Show success message
                 showTemporaryMessage(data.message, data.status === 'success' ? 'success' : 'warning');
                 
-                // Refresh the auctions to remove the hidden one
-                setTimeout(() => {
-                    location.reload();
-                }, 500);
+                // Update cached data to reflect the hidden auction immediately
+                updateCachedAuctionStatus(auctionId, true);
+                
+                // Remove the auction from the page immediately without full reload
+                const auctionCards = document.querySelectorAll('.card');
+                auctionCards.forEach(card => {
+                    const hideBtn = card.querySelector('.hide-btn');
+                    if (hideBtn && hideBtn.getAttribute('onclick').includes(auctionId)) {
+                        card.style.transition = 'opacity 0.3s ease';
+                        card.style.opacity = '0.3';
+                        card.querySelector('.card-body').style.textDecoration = 'line-through';
+                        hideBtn.textContent = 'Hidden';
+                        hideBtn.disabled = true;
+                        hideBtn.classList.remove('btn-outline-warning');
+                        hideBtn.classList.add('btn-outline-secondary');
+                    }
+                });
+                
+                // Update hidden count immediately
+                updateHiddenCount();
             } else {
                 alert('Error hiding auction: ' + (data.error || data.message));
             }
@@ -447,6 +463,9 @@
         .then(data => {
             if (data.status === 'success') {
                 showTemporaryMessage(data.message, 'success');
+                
+                // Update cached data to unhide all auctions
+                updateCachedAuctionStatus(null, false); // null means all auctions
                 
                 // Update hidden count immediately
                 updateHiddenCount();
@@ -511,16 +530,52 @@
         }, 3000);
     }
     
+    function updateCachedAuctionStatus(auctionId, isHidden) {
+        try {
+            const cachedData = localStorage.getItem('auctionData');
+            if (cachedData) {
+                const data = JSON.parse(cachedData);
+                
+                if (auctionId === null) {
+                    // Unhide all auctions
+                    data.auctions.forEach(auction => {
+                        auction.is_hidden = false;
+                    });
+                    data.hidden_count = 0;
+                    console.log('Updated cache: unhidden all auctions');
+                } else {
+                    // Update specific auction
+                    const auction = data.auctions.find(a => a.id === auctionId);
+                    if (auction) {
+                        auction.is_hidden = isHidden;
+                        // Update hidden count
+                        data.hidden_count = data.auctions.filter(a => a.is_hidden).length;
+                        console.log(`Updated cache: auction ${auctionId} hidden status = ${isHidden}`);
+                    }
+                }
+                
+                // Save updated cache
+                localStorage.setItem('auctionData', JSON.stringify(data));
+                console.log('Cache updated successfully');
+            }
+        } catch (e) {
+            console.log('Error updating cached auction status:', e);
+        }
+    }
+    
     // Update timestamp and hidden count on load
     document.addEventListener('DOMContentLoaded', function() {
-        const now = new Date();
-        document.getElementById('last-updated').textContent = now.toLocaleTimeString();
-        
         // Load hidden count
         updateHiddenCount();
         
         // Try to load cached auction data from dashboard first
-        loadCachedAuctionsIfAvailable();
+        const usedCache = loadCachedAuctionsIfAvailable();
+        
+        if (!usedCache) {
+            // No cached data, use server-rendered page timestamp
+            const now = new Date();
+            document.getElementById('last-updated').textContent = now.toLocaleTimeString();
+        }
     });
     
     function loadCachedAuctionsIfAvailable() {
@@ -530,17 +585,33 @@
                 const data = JSON.parse(cachedData);
                 const cacheAge = Date.now() - data.timestamp;
                 
-                // Use cached data if it's less than 2 minutes old
-                if (cacheAge < 2 * 60 * 1000) {
-                    console.log('Using cached auction data from dashboard');
+                // Use cached data if it's less than 5 minutes old
+                if (cacheAge < 5 * 60 * 1000) {
+                    console.log('Using cached auction data from dashboard, age:', Math.floor(cacheAge / 1000), 'seconds');
                     
                     // Filter out hidden auctions for the auctions page
                     const visibleAuctions = data.auctions.filter(auction => !auction.is_hidden);
                     
-                    // Update the page content using server-side rendering approach
-                    // We'll just show a message that data is preloaded
+                    if (visibleAuctions.length > 0) {
+                        // Update statistics
+                        const headerElement = document.querySelector('h1 + p.text-muted');
+                        if (headerElement) {
+                            headerElement.textContent = `Found ${visibleAuctions.length} auction${visibleAuctions.length !== 1 ? 's' : ''} matching your search terms (cached)`;
+                        }
+                        
+                        // Update stats bar if it exists
+                        const statsElement = document.getElementById('auctions-content');
+                        if (statsElement && statsElement.previousElementSibling) {
+                            const totalElement = statsElement.previousElementSibling.querySelector('.d-flex .gap-3 span strong');
+                            if (totalElement) {
+                                totalElement.textContent = visibleAuctions.length;
+                            }
+                        }
+                    }
+                    
+                    // Update timestamp
                     const lastUpdated = new Date(data.timestamp);
-                    document.getElementById('last-updated').textContent = `${lastUpdated.toLocaleTimeString()} (cached from dashboard)`;
+                    document.getElementById('last-updated').textContent = `${lastUpdated.toLocaleTimeString()} (cached)`;
                     document.getElementById('last-updated').style.color = '#28a745'; // Green to indicate cached data
                     
                     return true; // Indicate we used cached data
