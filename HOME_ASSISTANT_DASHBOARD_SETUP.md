@@ -2,6 +2,8 @@
 
 To make notifications open in the Home Assistant companion app and show your auctions page, you need to configure a Home Assistant dashboard called `siko-akutioner`.
 
+> 📋 **See [CHANGELOG.md](CHANGELOG.md) for all feature updates and improvements**
+
 ## Method 1: Using Home Assistant UI (Recommended)
 
 1. **Open Home Assistant** in your browser: `http://homeassistant.local:8123`

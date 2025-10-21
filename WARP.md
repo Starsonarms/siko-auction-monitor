@@ -6,6 +6,13 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 
 Siko Auction Monitor is a Python application that monitors sikoauktioner.se for auctions matching user-defined search words and sends notifications via Home Assistant. Designed for continuous operation on Raspberry Pi as a system service.
 
+**Recent Improvements**: See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
+- Inline search phrase management (no popups)
+- Real-time tab synchronization
+- Smart caching system (95% speed improvement)
+- Visual auction cards with images
+- Blacklist/hide functionality
+
 ## Development Commands
 
 ### Environment Setup

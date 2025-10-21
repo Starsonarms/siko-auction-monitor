@@ -4,9 +4,11 @@ Monitor [sikoauktioner.se](https://sikoauktioner.se) for auctions matching your 
 
 Perfect for running on a Raspberry Pi as a continuous monitoring service.
 
+> 📋 **See [CHANGELOG.md](CHANGELOG.md) for detailed version history and all improvements**
+
 ## Features
 
-- 🔍 **Smart Search**: Monitor auctions with customizable search words
+- 🔍 **Smart Search**: Monitor auctions with customizable search words (inline input, no popups!)
 - 📱 **iPhone Notifications**: Get instant alerts via Home Assistant companion app
 - 🌐 **Modern Web Interface**: Clean, responsive web UI with real-time auction viewing
 - 🖼️ **Visual Auction Cards**: Beautiful auction displays with images, prices, and descriptions
@@ -253,6 +255,7 @@ Access at `http://your-pi-ip:5000`:
 
 #### Key Web Features
 
+- **Inline Search Phrase Management**: Add search phrases directly without popup dialogs - instant and streamlined
 - **Compact Visual Auction Cards**: 150px images with hover effects and clickable auction links (4 per row on desktop)
 - **One-Click Blacklist Management**: Hide unwanted auctions instantly - they'll never appear again
 - **Smart Hidden Auction Handling**: Dashboard shows all auctions (including hidden) with visual indicators for easy management
