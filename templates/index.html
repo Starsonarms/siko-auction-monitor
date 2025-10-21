@@ -151,8 +151,19 @@
             if (data.status === 'success') {
                 // Clear input
                 document.getElementById('searchWord').value = '';
-                // Reload page to show new word
-                location.reload();
+                
+                // Clear cache to force fresh data
+                try {
+                    localStorage.removeItem('auctionData');
+                } catch (e) {
+                    console.log('Could not clear cache:', e);
+                }
+                
+                // Update the search words list
+                updateSearchWordsList();
+                
+                // Refresh auctions with new search term
+                refreshAuctions(null);
             } else {
                 alert('Error: ' + data.error);
             }
@@ -162,6 +173,49 @@
         });
     }
 
+    function updateSearchWordsList() {
+        // Fetch current search words and update the list
+        fetch('/api/search-words')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const searchWordsList = document.getElementById('search-words-list');
+                const searchWords = data.search_words || [];
+                
+                if (searchWords.length === 0) {
+                    searchWordsList.innerHTML = `
+                        <div class="text-muted text-center py-2">
+                            <i class="fas fa-search fa-lg mb-1"></i><br>
+                            <small>No search words configured.<br>Add some to start monitoring!</small>
+                        </div>
+                    `;
+                } else {
+                    let html = '';
+                    searchWords.forEach(word => {
+                        html += `
+                            <div class="d-flex justify-content-between align-items-center mb-2 p-1 bg-light rounded">
+                                <span class="small"><i class="fas fa-search text-muted me-1"></i>${word}</span>
+                                <button class="btn btn-sm btn-outline-danger" onclick="removeSearchWord('${word}')" title="Remove">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        `;
+                    });
+                    searchWordsList.innerHTML = html;
+                }
+                
+                // Update the stats counter if it exists
+                const statsElement = document.querySelector('.card-body h2.text-primary');
+                if (statsElement) {
+                    statsElement.textContent = searchWords.length;
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error updating search words list:', error);
+        });
+    }
+    
     function removeSearchWord(word) {
         fetch(`/api/search-words/${encodeURIComponent(word)}`, {
             method: 'DELETE'
@@ -169,7 +223,18 @@
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
-                location.reload();
+                // Clear cache to force fresh data
+                try {
+                    localStorage.removeItem('auctionData');
+                } catch (e) {
+                    console.log('Could not clear cache:', e);
+                }
+                
+                // Update the search words list
+                updateSearchWordsList();
+                
+                // Refresh auctions with remaining search terms
+                refreshAuctions(null);
             } else {
                 alert('Error: ' + data.error);
             }
@@ -260,8 +325,18 @@
         }
         
         // Show all auctions (visible and hidden) but with different styling
-        const allAuctions = auctions || [];
+        let allAuctions = auctions || [];
         console.log('All auctions:', allAuctions);
+        
+        // Sort by time left (ascending - ending soonest first), then by search term
+        allAuctions.sort((a, b) => {
+            const aTime = a.minutes_remaining !== null && a.minutes_remaining !== undefined ? a.minutes_remaining : Number.MAX_VALUE;
+            const bTime = b.minutes_remaining !== null && b.minutes_remaining !== undefined ? b.minutes_remaining : Number.MAX_VALUE;
+            if (aTime !== bTime) return aTime - bTime;
+            // If time is equal, sort by search term
+            return (a.found_via || '').localeCompare(b.found_via || '');
+        });
+        console.log('Sorted auctions by time left');
         const visibleCount = allAuctions.filter(auction => !auction.is_hidden).length;
         const actualHiddenCount = allAuctions.filter(auction => auction.is_hidden).length;
         

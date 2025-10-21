@@ -9,6 +9,8 @@ Perfect for running on a Raspberry Pi as a continuous monitoring service.
 ## Features
 
 - 🔍 **Smart Search**: Monitor auctions with customizable search words (inline input, no popups!)
+- ⏱️ **Smart Sorting**: Auctions sorted by time left (ending soonest first) with optional search term grouping
+- 🔄 **Auto-Refresh**: Auction list updates automatically when adding/removing search terms
 - 📱 **iPhone Notifications**: Get instant alerts via Home Assistant companion app
 - 🌐 **Modern Web Interface**: Clean, responsive web UI with real-time auction viewing
 - 🖼️ **Visual Auction Cards**: Beautiful auction displays with images, prices, and descriptions
@@ -50,6 +52,8 @@ Required settings:
 - `HA_URL`: Your Home Assistant URL (e.g., `http://192.168.1.100:8123`)
 - `HA_TOKEN`: Long-lived access token from Home Assistant
 - `HA_SERVICE`: Notification service (e.g., `notify.mobile_app_your_iphone`)
+
+> **🔒 Security Note**: Your `.env` file contains sensitive credentials and is protected by `.gitignore`. It will never be committed to git. Keep this file secure and never share it publicly.
 
 ### 4. Add Search Words
 
@@ -256,6 +260,8 @@ Access at `http://your-pi-ip:5000`:
 #### Key Web Features
 
 - **Inline Search Phrase Management**: Add search phrases directly without popup dialogs - instant and streamlined
+- **Auto-Refresh on Changes**: Auction list updates automatically when adding/removing search terms - no page reload needed
+- **Smart Sorting Controls**: Sort auctions by time left (ending soonest) or by search term with interactive buttons
 - **Compact Visual Auction Cards**: 150px images with hover effects and clickable auction links (4 per row on desktop)
 - **One-Click Blacklist Management**: Hide unwanted auctions instantly - they'll never appear again
 - **Smart Hidden Auction Handling**: Dashboard shows all auctions (including hidden) with visual indicators for easy management

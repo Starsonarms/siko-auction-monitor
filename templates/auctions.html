@@ -16,7 +16,15 @@
                     {% endif %}
                 </p>
             </div>
-            <div>
+            <div class="d-flex gap-2 align-items-center">
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-sm {{ 'btn-primary' if sort_by == 'time' else 'btn-outline-primary' }}" onclick="sortAuctions('time')">
+                        <i class="fas fa-clock"></i> Time Left
+                    </button>
+                    <button type="button" class="btn btn-sm {{ 'btn-primary' if sort_by == 'search' else 'btn-outline-primary' }}" onclick="sortAuctions('search')">
+                        <i class="fas fa-search"></i> Search Term
+                    </button>
+                </div>
                 <button class="btn btn-primary" onclick="refreshAuctions()" id="refresh-btn">
                     <i class="fas fa-sync"></i> Refresh
                 </button>
@@ -339,6 +347,13 @@
 </style>
 
 <script>
+    function sortAuctions(sortBy) {
+        // Add sort parameter to current URL and reload
+        const url = new URL(window.location.href);
+        url.searchParams.set('sort', sortBy);
+        window.location.href = url.toString();
+    }
+    
     function refreshAuctions() {
         const refreshBtn = document.getElementById('refresh-btn');
         const originalText = refreshBtn.innerHTML;

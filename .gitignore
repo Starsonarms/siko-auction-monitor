@@ -37,6 +37,7 @@ ENV/
 
 # Configuration files with sensitive data
 config.json
+.env
 *.env
 .env.*
 credentials.json

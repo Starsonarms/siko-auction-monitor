@@ -50,7 +50,22 @@ def create_app():
         if not include_hidden:
             cached_auctions = auction_cache.get_cached_auctions(search_words)
             if cached_auctions is not None:
-                logger.debug(f"Using cached auctions ({len(cached_auctions)} items)")
+                logger.debug(f"Using cached auctions ({len(cached_auctions)} items) - refreshing time_left")
+                # Refresh time_left for all cached auctions
+                scraper = SikoScraper()
+                for auction in cached_auctions:
+                    try:
+                        # Fetch only the time_left from the live page
+                        import requests
+                        from bs4 import BeautifulSoup
+                        response = scraper.session.get(auction['url'], timeout=5)
+                        soup = BeautifulSoup(response.content, 'html.parser')
+                        auction['time_left'] = scraper._extract_time_left(soup)
+                        auction['minutes_remaining'] = scraper._parse_time_to_minutes(auction['time_left'])
+                    except Exception as e:
+                        logger.debug(f"Error refreshing time for auction {auction.get('id')}: {e}")
+                        auction['time_left'] = ''
+                        auction['minutes_remaining'] = None
                 return cached_auctions, search_words
         
         # Cache miss or include_hidden=True - fetch fresh data
@@ -132,6 +147,8 @@ def create_app():
             
             success = search_manager.add_search_word(word)
             if success:
+                # Invalidate cache since search words changed
+                auction_cache.invalidate_cache()
                 return jsonify({'message': f'Added search word: {word}', 'status': 'success'})
             else:
                 return jsonify({'error': 'Failed to add search word', 'status': 'error'}), 500
@@ -145,6 +162,8 @@ def create_app():
         try:
             success = search_manager.remove_search_word(word)
             if success:
+                # Invalidate cache since search words changed
+                auction_cache.invalidate_cache()
                 return jsonify({'message': f'Removed search word: {word}', 'status': 'success'})
             else:
                 return jsonify({'error': 'Search word not found', 'status': 'error'}), 404
@@ -398,6 +417,7 @@ def create_app():
                         'current_bid': auction.get('current_bid', 'N/A'),
                         'reserve_price': auction.get('reserve_price', 'N/A'),
                         'time_left': auction.get('time_left', 'N/A'),
+                        'minutes_remaining': auction.get('minutes_remaining'),
                         'found_via': auction.get('found_via', 'Unknown'),
                         'id': auction.get('id'),
                         'is_hidden': auction.get('is_hidden', False)
@@ -498,6 +518,17 @@ def create_app():
             # Use cached auction data
             unique_auctions, search_words = get_current_auctions()
             
+            # Get sort parameter (default: time)
+            sort_by = request.args.get('sort', 'time')
+            
+            # Sort auctions
+            if sort_by == 'time':
+                # Sort by time left (ascending - ending soonest first)
+                unique_auctions.sort(key=lambda x: x.get('minutes_remaining') if x.get('minutes_remaining') is not None else float('inf'))
+            elif sort_by == 'search':
+                # Sort by search term (found_via), then by time
+                unique_auctions.sort(key=lambda x: (x.get('found_via', '').lower(), x.get('minutes_remaining') if x.get('minutes_remaining') is not None else float('inf')))
+            
             stats = {
                 'total_auctions': len(unique_auctions),
                 'search_words_tested': search_words
@@ -507,7 +538,8 @@ def create_app():
                                  auctions=unique_auctions,
                                  search_words=search_words,
                                  stats=stats,
-                                 config=config)
+                                 config=config,
+                                 sort_by=sort_by)
             
         except Exception as e:
             logger.error(f"Error loading auctions page: {e}")

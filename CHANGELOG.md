@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+- **Automatic Auction Sorting**: Auctions now sorted by time left (ending soonest first) by default
+  - Sort by time left (default): Shows auctions ending soonest at the top
+  - Sort by search term: Groups auctions by search term, then by time within each group
+  - Interactive sort buttons on auctions page with visual active state
+  - Dashboard preview also sorts by time left automatically
+- **Auto-Refresh on Search Word Changes**: Auction list updates automatically when adding/removing search terms
+  - No more manual page reloads required
+  - Search words list updates instantly
+  - Cache automatically invalidated and refreshed
+  - Smooth UX with loading states
+
 ### Changed
 - **Inline Search Phrase Input**: Replaced modal popup with inline input field for adding search phrases
   - Search phrases can now be added directly in the Search Words card without opening a popup
