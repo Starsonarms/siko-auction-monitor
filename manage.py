@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 Siko Auction Monitor - Management Script
 Easy commands to manage your auction monitoring
@@ -7,6 +8,17 @@ Easy commands to manage your auction monitoring
 import os
 import sys
 import subprocess
+
+# Configure UTF-8 output for Windows
+if sys.platform == 'win32':
+    import codecs
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+        sys.stderr.reconfigure(encoding='utf-8')
+    except AttributeError:
+        # Python < 3.7
+        sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
+        sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
 
 def run_command(cmd):
     """Run a command in the virtual environment"""

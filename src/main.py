@@ -23,9 +23,16 @@ load_dotenv()
 
 # Configure Windows UTF-8 console output
 if sys.platform == 'win32':
-    import codecs
-    sys.stdout = codecs.getwriter('utf-8')(sys.stdout.detach())
-    sys.stderr = codecs.getwriter('utf-8')(sys.stderr.detach())
+    try:
+        import codecs
+        # Only reconfigure if not already UTF-8
+        if sys.stdout.encoding.lower() != 'utf-8':
+            sys.stdout = codecs.getwriter('utf-8')(sys.stdout.detach())
+        if sys.stderr.encoding.lower() != 'utf-8':
+            sys.stderr = codecs.getwriter('utf-8')(sys.stderr.detach())
+    except Exception:
+        # Ignore errors - console may already be configured or unavailable
+        pass
 
 # Configure logging
 config = get_config()
