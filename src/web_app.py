@@ -13,7 +13,7 @@ from .blacklist_manager import BlacklistManager
 from .home_assistant import HomeAssistantNotifier
 from .scraper import SikoScraper
 from .config import get_config
-from .auction_cache import AuctionCache
+from .cache_factory import get_cache
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +28,7 @@ def create_app():
     config = get_config()
     search_manager = SearchManager()
     blacklist_manager = BlacklistManager()
-    auction_cache = AuctionCache()
+    auction_cache = get_cache()
     
     def get_current_auctions(include_hidden=False):
         """Shared function to get current auctions with caching

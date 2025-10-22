@@ -33,6 +33,12 @@ class Config(BaseSettings):
     search_words_file: str = "config/search_words.json"
     processed_auctions_file: str = "config/processed_auctions.json"
     
+    # MongoDB configuration
+    mongodb_username: str = Field(default="palmchristian_db_admin", alias="MONGODB_USERNAME")
+    mongodb_password: str = Field(default="jIk9RizuxOLxtWDW", alias="MONGODB_PASSWORD")
+    mongodb_database: str = Field(default="siko_auctions", alias="MONGODB_DATABASE")
+    mongodb_cache_duration_minutes: int = 5
+    
     # Logging configuration
     log_level: str = "INFO"
     log_file: str = "logs/auction_monitor.log"
