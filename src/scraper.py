@@ -80,6 +80,7 @@ class SikoScraper:
             soup = BeautifulSoup(response.content, 'html.parser')
             
             # Extract auction details - updated based on actual sikoauktioner.se structure
+            time_left = self._extract_time_left(soup)
             auction = {
                 'id': self._extract_auction_id(auction_url),
                 'url': auction_url,
@@ -87,7 +88,8 @@ class SikoScraper:
                 'description': self._extract_description(soup),
                 'current_bid': self._extract_current_bid(soup),
                 'reserve_price': self._extract_reserve_price(soup),
-                'time_left': self._extract_time_left(soup),
+                'time_left': time_left,
+                'minutes_remaining': self._parse_time_to_minutes(time_left),
                 'location': self._extract_location(soup),
                 'auction_number': self._extract_auction_number(soup),
                 'image_url': self._extract_image(soup, auction_url),
@@ -416,15 +418,59 @@ class SikoScraper:
             import re
             text = soup.get_text()
             
-            # Look for time patterns like "2d, 5h, 42m, 59s"
-            match = re.search(r'(\d+d,\s*\d+h,\s*\d+m,\s*\d+s)', text)
-            if match:
-                return match.group(1)
+            # Check if auction has ended
+            if re.search(r'Avslutad', text, re.IGNORECASE):
+                return "Ended"
+            
+            # Check for "Less than one minute left" message in Swedish
+            if re.search(r'Mindre än en minut kvar', text, re.IGNORECASE):
+                return "< 1m"
+            
+            # Look for time patterns like "2d, 5h, 42m, 59s" or "8h, 32s" (less than 1 day)
+            # Try multiple patterns in order of specificity
+            patterns = [
+                r'(\d+d,\s*\d+h,\s*\d+m,\s*\d+s)',  # Full format with days
+                r'(\d+h,\s*\d+m,\s*\d+s)',          # Hours, minutes, seconds
+                r'(\d+m,\s*\d+s)',                   # Minutes and seconds
+                r'(\d+d,\s*\d+h,\s*\d+m)',          # Days, hours, minutes (no seconds)
+                r'(\d+h,\s*\d+m)',                   # Hours and minutes (no seconds)
+            ]
+            
+            for pattern in patterns:
+                match = re.search(pattern, text)
+                if match:
+                    return match.group(1)
             
             return ""
         except Exception as e:
             logger.error(f"Error extracting time left: {e}")
             return ""
+    
+    def _parse_time_to_minutes(self, time_str: str) -> Optional[int]:
+        """Parse time string like '2d, 5h, 42m, 59s' to total minutes"""
+        try:
+            if not time_str:
+                return None
+            
+            import re
+            
+            # Extract days, hours, minutes, seconds
+            days_match = re.search(r'(\d+)d', time_str)
+            hours_match = re.search(r'(\d+)h', time_str)
+            minutes_match = re.search(r'(\d+)m', time_str)
+            
+            days = int(days_match.group(1)) if days_match else 0
+            hours = int(hours_match.group(1)) if hours_match else 0
+            minutes = int(minutes_match.group(1)) if minutes_match else 0
+            
+            # Convert to total minutes
+            total_minutes = (days * 24 * 60) + (hours * 60) + minutes
+            
+            return total_minutes
+            
+        except Exception as e:
+            logger.error(f"Error parsing time string '{time_str}': {e}")
+            return None
     
     def _extract_location(self, soup: BeautifulSoup) -> str:
         """Extract auction location"""

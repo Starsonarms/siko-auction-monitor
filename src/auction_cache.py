@@ -79,15 +79,19 @@ class AuctionCache:
             return None
     
     def cache_auctions(self, search_words: List[str], auctions: List[Dict]):
-        """Cache auctions for given search words"""
+        """Cache auctions for given search words (excludes time_left to keep it fresh)"""
         try:
             cache_key = self._get_cache_key(search_words)
             
             # Add cache metadata to each auction
+            # Exclude time-sensitive fields from cache
             cached_auctions = []
             for auction in auctions:
                 cached_auction = auction.copy()
                 cached_auction['cached_at'] = time.time()
+                # Remove time-sensitive fields that should always be fresh
+                cached_auction.pop('time_left', None)
+                cached_auction.pop('minutes_remaining', None)
                 cached_auctions.append(cached_auction)
             
             self.cache_data[cache_key] = {

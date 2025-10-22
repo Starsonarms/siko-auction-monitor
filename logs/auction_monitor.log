@@ -47,3 +47,62 @@
 2025-09-14 18:34:20,073 - src.search_manager - INFO - Saved 5 search words
 2025-09-14 18:34:20,073 - src.search_manager - INFO - Added search word: 'vintage'
 2025-09-14 18:34:20,073 - __main__ - INFO - Added search word: vintage
+2025-10-21 20:22:54,496 - src.blacklist_manager - INFO - Loaded 1 blacklisted auctions
+2025-10-21 20:22:54,498 - __main__ - INFO - Starting auction check...
+2025-10-21 20:22:54,498 - __main__ - INFO - Monitoring 4 search words: ['kettlebell', 'pinup', 'radiostyrd', 'vikter']
+2025-10-21 20:22:54,498 - src.scraper - INFO - Searching for auctions with term: kettlebell
+2025-10-21 20:22:54,500 - urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): sikoauktioner.se:443
+2025-10-21 20:22:54,990 - urllib3.connectionpool - DEBUG - https://sikoauktioner.se:443 "GET /sok/kettlebell/0/0 HTTP/1.1" 200 10063
+2025-10-21 20:22:55,002 - charset_normalizer - DEBUG - Encoding detection: utf_8 is most likely the one.
+2025-10-21 20:22:55,009 - src.scraper - INFO - Found 0 auctions for search term 'kettlebell'
+2025-10-21 20:22:55,009 - src.scraper - INFO - Searching for auctions with term: pinup
+2025-10-21 20:22:55,247 - urllib3.connectionpool - DEBUG - https://sikoauktioner.se:443 "GET /sok/pinup/0/0 HTTP/1.1" 200 10059
+2025-10-21 20:22:55,255 - charset_normalizer - DEBUG - Encoding detection: utf_8 is most likely the one.
+2025-10-21 20:22:55,261 - src.scraper - INFO - Found 0 auctions for search term 'pinup'
+2025-10-21 20:22:55,261 - src.scraper - INFO - Searching for auctions with term: radiostyrd
+2025-10-21 20:22:55,568 - urllib3.connectionpool - DEBUG - https://sikoauktioner.se:443 "GET /sok/radiostyrd/0/0 HTTP/1.1" 200 10062
+2025-10-21 20:22:55,569 - charset_normalizer - DEBUG - Encoding detection: utf_8 is most likely the one.
+2025-10-21 20:22:55,575 - src.scraper - INFO - Found 0 auctions for search term 'radiostyrd'
+2025-10-21 20:22:55,575 - src.scraper - INFO - Searching for auctions with term: vikter
+2025-10-21 20:22:55,741 - urllib3.connectionpool - DEBUG - https://sikoauktioner.se:443 "GET /sok/vikter/0/0 HTTP/1.1" 200 10808
+2025-10-21 20:22:55,749 - charset_normalizer - DEBUG - Encoding detection: utf_8 is most likely the one.
+2025-10-21 20:22:55,758 - src.scraper - INFO - Found 3 auctions for search term 'vikter'
+2025-10-21 20:22:55,758 - src.scraper - DEBUG - Scraping auction: https://sikoauktioner.se/auktion/840892
+2025-10-21 20:22:55,792 - urllib3.connectionpool - DEBUG - https://sikoauktioner.se:443 "GET /auktion/840892 HTTP/1.1" 200 17027
+2025-10-21 20:22:55,800 - charset_normalizer - DEBUG - Encoding detection: utf_8 is most likely the one.
+2025-10-21 20:22:55,866 - src.scraper - DEBUG - Scraped auction: Träskålar - Sikö Auktioner
+2025-10-21 20:22:56,866 - src.scraper - DEBUG - Scraping auction: https://sikoauktioner.se/auktion/840346
+2025-10-21 20:22:56,898 - urllib3.connectionpool - DEBUG - https://sikoauktioner.se:443 "GET /auktion/840346 HTTP/1.1" 200 16887
+2025-10-21 20:22:56,906 - charset_normalizer - DEBUG - Encoding detection: utf_8 is most likely the one.
+2025-10-21 20:22:56,967 - src.scraper - DEBUG - Scraped auction: Limknektar - Sikö Auktioner
+2025-10-21 20:22:57,967 - src.scraper - DEBUG - Scraping auction: https://sikoauktioner.se/auktion/840792
+2025-10-21 20:22:58,002 - urllib3.connectionpool - DEBUG - https://sikoauktioner.se:443 "GET /auktion/840792 HTTP/1.1" 200 16849
+2025-10-21 20:22:58,010 - charset_normalizer - DEBUG - Encoding detection: utf_8 is most likely the one.
+2025-10-21 20:22:58,068 - src.scraper - DEBUG - Scraped auction: Vikter - Sikö Auktioner
+2025-10-21 20:22:58,068 - src.scraper - INFO - Successfully scraped 3 unique auctions
+2025-10-21 20:22:58,068 - __main__ - INFO - Found 3 auctions from search terms
+2025-10-21 20:22:58,068 - __main__ - INFO - After blacklist filtering: 3 auctions remaining
+2025-10-21 20:22:58,069 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): homeassistant.local:8123
+2025-10-21 20:22:58,114 - urllib3.connectionpool - DEBUG - http://homeassistant.local:8123 "POST /api/services/notify/mobile_app_your_iphone HTTP/1.1" 401 17
+2025-10-21 20:22:58,114 - src.home_assistant - ERROR - HTTP error sending notification: 401 Client Error: Unauthorized for url: http://homeassistant.local:8123/api/services/notify/mobile_app_your_iphone
+2025-10-21 20:22:58,114 - src.home_assistant - ERROR - Failed to send notification for auction: Träskålar - Sikö Auktioner
+2025-10-21 20:22:58,114 - __main__ - INFO - Notification sent for auction: Träskålar - Sikö Auktioner (found via 'vikter')
+2025-10-21 20:22:58,115 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): homeassistant.local:8123
+2025-10-21 20:22:58,146 - urllib3.connectionpool - DEBUG - http://homeassistant.local:8123 "POST /api/services/notify/mobile_app_your_iphone HTTP/1.1" 401 17
+2025-10-21 20:22:58,146 - src.home_assistant - ERROR - HTTP error sending notification: 401 Client Error: Unauthorized for url: http://homeassistant.local:8123/api/services/notify/mobile_app_your_iphone
+2025-10-21 20:22:58,146 - src.home_assistant - ERROR - Failed to send notification for auction: Limknektar - Sikö Auktioner
+2025-10-21 20:22:58,146 - __main__ - INFO - Notification sent for auction: Limknektar - Sikö Auktioner (found via 'vikter')
+2025-10-21 20:22:58,147 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): homeassistant.local:8123
+2025-10-21 20:22:58,176 - urllib3.connectionpool - DEBUG - http://homeassistant.local:8123 "POST /api/services/notify/mobile_app_your_iphone HTTP/1.1" 401 17
+2025-10-21 20:22:58,176 - src.home_assistant - ERROR - HTTP error sending notification: 401 Client Error: Unauthorized for url: http://homeassistant.local:8123/api/services/notify/mobile_app_your_iphone
+2025-10-21 20:22:58,177 - src.home_assistant - ERROR - Failed to send notification for auction: Vikter - Sikö Auktioner
+2025-10-21 20:22:58,177 - __main__ - INFO - Notification sent for auction: Vikter - Sikö Auktioner (found via 'vikter')
+2025-10-21 20:22:58,177 - __main__ - DEBUG - Checking 3 auctions for urgent notifications (threshold: 15 min)
+2025-10-21 20:22:58,177 - __main__ - DEBUG - Auction 'Träskålar - Sikö Auktioner' (ID: 840892) has 1478 minutes remaining
+2025-10-21 20:22:58,177 - __main__ - DEBUG - Auction 'Limknektar - Sikö Auktioner' (ID: 840346) has 2902 minutes remaining
+2025-10-21 20:22:58,177 - __main__ - DEBUG - Auction 'Vikter - Sikö Auktioner' (ID: 840792) has 7179 minutes remaining
+2025-10-21 20:22:58,177 - __main__ - INFO - Found 3 new matching auctions
+2025-10-21 20:22:58,177 - __main__ - INFO -   - Träskålar - Sikö Auktioner: https://sikoauktioner.se/auktion/840892
+2025-10-21 20:22:58,177 - __main__ - INFO -   - Limknektar - Sikö Auktioner: https://sikoauktioner.se/auktion/840346
+2025-10-21 20:22:58,177 - __main__ - INFO -   - Vikter - Sikö Auktioner: https://sikoauktioner.se/auktion/840792
+2025-10-21 20:22:58,177 - __main__ - DEBUG - No urgent notifications needed

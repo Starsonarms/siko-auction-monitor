@@ -1,7 +1,10 @@
 {
   "blacklisted_ids": [
-    "834502"
+    "840792",
+    "840346",
+    "834502",
+    "840892"
   ],
-  "count": 1,
-  "last_updated": "1"
+  "count": 4,
+  "last_updated": "4"
 }

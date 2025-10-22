@@ -94,16 +94,21 @@ class AuctionMonitor:
             
             # Check all current auctions for urgent notifications (ending soon)
             urgent_auctions = []
+            logger.debug(f"Checking {len(auctions)} auctions for urgent notifications (threshold: {self.config.urgent_notification_threshold_minutes} min)")
             for auction in auctions:
                 auction_id = auction.get('id', auction.get('url', ''))
                 
                 # Skip if we already sent urgent notification for this auction
                 if auction_id in self.urgent_notifications_sent:
+                    logger.debug(f"Skipping auction {auction_id} - urgent notification already sent")
                     continue
                 
                 # Check if auction is ending soon
                 minutes_remaining = auction.get('minutes_remaining')
-                if minutes_remaining and minutes_remaining <= self.config.urgent_notification_threshold_minutes:
+                logger.debug(f"Auction '{auction.get('title', 'Unknown')}' (ID: {auction_id}) has {minutes_remaining} minutes remaining")
+                
+                if minutes_remaining is not None and minutes_remaining <= self.config.urgent_notification_threshold_minutes:
+                    logger.info(f"Auction '{auction.get('title', 'Unknown')}' qualifies for urgent notification ({minutes_remaining} <= {self.config.urgent_notification_threshold_minutes} min)")
                     urgent_auctions.append(auction)
                     self.urgent_notifications_sent.add(auction_id)
             

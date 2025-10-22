@@ -10,6 +10,7 @@ Perfect for running on a Raspberry Pi as a continuous monitoring service.
 
 - 🔍 **Smart Search**: Monitor auctions with customizable search words (inline input, no popups!)
 - ⏱️ **Smart Sorting**: Auctions sorted by time left (ending soonest first) with optional search term grouping
+- ⏰ **Urgent Notifications**: Smart notification system only alerts for ending-soon auctions (configurable threshold)
 - 🔄 **Auto-Refresh**: Auction list updates automatically when adding/removing search terms
 - 📱 **iPhone Notifications**: Get instant alerts via Home Assistant companion app
 - 🌐 **Modern Web Interface**: Clean, responsive web UI with real-time auction viewing
@@ -18,6 +19,7 @@ Perfect for running on a Raspberry Pi as a continuous monitoring service.
 - 📋 **Dedicated Auctions Page**: Browse all current matching auctions with detailed information
 - 🚫 **Smart Blacklist System**: Hide false-positive auctions with one-click - they'll never appear again
 - 🎯 **Smart Notifications**: Deep links that open directly in Home Assistant companion app
+- 🎨 **Modern Color Scheme**: Professional color palette with consistent styling throughout
 - 🤖 **Automated**: Runs continuously as a background service
 - 🍓 **Raspberry Pi Ready**: Optimized for deployment on Raspberry Pi
 

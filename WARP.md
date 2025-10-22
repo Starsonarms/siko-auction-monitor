@@ -91,6 +91,10 @@ tail -f logs/auction_monitor.log
 - `AuctionMonitor` orchestrates the entire monitoring process
 - Scheduled execution using `schedule` library (default: 15 minutes)
 - Maintains processed auctions set to prevent duplicate notifications
+- Urgent notification system with configurable threshold (default: 60 minutes)
+  - Only sends notifications for auctions within threshold
+  - Debug logging for notification decisions
+  - Prevents spam for long-running auctions
 - CLI interface for search word management and testing
 
 **Web Scraping** (`src/scraper.py`)
@@ -98,6 +102,10 @@ tail -f logs/auction_monitor.log
 - Two-phase scraping: fetch auction URLs, then detailed page scraping
 - Respectful scraping with configurable delays and request limits
 - Extracts auction details and individual items within auctions
+- Advanced time parsing with `_parse_time_to_minutes()` method
+  - Handles complex Swedish time formats: "2d, 5h, 42m, 59s"
+  - Special cases: "Avslutad" (Ended), "Mindre än en minut kvar" (< 1m)
+  - Calculates `minutes_remaining` field for urgency tracking
 - CSS selectors may need updates if website structure changes
 
 **Search Management** (`src/search_manager.py`)
@@ -117,14 +125,19 @@ tail -f logs/auction_monitor.log
 - REST API endpoints for search word CRUD operations
 - System status monitoring and testing interfaces
 - Production-ready serving with Waitress fallback to Flask dev server
+- Modern color scheme with CSS variables
+  - Sky Blue, Blue-Green, Prussian Blue, Yellow, Orange
+  - Consistent styling across all templates
 
 ### Data Flow
 
 1. **Scheduled Check**: `AuctionMonitor.check_auctions()` triggered by schedule
-2. **Scraping**: `SikoScraper.get_auctions()` fetches current auctions
+2. **Scraping**: `SikoScraper.get_auctions()` fetches current auctions with time parsing
 3. **Filtering**: `SearchManager` matches auctions against search words
 4. **Deduplication**: Skip auctions already in `processed_auctions` set
-5. **Notification**: `HomeAssistantNotifier.send_notification()` for matches
+5. **Urgency Check**: Only notify if `minutes_remaining` <= threshold (default: 60)
+6. **Notification**: `HomeAssistantNotifier.send_notification()` for urgent matches
+7. **Caching**: `AuctionCache` stores results (excluding time-sensitive fields) for 5 minutes
 
 ### Configuration System
 

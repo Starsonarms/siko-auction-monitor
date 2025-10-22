@@ -17,12 +17,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Search words list updates instantly
   - Cache automatically invalidated and refreshed
   - Smooth UX with loading states
+- **Enhanced Time Parsing**: Advanced time-left parsing with multiple format support
+  - Handles complex formats: "2d, 5h, 42m, 59s"
+  - Special cases: "Ended" auctions, "< 1m" for very short time
+  - Calculates `minutes_remaining` field for each auction
+  - Robust parsing for various Swedish time formats
+- **Urgent Notification System**: Smart notifications for ending-soon auctions
+  - Configurable threshold for urgent notifications (default: 60 minutes)
+  - Debug logging for notification decisions
+  - Only sends notifications when auctions are within threshold
+  - Prevents notification spam for long-running auctions
+- **Modern Color Scheme**: Professional color palette with CSS variables
+  - Sky Blue (#87CEEB)
+  - Blue-Green (#0D98BA)
+  - Prussian Blue (#003153)
+  - Yellow (#FFD700)
+  - Orange (#FFA500)
+  - Consistent styling across all pages
+  - Better visual hierarchy and readability
 
 ### Changed
 - **Inline Search Phrase Input**: Replaced modal popup with inline input field for adding search phrases
   - Search phrases can now be added directly in the Search Words card without opening a popup
   - Streamlined user experience with instant form submission
   - Removed unnecessary alert when field is empty
+- **Smart Cache Optimization**: Cache now excludes time-sensitive fields
+  - `time_left` and `minutes_remaining` excluded from cache
+  - Keeps cached data fresh while maintaining performance
+  - Reduces stale time display issues
 
 ## [2024.1.1] - 2025-10-21
 

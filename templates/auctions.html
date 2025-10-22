@@ -18,14 +18,14 @@
             </div>
             <div class="d-flex gap-2 align-items-center">
                 <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-sm {{ 'btn-primary' if sort_by == 'time' else 'btn-outline-primary' }}" onclick="sortAuctions('time')">
+                    <button type="button" class="btn btn-sm" style="{{ 'background-color: var(--color-blue-green); color: white;' if sort_by == 'time' else 'border-color: var(--color-blue-green); color: var(--color-blue-green);' }}" onclick="sortAuctions('time')">
                         <i class="fas fa-clock"></i> Time Left
                     </button>
-                    <button type="button" class="btn btn-sm {{ 'btn-primary' if sort_by == 'search' else 'btn-outline-primary' }}" onclick="sortAuctions('search')">
+                    <button type="button" class="btn btn-sm" style="{{ 'background-color: var(--color-blue-green); color: white;' if sort_by == 'search' else 'border-color: var(--color-blue-green); color: var(--color-blue-green);' }}" onclick="sortAuctions('search')">
                         <i class="fas fa-search"></i> Search Term
                     </button>
                 </div>
-                <button class="btn btn-primary" onclick="refreshAuctions()" id="refresh-btn">
+                <button class="btn" style="background-color: var(--color-blue-green); color: white;" onclick="refreshAuctions()" id="refresh-btn">
                     <i class="fas fa-sync"></i> Refresh
                 </button>
             </div>
@@ -38,9 +38,9 @@
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center p-2 bg-light rounded small">
             <div class="d-flex align-items-center gap-3 flex-wrap">
-                <span><i class="fas fa-list-ol text-primary"></i> <strong>{{ stats.total_auctions }}</strong> auctions</span>
-                <span><i class="fas fa-search text-success"></i> <strong>{{ stats.search_words_tested|length }}</strong> searches</span>
-                <span><i class="fas fa-eye-slash text-warning"></i> <strong id="hidden-count">0</strong> hidden</span>
+                <span><i class="fas fa-list-ol" style="color: var(--color-blue-green);"></i> <strong>{{ stats.total_auctions }}</strong> auctions</span>
+                <span><i class="fas fa-search" style="color: var(--color-blue-green);"></i> <strong>{{ stats.search_words_tested|length }}</strong> searches</span>
+                <span><i class="fas fa-eye-slash" style="color: var(--color-yellow);"></i> <strong id="hidden-count">0</strong> hidden</span>
                 {% if stats.search_words_tested %}
                     <div class="d-flex align-items-center gap-1 flex-wrap">
                         {% for word in stats.search_words_tested %}
@@ -50,7 +50,7 @@
                 {% endif %}
             </div>
             <div class="d-flex align-items-center gap-2">
-                <button class="btn btn-sm btn-outline-primary" id="unhide-all-btn" onclick="unhideAllAuctions()" style="display: none;">
+                <button class="btn btn-sm btn-outline" id="unhide-all-btn" onclick="unhideAllAuctions()" style="display: none; border-color: var(--color-blue-green); color: var(--color-blue-green);">
                     <i class="fas fa-eye"></i> Unhide All
                 </button>
                 <small class="text-muted" id="last-updated">Just now</small>
@@ -119,7 +119,7 @@
                 {% endif %}
                 
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <span class="badge bg-primary">{{ auction.found_via }}</span>
+                    <span class="badge" style="background-color: var(--color-blue-green);">{{ auction.found_via }}</span>
                     {% if auction.get('time_left') %}
                         <small class="text-muted">
                             <i class="fas fa-clock"></i> {{ auction.time_left }}
@@ -155,7 +155,7 @@
                             <div class="col-6">
                                 <div class="text-center p-2 bg-light rounded">
                                     <small class="text-muted">Current Bid</small>
-                                    <div class="fw-bold text-success">{{ auction.current_bid }}</div>
+                                    <div class="fw-bold" style="color: var(--color-blue-green);">{{ auction.current_bid }}</div>
                                 </div>
                             </div>
                         {% endif %}
@@ -197,10 +197,10 @@
                 
                 <div class="card-footer bg-transparent">
                     <div class="d-grid gap-2">
-                        <a href="{{ auction.url }}" target="_blank" class="btn btn-primary btn-sm">
+                        <a href="{{ auction.url }}" target="_blank" class="btn btn-sm" style="background-color: var(--color-blue-green); color: white;">
                             <i class="fas fa-external-link-alt"></i> View Auction
                         </a>
-                        <button class="btn btn-outline-warning btn-sm hide-btn" onclick="hideAuction('{{ auction.get('id', '') }}', '{{ auction.title|replace("'", "\\'")|replace('"', '\\"') }}')">
+                        <button class="btn btn-outline btn-sm hide-btn" style="border-color: var(--color-yellow); color: var(--color-yellow);" onclick="hideAuction('{{ auction.get('id', '') }}', '{{ auction.title|replace("'", "\\'")|replace('"', '\\"') }}')">
                             <i class="fas fa-eye-slash"></i> Hide This Auction
                         </button>
                     </div>
@@ -253,20 +253,20 @@
 }
 
 .auction-title {
-    color: #2c3e50;
+    color: var(--color-prussian-blue);
     text-decoration: none;
     transition: color 0.3s ease;
 }
 
 .auction-title:hover {
-    color: #3498db;
+    color: var(--color-blue-green);
     text-decoration: none;
 }
 
 /* Blacklist/Hide functionality styles */
 .hidden-auction {
     opacity: 0.7;
-    border-left: 4px solid #ffc107 !important;
+    border-left: 4px solid var(--color-yellow) !important;
 }
 
 .hide-btn {

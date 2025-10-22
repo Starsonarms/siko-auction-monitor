@@ -1,10 +1,15 @@
-SIkö
-
-- Loggning fungerar inte. Inga nya loggar.
-- Om jag lägger till/tar bort ett ord så borde listan med auktioner uppdateras.
-- Om jag kägger till ett nytt ord och det hittas en auktion så borde jag få meddelande på telefonen.
-- När jag ska lägga till ett nytt ord så borde fältet där jag skriver in ordet redan vara markerad så jag bara kan börja skriva istället för att behöva klicka i fältet först.
-- Auktionerna borde oxå vara listade efter när de går utDet borde vara möjligt att sortera ordningen på auktionerna.Standard verkar vara efter sökfraser.
+Sikö
+* Loggning fungerar inte. Inga nya loggar.
+X Om jag lägger till/tar bort ett ord så borde listan med auktioner uppdateras.
+* Om jag lägger till ett nytt ord och det hittas en auktion så borde jag få meddelande på telefonen.
+X När jag ska lägga till ett nytt ord så borde fältet där jag skriver in ordet redan vara markerad
+  så jag bara kan börja skriva istället för att behöva klicka i fältet först.
+X Auktionerna borde oxå vara listade efter när de går ut. 
+  Det borde vara möjligt att sortera ordningen på auktionerna. Standard verkar vara efter sökfraser.
   Men oxå efter när auktionen går ut, hur lång tid det är kvar.
-- Om det är kort tid kvar på en auktion så visas ingen tid. Se bild SIKÖ på skrivbordet
-- En auktion som har mindre än en timme kvar borde vara markerad på något sätt.
+X Om det är kort tid kvar på en auktion så visas ingen tid. Se bild SIKÖ på skrivbordet
+* En auktion som har mindre än en timme kvar borde vara markerad på något sätt.
+* Under current auctions borde det gå att klicka bort "kort"
+* antique" - matches any auction containing "antique"
+  "vintage tools" - matches auctions with both "vintage" and "tools" <- detta borde ändras til att matcha bara söktermen
+  "möbler" - matches Swedish furniture auctions

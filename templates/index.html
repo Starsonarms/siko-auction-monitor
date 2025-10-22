@@ -15,7 +15,7 @@
     <div class="col-md-3">
         <div class="card text-center">
             <div class="card-body py-3">
-                <h2 class="text-primary mb-2">{{ stats.total_search_words }}</h2>
+                <h2 class="mb-2" style="color: var(--color-blue-green);">{{ stats.total_search_words }}</h2>
                 <small class="text-muted">Search Words</small>
             </div>
         </div>
@@ -23,7 +23,7 @@
     <div class="col-md-3">
         <div class="card text-center">
             <div class="card-body py-3">
-                <h2 class="text-info mb-2">{{ config.check_interval_minutes }}m</h2>
+                <h2 class="mb-2" style="color: var(--color-sky-blue);">{{ config.check_interval_minutes }}m</h2>
                 <small class="text-muted">Check Interval</small>
             </div>
         </div>
@@ -33,7 +33,7 @@
             <div class="card-body py-3">
                 <div class="d-flex align-items-center justify-content-center mb-2">
                     <span class="status-indicator status-green me-2" id="ha-status"></span>
-                    <h2 class="text-success mb-0" id="ha-status-text">OK</h2>
+                    <h2 class="mb-0" style="color: var(--color-blue-green);" id="ha-status-text">OK</h2>
                 </div>
                 <small class="text-muted">Home Assistant</small>
             </div>
@@ -42,7 +42,7 @@
     <div class="col-md-3">
         <div class="card text-center">
             <div class="card-body py-3">
-                <h2 class="text-warning mb-2">{{ config.urgent_notification_threshold_minutes }}m</h2>
+                <h2 class="mb-2" style="color: var(--color-yellow);">{{ config.urgent_notification_threshold_minutes }}m</h2>
                 <small class="text-muted">Urgent Threshold</small>
             </div>
         </div>
@@ -60,7 +60,7 @@
                 <form id="addWordForm" onsubmit="addSearchWord(); return false;" class="mb-3">
                     <div class="input-group input-group-sm">
                         <input type="text" class="form-control" id="searchWord" placeholder="Add search phrase..." required>
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="btn" style="background-color: var(--color-blue-green); color: white;">
                             <i class="fas fa-plus"></i>
                         </button>
                     </div>
@@ -92,10 +92,10 @@
             </div>
             <div class="card-body">
                 <div class="d-grid gap-2 mb-2">
-                    <button class="btn btn-outline-primary btn-sm" onclick="testScraper()">
+                    <button class="btn btn-outline btn-sm" style="border-color: var(--color-blue-green); color: var(--color-blue-green);" onclick="testScraper()">
                         <i class="fas fa-spider"></i> Test Scraper
                     </button>
-                    <button class="btn btn-outline-success btn-sm" onclick="testHomeAssistant()">
+                    <button class="btn btn-outline btn-sm" style="border-color: var(--color-blue-green); color: var(--color-blue-green);" onclick="testHomeAssistant()">
                         <i class="fas fa-home"></i> Test HA
                     </button>
                 </div>
@@ -109,10 +109,10 @@
                 <span id="auction-header" class="small"><i class="fas fa-hammer"></i> Loading...</span>
                 <div class="d-flex align-items-center gap-2">
                     <small id="last-updated" class="text-muted">Loading...</small>
-                    <button class="btn btn-sm btn-outline-primary" onclick="refreshAuctions(event)" title="Refresh">
+                    <button class="btn btn-sm btn-outline" style="border-color: var(--color-blue-green); color: var(--color-blue-green);" onclick="refreshAuctions(event)" title="Refresh">
                         <i class="fas fa-sync"></i>
                     </button>
-                    <a href="/auctions" class="btn btn-sm btn-primary" title="View All">
+                    <a href="/auctions" class="btn btn-sm" style="background-color: var(--color-blue-green); color: white;" title="View All">
                         <i class="fas fa-eye"></i>
                     </a>
                 </div>
@@ -205,7 +205,7 @@
                 }
                 
                 // Update the stats counter if it exists
-                const statsElement = document.querySelector('.card-body h2.text-primary');
+                const statsElement = document.querySelector('.card-body h2[style*="color-blue-green"]');
                 if (statsElement) {
                     statsElement.textContent = searchWords.length;
                 }
@@ -361,18 +361,19 @@
         let html = '';
         for (let auction of allAuctions) {
             const isHidden = auction.is_hidden || false;
-            const hiddenClass = isHidden ? 'bg-warning bg-opacity-25 border-warning' : '';
-            const hiddenBadge = isHidden ? '<span class="badge bg-warning text-dark me-1"><small><i class="fas fa-eye-slash"></i></small></span>' : '';
-            const titleClass = isHidden ? 'text-muted' : 'text-primary';
+            const hiddenClass = isHidden ? 'border-warning' : '';
+            const hiddenStyle = isHidden ? 'style="background-color: #FFB70320; border-color: var(--color-yellow);"' : '';
+            const hiddenBadge = isHidden ? '<span class="badge text-dark me-1" style="background-color: var(--color-yellow);"><small><i class="fas fa-eye-slash"></i></small></span>' : '';
+            const titleClass = isHidden ? 'text-muted' : '';
             const auctionTitle = auction.title || 'No title';
             const escapedTitle = auctionTitle.replace(/'/g, "\\'").replace(/"/g, '\\"');
             const truncatedTitle = auctionTitle.length > 50 ? auctionTitle.substring(0, 50) + '...' : auctionTitle;
             
-            html += '<div class="border-bottom py-1 px-1 mb-1 ' + hiddenClass + '">' +
+            html += '<div class="border-bottom py-1 px-1 mb-1 ' + hiddenClass + '" ' + hiddenStyle + '>' +
                 '<div class="d-flex justify-content-between align-items-start">' +
                 '<div class="flex-grow-1">' +
                 hiddenBadge +
-                '<a href="' + (auction.url || '#') + '" target="_blank" class="text-decoration-none ' + titleClass + ' small fw-bold">' +
+                '<a href="' + (auction.url || '#') + '" target="_blank" class="text-decoration-none ' + titleClass + ' small fw-bold" style="' + (isHidden ? '' : 'color: var(--color-blue-green);') + '">' +
                 truncatedTitle +
                 '</a>' +
                 '<div class="text-muted" style="font-size: 0.75rem;">' +
