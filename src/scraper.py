@@ -42,7 +42,7 @@ class SikoScraper:
             # Ensure correct encoding
             response.encoding = 'utf-8'
             
-            soup = BeautifulSoup(response.text, 'html.parser', from_encoding='utf-8')
+            soup = BeautifulSoup(response.text, 'html.parser')
             auction_urls = []
             
             # Find auction item links - look for auction item numbers
@@ -83,7 +83,7 @@ class SikoScraper:
             # Ensure correct encoding
             response.encoding = 'utf-8'
             
-            soup = BeautifulSoup(response.text, 'html.parser', from_encoding='utf-8')
+            soup = BeautifulSoup(response.text, 'html.parser')
             
             # Extract auction details - updated based on actual sikoauktioner.se structure
             time_left = self._extract_time_left(soup)
@@ -187,7 +187,7 @@ class SikoScraper:
             # Ensure correct encoding
             response.encoding = 'utf-8'
             
-            soup = BeautifulSoup(response.text, 'html.parser', from_encoding='utf-8')
+            soup = BeautifulSoup(response.text, 'html.parser')
             auctions = []
             
             # Extract auction URLs from search results

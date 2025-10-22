@@ -1,5 +1,5 @@
 {
-  "last_updated": 1761140195.5933504,
+  "last_updated": 1761142954.742179,
   "auctions": {
     "kettlebell|pinup|radiostyrd|vikter": {
       "timestamp": 0,
@@ -1600,7 +1600,7 @@
       "count": 37
     },
     "förstärkare|gitarr|kettlebell|pinup|radiostyrd|tält|vikter": {
-      "timestamp": 1761140195.5933485,
+      "timestamp": 1761142954.742171,
       "search_words": [
         "förstärkare",
         "gitarr",
@@ -1616,34 +1616,34 @@
           "url": "https://sikoauktioner.se/auktion/840141",
           "title": "Gitarrförstärkare - Sikö Auktioner",
           "description": "<span style=\"font-weight: bold;\">Gitarrförstärkare</span><br><span style=\"font-weight: bold;\">nr. 840141</span><br>Gitarrförstärkare, Traynor TS-15, H=36<br>Anmärkningar: Ej testad",
-          "current_bid": "350 kr",
+          "current_bid": "500 kr",
           "reserve_price": "500 kr",
           "location": "Kristianstad",
           "auction_number": "840141",
           "image_url": "https://siko-im460.fra1.cdn.digitaloceanspaces.com/00840141_1.jpg",
           "items": [],
-          "scraped_at": 1761140176.5616746,
+          "scraped_at": 1761142935.779501,
           "search_term_used": "förstärkare",
           "found_via": "förstärkare",
           "is_hidden": false,
-          "cached_at": 1761140195.5933402
+          "cached_at": 1761142954.7421641
         },
         {
           "id": "840142",
           "url": "https://sikoauktioner.se/auktion/840142",
           "title": "Gitarrförstärkare - Sikö Auktioner",
           "description": "<span style=\"font-weight: bold;\">Gitarrförstärkare</span><br><span style=\"font-weight: bold;\">nr. 840142</span><br>Gitarrförstärkare, Laney LSB 7361, H=39",
-          "current_bid": "450 kr",
+          "current_bid": "500 kr",
           "reserve_price": "1 500 kr",
           "location": "Kristianstad",
           "auction_number": "840142",
           "image_url": "https://siko-im460.fra1.cdn.digitaloceanspaces.com/00840142_2.jpg",
           "items": [],
-          "scraped_at": 1761140177.6841383,
+          "scraped_at": 1761142936.9040308,
           "search_term_used": "förstärkare",
           "found_via": "förstärkare",
           "is_hidden": false,
-          "cached_at": 1761140195.5933423
+          "cached_at": 1761142954.7421658
         },
         {
           "id": "840444",
@@ -1656,11 +1656,11 @@
           "auction_number": "840444",
           "image_url": "https://siko-im460.fra1.cdn.digitaloceanspaces.com/00840444_1.jpg",
           "items": [],
-          "scraped_at": 1761140178.8060875,
+          "scraped_at": 1761142938.0250995,
           "search_term_used": "förstärkare",
           "found_via": "förstärkare",
           "is_hidden": false,
-          "cached_at": 1761140195.593343
+          "cached_at": 1761142954.742167
         },
         {
           "id": "840448",
@@ -1673,11 +1673,11 @@
           "auction_number": "840448",
           "image_url": "https://siko-im460.fra1.cdn.digitaloceanspaces.com/00840448_1.jpg",
           "items": [],
-          "scraped_at": 1761140179.9300492,
+          "scraped_at": 1761142939.144064,
           "search_term_used": "förstärkare",
           "found_via": "förstärkare",
           "is_hidden": false,
-          "cached_at": 1761140195.5933435
+          "cached_at": 1761142954.7421675
         },
         {
           "id": "840450",
@@ -1690,11 +1690,11 @@
           "auction_number": "840450",
           "image_url": "https://siko-im460.fra1.cdn.digitaloceanspaces.com/00840450_1.jpg",
           "items": [],
-          "scraped_at": 1761140181.0462646,
+          "scraped_at": 1761142940.2659328,
           "search_term_used": "förstärkare",
           "found_via": "förstärkare",
           "is_hidden": false,
-          "cached_at": 1761140195.5933437
+          "cached_at": 1761142954.7421677
         },
         {
           "id": "841000",
@@ -1707,11 +1707,11 @@
           "auction_number": "841000",
           "image_url": "https://siko-im460.fra1.cdn.digitaloceanspaces.com/00841000_1.jpg",
           "items": [],
-          "scraped_at": 1761140182.1659887,
+          "scraped_at": 1761142941.3899138,
           "search_term_used": "förstärkare",
           "found_via": "förstärkare",
           "is_hidden": false,
-          "cached_at": 1761140195.5933442
+          "cached_at": 1761142954.7421684
         },
         {
           "id": "841001",
@@ -1724,11 +1724,11 @@
           "auction_number": "841001",
           "image_url": "https://siko-im460.fra1.cdn.digitaloceanspaces.com/00841001_1.jpg",
           "items": [],
-          "scraped_at": 1761140183.2867148,
+          "scraped_at": 1761142942.511497,
           "search_term_used": "förstärkare",
           "found_via": "förstärkare",
           "is_hidden": false,
-          "cached_at": 1761140195.5933447
+          "cached_at": 1761142954.7421687
         },
         {
           "id": "840987",
@@ -1741,11 +1741,11 @@
           "auction_number": "840987",
           "image_url": "https://siko-im460.fra1.cdn.digitaloceanspaces.com/00840987_1.jpg",
           "items": [],
-          "scraped_at": 1761140184.4475415,
+          "scraped_at": 1761142943.63114,
           "search_term_used": "förstärkare",
           "found_via": "förstärkare",
           "is_hidden": false,
-          "cached_at": 1761140195.5933452
+          "cached_at": 1761142954.7421691
         },
         {
           "id": "840143",
@@ -1758,45 +1758,45 @@
           "auction_number": "840143",
           "image_url": "https://siko-im460.fra1.cdn.digitaloceanspaces.com/00840143_1.jpg",
           "items": [],
-          "scraped_at": 1761140186.9823632,
+          "scraped_at": 1761142946.1295757,
           "search_term_used": "gitarr",
           "found_via": "gitarr",
           "is_hidden": false,
-          "cached_at": 1761140195.5933459
+          "cached_at": 1761142954.7421694
         },
         {
           "id": "840144",
           "url": "https://sikoauktioner.se/auktion/840144",
           "title": "Gitarrpedal - Sikö Auktioner",
           "description": "<span style=\"font-weight: bold;\">Gitarrpedal</span><br><span style=\"font-weight: bold;\">nr. 840144</span><br>Gitarrpedal, Hotone Soul Press<br>Anmärkningar: Tillsynes obegagnad",
-          "current_bid": "250 kr",
+          "current_bid": "450 kr",
           "reserve_price": "500 kr",
           "location": "Kristianstad",
           "auction_number": "840144",
           "image_url": "https://siko-im460.fra1.cdn.digitaloceanspaces.com/00840144_1.jpg",
           "items": [],
-          "scraped_at": 1761140188.125916,
+          "scraped_at": 1761142947.2521422,
           "search_term_used": "gitarr",
           "found_via": "gitarr",
           "is_hidden": false,
-          "cached_at": 1761140195.5933464
+          "cached_at": 1761142954.7421699
         },
         {
           "id": "840145",
           "url": "https://sikoauktioner.se/auktion/840145",
           "title": "Gitarrpedal - Sikö Auktioner",
           "description": "<span style=\"font-weight: bold;\">Gitarrpedal</span><br><span style=\"font-weight: bold;\">nr. 840145</span><br>Gitarrpedal, Ibanez Tubescreamer TS7<br>Anmärkningar: Ej testad",
-          "current_bid": "350 kr",
+          "current_bid": "700 kr",
           "reserve_price": "400 kr",
           "location": "Kristianstad",
           "auction_number": "840145",
           "image_url": "https://siko-im460.fra1.cdn.digitaloceanspaces.com/00840145_1.jpg",
           "items": [],
-          "scraped_at": 1761140189.2651594,
+          "scraped_at": 1761142948.3809328,
           "search_term_used": "gitarr",
           "found_via": "gitarr",
           "is_hidden": false,
-          "cached_at": 1761140195.593347
+          "cached_at": 1761142954.74217
         },
         {
           "id": "840147",
@@ -1809,11 +1809,11 @@
           "auction_number": "840147",
           "image_url": "https://siko-im460.fra1.cdn.digitaloceanspaces.com/00840147_1.jpg",
           "items": [],
-          "scraped_at": 1761140190.3919766,
+          "scraped_at": 1761142949.50209,
           "search_term_used": "gitarr",
           "found_via": "gitarr",
           "is_hidden": false,
-          "cached_at": 1761140195.5933475
+          "cached_at": 1761142954.7421706
         },
         {
           "id": "841073",
@@ -1826,11 +1826,11 @@
           "auction_number": "841073",
           "image_url": "https://siko-im460.fra1.cdn.digitaloceanspaces.com/00841073_1.jpg",
           "items": [],
-          "scraped_at": 1761140192.6443355,
+          "scraped_at": 1761142951.7540581,
           "search_term_used": "gitarr",
           "found_via": "gitarr",
           "is_hidden": false,
-          "cached_at": 1761140195.593348
+          "cached_at": 1761142954.7421708
         }
       ],
       "count": 13
