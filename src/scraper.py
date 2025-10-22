@@ -212,6 +212,8 @@ class SikoScraper:
                     if auction:
                         auction['search_term_used'] = search_term  # Track which search found this
                         auctions.append(auction)
+                        # Log found auction details
+                        logger.info(f"  ✓ Scraped: '{auction.get('title', 'Unknown')}' (ID: {auction.get('id', 'N/A')}) - {auction.get('url', 'No URL')} - {auction.get('minutes_remaining', 'N/A')} min remaining")
                         
                 except Exception as e:
                     logger.error(f"Error processing search result auction {url}: {e}")

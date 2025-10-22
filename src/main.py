@@ -15,12 +15,26 @@ from .search_manager import SearchManager
 from .blacklist_manager import BlacklistManager
 from .home_assistant import HomeAssistantNotifier
 from .config import get_config
+import os
+import sys
 
 # Load environment variables
 load_dotenv()
 
+# Configure Windows UTF-8 console output
+if sys.platform == 'win32':
+    import codecs
+    sys.stdout = codecs.getwriter('utf-8')(sys.stdout.detach())
+    sys.stderr = codecs.getwriter('utf-8')(sys.stderr.detach())
+
 # Configure logging
 config = get_config()
+
+# Ensure logs directory exists
+log_dir = os.path.dirname(config.log_file)
+if log_dir and not os.path.exists(log_dir):
+    os.makedirs(log_dir, exist_ok=True)
+
 logging.basicConfig(
     level=getattr(logging, config.log_level.upper()),
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -87,10 +101,13 @@ class AuctionMonitor:
             # Send notifications for new matching auctions
             for auction in new_auctions:
                 try:
-                    self.notifier.send_notification(auction)
-                    logger.info(f"Notification sent for auction: {auction.get('title', 'Unknown')} (found via '{auction.get('matched_search_word', 'unknown')}')")
+                    success = self.notifier.send_notification(auction)
+                    if success:
+                        logger.info(f"✓ Notification sent for auction: {auction.get('title', 'Unknown')} (found via '{auction.get('matched_search_word', 'unknown')}')")
+                    else:
+                        logger.warning(f"✗ Failed to send notification for auction: {auction.get('title', 'Unknown')} (found via '{auction.get('matched_search_word', 'unknown')}')")
                 except Exception as e:
-                    logger.error(f"Failed to send notification for auction {auction.get('id', 'unknown')}: {e}")
+                    logger.error(f"✗ Error sending notification for auction {auction.get('id', 'unknown')}: {e}")
             
             # Check all current auctions for urgent notifications (ending soon)
             urgent_auctions = []
@@ -125,9 +142,19 @@ class AuctionMonitor:
             
             if new_auctions:
                 logger.info(f"Found {len(new_auctions)} new matching auctions")
-                # Log the auction URLs for debugging
+                # Log detailed auction information
                 for auction in new_auctions:
-                    logger.info(f"  - {auction.get('title', 'Unknown')}: {auction.get('url', 'No URL')}")
+                    title = auction.get('title', 'Unknown')
+                    url = auction.get('url', 'No URL')
+                    time_left = auction.get('time_left', 'Unknown')
+                    current_bid = auction.get('current_bid', 'N/A')
+                    search_word = auction.get('matched_search_word', 'unknown')
+                    logger.info(f"  NEW AUCTION:")
+                    logger.info(f"    Title: {title}")
+                    logger.info(f"    URL: {url}")
+                    logger.info(f"    Time Left: {time_left}")
+                    logger.info(f"    Current Bid: {current_bid}")
+                    logger.info(f"    Found via: '{search_word}'")
             else:
                 logger.info("No new matching auctions found")
             
