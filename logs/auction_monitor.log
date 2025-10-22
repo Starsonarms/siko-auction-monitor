@@ -251,3 +251,296 @@
 2025-10-22 16:16:12,270 - __main__ - INFO -     Time Left: 4d, 4h, 37m, 55s
 2025-10-22 16:16:12,271 - __main__ - INFO -     Current Bid: 950 kr
 2025-10-22 16:16:12,271 - __main__ - INFO -     Found via: 'gitarr'
+2025-10-22 16:19:14,874 - src.blacklist_manager - INFO - Loaded 4 blacklisted auctions
+2025-10-22 16:19:14,876 - __main__ - INFO - Starting auction check...
+2025-10-22 16:19:14,876 - __main__ - INFO - Monitoring 7 search words: ['förstärkare', 'gitarr', 'kettlebell', 'pinup', 'radiostyrd', 'tält', 'vikter']
+2025-10-22 16:19:14,876 - src.scraper - INFO - Searching for auctions with term: förstärkare
+2025-10-22 16:19:15,357 - src.scraper - INFO - Found 8 auctions for search term 'förstärkare'
+2025-10-22 16:19:15,468 - src.scraper - INFO -   ✓ Scraped: 'Gitarrförstärkare - Sikö Auktioner' (ID: 840141) - https://sikoauktioner.se/auktion/840141 - 176 min remaining
+2025-10-22 16:19:16,605 - src.scraper - INFO -   ✓ Scraped: 'Gitarrförstärkare - Sikö Auktioner' (ID: 840142) - https://sikoauktioner.se/auktion/840142 - 178 min remaining
+2025-10-22 16:19:17,701 - src.scraper - INFO -   ✓ Scraped: 'Förstärkare A32 Roxcore - Sikö Auktioner' (ID: 840444) - https://sikoauktioner.se/auktion/840444 - 1712 min remaining
+2025-10-22 16:19:18,828 - src.scraper - INFO -   ✓ Scraped: 'Gitarrförstärkare SubZero - Sikö Auktioner' (ID: 840448) - https://sikoauktioner.se/auktion/840448 - 1716 min remaining
+2025-10-22 16:19:19,951 - src.scraper - INFO -   ✓ Scraped: 'Förstärkare Pioneer A-207R - Sikö Auktioner' (ID: 840450) - https://sikoauktioner.se/auktion/840450 - 1720 min remaining
+2025-10-22 16:19:21,075 - src.scraper - INFO -   ✓ Scraped: 'Förstärkare - Sikö Auktioner' (ID: 841000) - https://sikoauktioner.se/auktion/841000 - 6003 min remaining
+2025-10-22 16:19:22,203 - src.scraper - INFO -   ✓ Scraped: 'Förstärkare - Sikö Auktioner' (ID: 841001) - https://sikoauktioner.se/auktion/841001 - 6004 min remaining
+2025-10-22 16:19:23,370 - src.scraper - INFO -   ✓ Scraped: 'Förstärkare Rank Arena - Sikö Auktioner' (ID: 840987) - https://sikoauktioner.se/auktion/840987 - 7440 min remaining
+2025-10-22 16:19:23,370 - src.scraper - INFO - Searching for auctions with term: gitarr
+2025-10-22 16:19:23,512 - src.scraper - INFO - Found 8 auctions for search term 'gitarr'
+2025-10-22 16:19:23,668 - src.scraper - INFO -   ✓ Scraped: 'Gitarrförstärkare - Sikö Auktioner' (ID: 840141) - https://sikoauktioner.se/auktion/840141 - 176 min remaining
+2025-10-22 16:19:24,809 - src.scraper - INFO -   ✓ Scraped: 'Gitarrförstärkare - Sikö Auktioner' (ID: 840142) - https://sikoauktioner.se/auktion/840142 - 178 min remaining
+2025-10-22 16:19:25,981 - src.scraper - INFO -   ✓ Scraped: 'Gitarrpedal - Sikö Auktioner' (ID: 840143) - https://sikoauktioner.se/auktion/840143 - 180 min remaining
+2025-10-22 16:19:27,120 - src.scraper - INFO -   ✓ Scraped: 'Gitarrpedal - Sikö Auktioner' (ID: 840144) - https://sikoauktioner.se/auktion/840144 - 182 min remaining
+2025-10-22 16:19:28,276 - src.scraper - INFO -   ✓ Scraped: 'Gitarrpedal - Sikö Auktioner' (ID: 840145) - https://sikoauktioner.se/auktion/840145 - 184 min remaining
+2025-10-22 16:19:29,405 - src.scraper - INFO -   ✓ Scraped: 'Gitarrpedaler - Sikö Auktioner' (ID: 840147) - https://sikoauktioner.se/auktion/840147 - 186 min remaining
+2025-10-22 16:19:30,566 - src.scraper - INFO -   ✓ Scraped: 'Gitarrförstärkare SubZero - Sikö Auktioner' (ID: 840448) - https://sikoauktioner.se/auktion/840448 - 1716 min remaining
+2025-10-22 16:19:31,701 - src.scraper - INFO -   ✓ Scraped: 'El-gitarr - Sikö Auktioner' (ID: 841073) - https://sikoauktioner.se/auktion/841073 - 6034 min remaining
+2025-10-22 16:19:31,701 - src.scraper - INFO - Searching for auctions with term: kettlebell
+2025-10-22 16:19:31,852 - src.scraper - INFO - Found 0 auctions for search term 'kettlebell'
+2025-10-22 16:19:31,852 - src.scraper - INFO - Searching for auctions with term: pinup
+2025-10-22 16:19:31,956 - src.scraper - INFO - Found 0 auctions for search term 'pinup'
+2025-10-22 16:19:31,956 - src.scraper - INFO - Searching for auctions with term: radiostyrd
+2025-10-22 16:19:32,081 - src.scraper - INFO - Found 0 auctions for search term 'radiostyrd'
+2025-10-22 16:19:32,081 - src.scraper - INFO - Searching for auctions with term: tält
+2025-10-22 16:19:32,216 - src.scraper - INFO - Found 0 auctions for search term 'tält'
+2025-10-22 16:19:32,217 - src.scraper - INFO - Searching for auctions with term: vikter
+2025-10-22 16:19:32,325 - src.scraper - INFO - Found 3 auctions for search term 'vikter'
+2025-10-22 16:19:32,429 - src.scraper - INFO -   ✓ Scraped: 'Träskålar - Sikö Auktioner' (ID: 840892) - https://sikoauktioner.se/auktion/840892 - 281 min remaining
+2025-10-22 16:19:33,563 - src.scraper - INFO -   ✓ Scraped: 'Limknektar - Sikö Auktioner' (ID: 840346) - https://sikoauktioner.se/auktion/840346 - 1705 min remaining
+2025-10-22 16:19:34,692 - src.scraper - INFO -   ✓ Scraped: 'Vikter - Sikö Auktioner' (ID: 840792) - https://sikoauktioner.se/auktion/840792 - 5982 min remaining
+2025-10-22 16:19:34,693 - src.scraper - INFO - Successfully scraped 16 unique auctions
+2025-10-22 16:19:34,693 - __main__ - INFO - Found 16 auctions from search terms
+2025-10-22 16:19:34,693 - src.blacklist_manager - INFO - Filtered out 3 blacklisted auctions
+2025-10-22 16:19:34,693 - __main__ - INFO - After blacklist filtering: 13 auctions remaining
+2025-10-22 16:19:35,035 - src.home_assistant - INFO - Notification sent for auction (regular): Gitarrförstärkare - Sikö Auktioner
+2025-10-22 16:19:35,035 - __main__ - INFO - ✓ Notification sent for auction: Gitarrförstärkare - Sikö Auktioner (found via 'förstärkare')
+2025-10-22 16:19:35,289 - src.home_assistant - INFO - Notification sent for auction (regular): Gitarrförstärkare - Sikö Auktioner
+2025-10-22 16:19:35,289 - __main__ - INFO - ✓ Notification sent for auction: Gitarrförstärkare - Sikö Auktioner (found via 'förstärkare')
+2025-10-22 16:19:35,571 - src.home_assistant - INFO - Notification sent for auction (regular): Förstärkare A32 Roxcore - Sikö Auktioner
+2025-10-22 16:19:35,571 - __main__ - INFO - ✓ Notification sent for auction: Förstärkare A32 Roxcore - Sikö Auktioner (found via 'förstärkare')
+2025-10-22 16:19:35,852 - src.home_assistant - INFO - Notification sent for auction (regular): Gitarrförstärkare SubZero - Sikö Auktioner
+2025-10-22 16:19:35,852 - __main__ - INFO - ✓ Notification sent for auction: Gitarrförstärkare SubZero - Sikö Auktioner (found via 'förstärkare')
+2025-10-22 16:19:36,180 - src.home_assistant - INFO - Notification sent for auction (regular): Förstärkare Pioneer A-207R - Sikö Auktioner
+2025-10-22 16:19:36,181 - __main__ - INFO - ✓ Notification sent for auction: Förstärkare Pioneer A-207R - Sikö Auktioner (found via 'förstärkare')
+2025-10-22 16:19:36,503 - src.home_assistant - INFO - Notification sent for auction (regular): Förstärkare - Sikö Auktioner
+2025-10-22 16:19:36,504 - __main__ - INFO - ✓ Notification sent for auction: Förstärkare - Sikö Auktioner (found via 'förstärkare')
+2025-10-22 16:19:36,800 - src.home_assistant - INFO - Notification sent for auction (regular): Förstärkare - Sikö Auktioner
+2025-10-22 16:19:36,800 - __main__ - INFO - ✓ Notification sent for auction: Förstärkare - Sikö Auktioner (found via 'förstärkare')
+2025-10-22 16:19:37,067 - src.home_assistant - INFO - Notification sent for auction (regular): Förstärkare Rank Arena - Sikö Auktioner
+2025-10-22 16:19:37,068 - __main__ - INFO - ✓ Notification sent for auction: Förstärkare Rank Arena - Sikö Auktioner (found via 'förstärkare')
+2025-10-22 16:19:37,711 - src.home_assistant - INFO - Notification sent for auction (regular): Gitarrpedal - Sikö Auktioner
+2025-10-22 16:19:37,711 - __main__ - INFO - ✓ Notification sent for auction: Gitarrpedal - Sikö Auktioner (found via 'gitarr')
+2025-10-22 16:19:38,001 - src.home_assistant - INFO - Notification sent for auction (regular): Gitarrpedal - Sikö Auktioner
+2025-10-22 16:19:38,002 - __main__ - INFO - ✓ Notification sent for auction: Gitarrpedal - Sikö Auktioner (found via 'gitarr')
+2025-10-22 16:19:39,530 - src.home_assistant - INFO - Notification sent for auction (regular): Gitarrpedal - Sikö Auktioner
+2025-10-22 16:19:39,531 - __main__ - INFO - ✓ Notification sent for auction: Gitarrpedal - Sikö Auktioner (found via 'gitarr')
+2025-10-22 16:19:39,811 - src.home_assistant - INFO - Notification sent for auction (regular): Gitarrpedaler - Sikö Auktioner
+2025-10-22 16:19:39,811 - __main__ - INFO - ✓ Notification sent for auction: Gitarrpedaler - Sikö Auktioner (found via 'gitarr')
+2025-10-22 16:19:40,087 - src.home_assistant - INFO - Notification sent for auction (regular): El-gitarr - Sikö Auktioner
+2025-10-22 16:19:40,088 - __main__ - INFO - ✓ Notification sent for auction: El-gitarr - Sikö Auktioner (found via 'gitarr')
+2025-10-22 16:19:40,088 - __main__ - INFO - Found 13 new matching auctions
+2025-10-22 16:19:40,088 - __main__ - INFO -   NEW AUCTION:
+2025-10-22 16:19:40,089 - __main__ - INFO -     Title: Gitarrförstärkare - Sikö Auktioner
+2025-10-22 16:19:40,089 - __main__ - INFO -     URL: https://sikoauktioner.se/auktion/840141
+2025-10-22 16:19:40,089 - __main__ - INFO -     Time Left: 2h, 56m, 45s
+2025-10-22 16:19:40,089 - __main__ - INFO -     Current Bid: 500 kr
+2025-10-22 16:19:40,090 - __main__ - INFO -     Found via: 'förstärkare'
+2025-10-22 16:19:40,090 - __main__ - INFO -   NEW AUCTION:
+2025-10-22 16:19:40,090 - __main__ - INFO -     Title: Gitarrförstärkare - Sikö Auktioner
+2025-10-22 16:19:40,091 - __main__ - INFO -     URL: https://sikoauktioner.se/auktion/840142
+2025-10-22 16:19:40,091 - __main__ - INFO -     Time Left: 2h, 58m, 44s
+2025-10-22 16:19:40,091 - __main__ - INFO -     Current Bid: 500 kr
+2025-10-22 16:19:40,092 - __main__ - INFO -     Found via: 'förstärkare'
+2025-10-22 16:19:40,092 - __main__ - INFO -   NEW AUCTION:
+2025-10-22 16:19:40,092 - __main__ - INFO -     Title: Förstärkare A32 Roxcore - Sikö Auktioner
+2025-10-22 16:19:40,092 - __main__ - INFO -     URL: https://sikoauktioner.se/auktion/840444
+2025-10-22 16:19:40,093 - __main__ - INFO -     Time Left: 1d, 4h, 32m, 43s
+2025-10-22 16:19:40,093 - __main__ - INFO -     Current Bid: 100 kr
+2025-10-22 16:19:40,093 - __main__ - INFO -     Found via: 'förstärkare'
+2025-10-22 16:19:40,093 - __main__ - INFO -   NEW AUCTION:
+2025-10-22 16:19:40,094 - __main__ - INFO -     Title: Gitarrförstärkare SubZero - Sikö Auktioner
+2025-10-22 16:19:40,094 - __main__ - INFO -     URL: https://sikoauktioner.se/auktion/840448
+2025-10-22 16:19:40,094 - __main__ - INFO -     Time Left: 1d, 4h, 36m, 42s
+2025-10-22 16:19:40,094 - __main__ - INFO -     Current Bid: 125 kr
+2025-10-22 16:19:40,094 - __main__ - INFO -     Found via: 'förstärkare'
+2025-10-22 16:19:40,094 - __main__ - INFO -   NEW AUCTION:
+2025-10-22 16:19:40,094 - __main__ - INFO -     Title: Förstärkare Pioneer A-207R - Sikö Auktioner
+2025-10-22 16:19:40,094 - __main__ - INFO -     URL: https://sikoauktioner.se/auktion/840450
+2025-10-22 16:19:40,094 - __main__ - INFO -     Time Left: 1d, 4h, 40m, 41s
+2025-10-22 16:19:40,094 - __main__ - INFO -     Current Bid: 50 kr
+2025-10-22 16:19:40,094 - __main__ - INFO -     Found via: 'förstärkare'
+2025-10-22 16:19:40,094 - __main__ - INFO -   NEW AUCTION:
+2025-10-22 16:19:40,095 - __main__ - INFO -     Title: Förstärkare - Sikö Auktioner
+2025-10-22 16:19:40,095 - __main__ - INFO -     URL: https://sikoauktioner.se/auktion/841000
+2025-10-22 16:19:40,095 - __main__ - INFO -     Time Left: 4d, 4h, 3m, 39s
+2025-10-22 16:19:40,095 - __main__ - INFO -     Current Bid: 175 kr
+2025-10-22 16:19:40,095 - __main__ - INFO -     Found via: 'förstärkare'
+2025-10-22 16:19:40,095 - __main__ - INFO -   NEW AUCTION:
+2025-10-22 16:19:40,095 - __main__ - INFO -     Title: Förstärkare - Sikö Auktioner
+2025-10-22 16:19:40,095 - __main__ - INFO -     URL: https://sikoauktioner.se/auktion/841001
+2025-10-22 16:19:40,095 - __main__ - INFO -     Time Left: 4d, 4h, 4m, 38s
+2025-10-22 16:19:40,095 - __main__ - INFO -     Current Bid: 75 kr
+2025-10-22 16:19:40,095 - __main__ - INFO -     Found via: 'förstärkare'
+2025-10-22 16:19:40,095 - __main__ - INFO -   NEW AUCTION:
+2025-10-22 16:19:40,095 - __main__ - INFO -     Title: Förstärkare Rank Arena - Sikö Auktioner
+2025-10-22 16:19:40,095 - __main__ - INFO -     URL: https://sikoauktioner.se/auktion/840987
+2025-10-22 16:19:40,095 - __main__ - INFO -     Time Left: 5d, 4h, 0m, 37s
+2025-10-22 16:19:40,095 - __main__ - INFO -     Current Bid: 125 kr
+2025-10-22 16:19:40,095 - __main__ - INFO -     Found via: 'förstärkare'
+2025-10-22 16:19:40,095 - __main__ - INFO -   NEW AUCTION:
+2025-10-22 16:19:40,095 - __main__ - INFO -     Title: Gitarrpedal - Sikö Auktioner
+2025-10-22 16:19:40,096 - __main__ - INFO -     URL: https://sikoauktioner.se/auktion/840143
+2025-10-22 16:19:40,096 - __main__ - INFO -     Time Left: 3h, 0m, 35s
+2025-10-22 16:19:40,096 - __main__ - INFO -     Current Bid: 1 000 kr
+2025-10-22 16:19:40,096 - __main__ - INFO -     Found via: 'gitarr'
+2025-10-22 16:19:40,096 - __main__ - INFO -   NEW AUCTION:
+2025-10-22 16:19:40,096 - __main__ - INFO -     Title: Gitarrpedal - Sikö Auktioner
+2025-10-22 16:19:40,096 - __main__ - INFO -     URL: https://sikoauktioner.se/auktion/840144
+2025-10-22 16:19:40,096 - __main__ - INFO -     Time Left: 3h, 2m, 33s
+2025-10-22 16:19:40,096 - __main__ - INFO -     Current Bid: 450 kr
+2025-10-22 16:19:40,096 - __main__ - INFO -     Found via: 'gitarr'
+2025-10-22 16:19:40,096 - __main__ - INFO -   NEW AUCTION:
+2025-10-22 16:19:40,096 - __main__ - INFO -     Title: Gitarrpedal - Sikö Auktioner
+2025-10-22 16:19:40,096 - __main__ - INFO -     URL: https://sikoauktioner.se/auktion/840145
+2025-10-22 16:19:40,096 - __main__ - INFO -     Time Left: 3h, 4m, 32s
+2025-10-22 16:19:40,096 - __main__ - INFO -     Current Bid: 700 kr
+2025-10-22 16:19:40,096 - __main__ - INFO -     Found via: 'gitarr'
+2025-10-22 16:19:40,096 - __main__ - INFO -   NEW AUCTION:
+2025-10-22 16:19:40,096 - __main__ - INFO -     Title: Gitarrpedaler - Sikö Auktioner
+2025-10-22 16:19:40,096 - __main__ - INFO -     URL: https://sikoauktioner.se/auktion/840147
+2025-10-22 16:19:40,097 - __main__ - INFO -     Time Left: 3h, 6m, 31s
+2025-10-22 16:19:40,097 - __main__ - INFO -     Current Bid: 250 kr
+2025-10-22 16:19:40,097 - __main__ - INFO -     Found via: 'gitarr'
+2025-10-22 16:19:40,097 - __main__ - INFO -   NEW AUCTION:
+2025-10-22 16:19:40,097 - __main__ - INFO -     Title: El-gitarr - Sikö Auktioner
+2025-10-22 16:19:40,097 - __main__ - INFO -     URL: https://sikoauktioner.se/auktion/841073
+2025-10-22 16:19:40,097 - __main__ - INFO -     Time Left: 4d, 4h, 34m, 29s
+2025-10-22 16:19:40,097 - __main__ - INFO -     Current Bid: 950 kr
+2025-10-22 16:19:40,097 - __main__ - INFO -     Found via: 'gitarr'
+2025-10-22 16:20:10,101 - src.blacklist_manager - INFO - Loaded 4 blacklisted auctions
+2025-10-22 16:20:10,103 - src.search_manager - INFO - Search word 'förstärkare' already exists
+2025-10-22 16:20:10,103 - __main__ - INFO - Added search word: förstärkare
+2025-10-22 16:20:11,289 - src.blacklist_manager - INFO - Loaded 4 blacklisted auctions
+2025-10-22 16:20:11,291 - __main__ - INFO - Starting auction check...
+2025-10-22 16:20:11,292 - __main__ - INFO - Monitoring 7 search words: ['förstärkare', 'gitarr', 'kettlebell', 'pinup', 'radiostyrd', 'tält', 'vikter']
+2025-10-22 16:20:11,292 - src.scraper - INFO - Searching for auctions with term: förstärkare
+2025-10-22 16:20:11,759 - src.scraper - INFO - Found 8 auctions for search term 'förstärkare'
+2025-10-22 16:20:11,861 - src.scraper - INFO -   ✓ Scraped: 'Gitarrförstärkare - Sikö Auktioner' (ID: 840141) - https://sikoauktioner.se/auktion/840141 - 175 min remaining
+2025-10-22 16:20:12,986 - src.scraper - INFO -   ✓ Scraped: 'Gitarrförstärkare - Sikö Auktioner' (ID: 840142) - https://sikoauktioner.se/auktion/840142 - 177 min remaining
+2025-10-22 16:20:14,111 - src.scraper - INFO -   ✓ Scraped: 'Förstärkare A32 Roxcore - Sikö Auktioner' (ID: 840444) - https://sikoauktioner.se/auktion/840444 - 1711 min remaining
+2025-10-22 16:20:15,233 - src.scraper - INFO -   ✓ Scraped: 'Gitarrförstärkare SubZero - Sikö Auktioner' (ID: 840448) - https://sikoauktioner.se/auktion/840448 - 1715 min remaining
+2025-10-22 16:20:16,356 - src.scraper - INFO -   ✓ Scraped: 'Förstärkare Pioneer A-207R - Sikö Auktioner' (ID: 840450) - https://sikoauktioner.se/auktion/840450 - 1719 min remaining
+2025-10-22 16:20:17,491 - src.scraper - INFO -   ✓ Scraped: 'Förstärkare - Sikö Auktioner' (ID: 841000) - https://sikoauktioner.se/auktion/841000 - 6002 min remaining
+2025-10-22 16:20:18,627 - src.scraper - INFO -   ✓ Scraped: 'Förstärkare - Sikö Auktioner' (ID: 841001) - https://sikoauktioner.se/auktion/841001 - 6003 min remaining
+2025-10-22 16:20:19,753 - src.scraper - INFO -   ✓ Scraped: 'Förstärkare Rank Arena - Sikö Auktioner' (ID: 840987) - https://sikoauktioner.se/auktion/840987 - 7439 min remaining
+2025-10-22 16:20:19,753 - src.scraper - INFO - Searching for auctions with term: gitarr
+2025-10-22 16:20:19,912 - src.scraper - INFO - Found 8 auctions for search term 'gitarr'
+2025-10-22 16:20:20,010 - src.scraper - INFO -   ✓ Scraped: 'Gitarrförstärkare - Sikö Auktioner' (ID: 840141) - https://sikoauktioner.se/auktion/840141 - 175 min remaining
+2025-10-22 16:20:21,135 - src.scraper - INFO -   ✓ Scraped: 'Gitarrförstärkare - Sikö Auktioner' (ID: 840142) - https://sikoauktioner.se/auktion/840142 - 177 min remaining
+2025-10-22 16:20:22,267 - src.scraper - INFO -   ✓ Scraped: 'Gitarrpedal - Sikö Auktioner' (ID: 840143) - https://sikoauktioner.se/auktion/840143 - 179 min remaining
+2025-10-22 16:20:23,393 - src.scraper - INFO -   ✓ Scraped: 'Gitarrpedal - Sikö Auktioner' (ID: 840144) - https://sikoauktioner.se/auktion/840144 - 181 min remaining
+2025-10-22 16:20:24,545 - src.scraper - INFO -   ✓ Scraped: 'Gitarrpedal - Sikö Auktioner' (ID: 840145) - https://sikoauktioner.se/auktion/840145 - 183 min remaining
+2025-10-22 16:20:25,672 - src.scraper - INFO -   ✓ Scraped: 'Gitarrpedaler - Sikö Auktioner' (ID: 840147) - https://sikoauktioner.se/auktion/840147 - 185 min remaining
+2025-10-22 16:20:26,795 - src.scraper - INFO -   ✓ Scraped: 'Gitarrförstärkare SubZero - Sikö Auktioner' (ID: 840448) - https://sikoauktioner.se/auktion/840448 - 1715 min remaining
+2025-10-22 16:20:27,925 - src.scraper - INFO -   ✓ Scraped: 'El-gitarr - Sikö Auktioner' (ID: 841073) - https://sikoauktioner.se/auktion/841073 - 6033 min remaining
+2025-10-22 16:20:27,926 - src.scraper - INFO - Searching for auctions with term: kettlebell
+2025-10-22 16:20:28,030 - src.scraper - INFO - Found 0 auctions for search term 'kettlebell'
+2025-10-22 16:20:28,030 - src.scraper - INFO - Searching for auctions with term: pinup
+2025-10-22 16:20:28,136 - src.scraper - INFO - Found 0 auctions for search term 'pinup'
+2025-10-22 16:20:28,136 - src.scraper - INFO - Searching for auctions with term: radiostyrd
+2025-10-22 16:20:28,239 - src.scraper - INFO - Found 0 auctions for search term 'radiostyrd'
+2025-10-22 16:20:28,239 - src.scraper - INFO - Searching for auctions with term: tält
+2025-10-22 16:20:28,343 - src.scraper - INFO - Found 0 auctions for search term 'tält'
+2025-10-22 16:20:28,343 - src.scraper - INFO - Searching for auctions with term: vikter
+2025-10-22 16:20:28,473 - src.scraper - INFO - Found 3 auctions for search term 'vikter'
+2025-10-22 16:20:28,583 - src.scraper - INFO -   ✓ Scraped: 'Träskålar - Sikö Auktioner' (ID: 840892) - https://sikoauktioner.se/auktion/840892 - 280 min remaining
+2025-10-22 16:20:29,725 - src.scraper - INFO -   ✓ Scraped: 'Limknektar - Sikö Auktioner' (ID: 840346) - https://sikoauktioner.se/auktion/840346 - 1704 min remaining
+2025-10-22 16:20:30,851 - src.scraper - INFO -   ✓ Scraped: 'Vikter - Sikö Auktioner' (ID: 840792) - https://sikoauktioner.se/auktion/840792 - 5981 min remaining
+2025-10-22 16:20:30,851 - src.scraper - INFO - Successfully scraped 16 unique auctions
+2025-10-22 16:20:30,851 - __main__ - INFO - Found 16 auctions from search terms
+2025-10-22 16:20:30,851 - src.blacklist_manager - INFO - Filtered out 3 blacklisted auctions
+2025-10-22 16:20:30,851 - __main__ - INFO - After blacklist filtering: 13 auctions remaining
+2025-10-22 16:20:31,151 - src.home_assistant - INFO - Notification sent for auction (regular): Gitarrförstärkare - Sikö Auktioner
+2025-10-22 16:20:31,152 - __main__ - INFO - ✓ Notification sent for auction: Gitarrförstärkare - Sikö Auktioner (found via 'förstärkare')
+2025-10-22 16:20:31,441 - src.home_assistant - INFO - Notification sent for auction (regular): Gitarrförstärkare - Sikö Auktioner
+2025-10-22 16:20:31,441 - __main__ - INFO - ✓ Notification sent for auction: Gitarrförstärkare - Sikö Auktioner (found via 'förstärkare')
+2025-10-22 16:20:31,710 - src.home_assistant - INFO - Notification sent for auction (regular): Förstärkare A32 Roxcore - Sikö Auktioner
+2025-10-22 16:20:31,710 - __main__ - INFO - ✓ Notification sent for auction: Förstärkare A32 Roxcore - Sikö Auktioner (found via 'förstärkare')
+2025-10-22 16:20:32,007 - src.home_assistant - INFO - Notification sent for auction (regular): Gitarrförstärkare SubZero - Sikö Auktioner
+2025-10-22 16:20:32,007 - __main__ - INFO - ✓ Notification sent for auction: Gitarrförstärkare SubZero - Sikö Auktioner (found via 'förstärkare')
+2025-10-22 16:20:32,297 - src.home_assistant - INFO - Notification sent for auction (regular): Förstärkare Pioneer A-207R - Sikö Auktioner
+2025-10-22 16:20:32,298 - __main__ - INFO - ✓ Notification sent for auction: Förstärkare Pioneer A-207R - Sikö Auktioner (found via 'förstärkare')
+2025-10-22 16:20:32,590 - src.home_assistant - INFO - Notification sent for auction (regular): Förstärkare - Sikö Auktioner
+2025-10-22 16:20:32,591 - __main__ - INFO - ✓ Notification sent for auction: Förstärkare - Sikö Auktioner (found via 'förstärkare')
+2025-10-22 16:20:32,904 - src.home_assistant - INFO - Notification sent for auction (regular): Förstärkare - Sikö Auktioner
+2025-10-22 16:20:32,905 - __main__ - INFO - ✓ Notification sent for auction: Förstärkare - Sikö Auktioner (found via 'förstärkare')
+2025-10-22 16:20:33,178 - src.home_assistant - INFO - Notification sent for auction (regular): Förstärkare Rank Arena - Sikö Auktioner
+2025-10-22 16:20:33,179 - __main__ - INFO - ✓ Notification sent for auction: Förstärkare Rank Arena - Sikö Auktioner (found via 'förstärkare')
+2025-10-22 16:20:33,458 - src.home_assistant - INFO - Notification sent for auction (regular): Gitarrpedal - Sikö Auktioner
+2025-10-22 16:20:33,458 - __main__ - INFO - ✓ Notification sent for auction: Gitarrpedal - Sikö Auktioner (found via 'gitarr')
+2025-10-22 16:20:33,731 - src.home_assistant - INFO - Notification sent for auction (regular): Gitarrpedal - Sikö Auktioner
+2025-10-22 16:20:33,732 - __main__ - INFO - ✓ Notification sent for auction: Gitarrpedal - Sikö Auktioner (found via 'gitarr')
+2025-10-22 16:20:34,085 - src.home_assistant - INFO - Notification sent for auction (regular): Gitarrpedal - Sikö Auktioner
+2025-10-22 16:20:34,085 - __main__ - INFO - ✓ Notification sent for auction: Gitarrpedal - Sikö Auktioner (found via 'gitarr')
+2025-10-22 16:20:34,369 - src.home_assistant - INFO - Notification sent for auction (regular): Gitarrpedaler - Sikö Auktioner
+2025-10-22 16:20:34,370 - __main__ - INFO - ✓ Notification sent for auction: Gitarrpedaler - Sikö Auktioner (found via 'gitarr')
+2025-10-22 16:20:34,637 - src.home_assistant - INFO - Notification sent for auction (regular): El-gitarr - Sikö Auktioner
+2025-10-22 16:20:34,637 - __main__ - INFO - ✓ Notification sent for auction: El-gitarr - Sikö Auktioner (found via 'gitarr')
+2025-10-22 16:20:34,638 - __main__ - INFO - Found 13 new matching auctions
+2025-10-22 16:20:34,638 - __main__ - INFO -   NEW AUCTION:
+2025-10-22 16:20:34,638 - __main__ - INFO -     Title: Gitarrförstärkare - Sikö Auktioner
+2025-10-22 16:20:34,638 - __main__ - INFO -     URL: https://sikoauktioner.se/auktion/840141
+2025-10-22 16:20:34,639 - __main__ - INFO -     Time Left: 2h, 55m, 49s
+2025-10-22 16:20:34,639 - __main__ - INFO -     Current Bid: 500 kr
+2025-10-22 16:20:34,639 - __main__ - INFO -     Found via: 'förstärkare'
+2025-10-22 16:20:34,639 - __main__ - INFO -   NEW AUCTION:
+2025-10-22 16:20:34,639 - __main__ - INFO -     Title: Gitarrförstärkare - Sikö Auktioner
+2025-10-22 16:20:34,640 - __main__ - INFO -     URL: https://sikoauktioner.se/auktion/840142
+2025-10-22 16:20:34,640 - __main__ - INFO -     Time Left: 2h, 57m, 48s
+2025-10-22 16:20:34,640 - __main__ - INFO -     Current Bid: 500 kr
+2025-10-22 16:20:34,640 - __main__ - INFO -     Found via: 'förstärkare'
+2025-10-22 16:20:34,640 - __main__ - INFO -   NEW AUCTION:
+2025-10-22 16:20:34,640 - __main__ - INFO -     Title: Förstärkare A32 Roxcore - Sikö Auktioner
+2025-10-22 16:20:34,641 - __main__ - INFO -     URL: https://sikoauktioner.se/auktion/840444
+2025-10-22 16:20:34,641 - __main__ - INFO -     Time Left: 1d, 4h, 31m, 46s
+2025-10-22 16:20:34,641 - __main__ - INFO -     Current Bid: 100 kr
+2025-10-22 16:20:34,641 - __main__ - INFO -     Found via: 'förstärkare'
+2025-10-22 16:20:34,641 - __main__ - INFO -   NEW AUCTION:
+2025-10-22 16:20:34,641 - __main__ - INFO -     Title: Gitarrförstärkare SubZero - Sikö Auktioner
+2025-10-22 16:20:34,641 - __main__ - INFO -     URL: https://sikoauktioner.se/auktion/840448
+2025-10-22 16:20:34,641 - __main__ - INFO -     Time Left: 1d, 4h, 35m, 45s
+2025-10-22 16:20:34,641 - __main__ - INFO -     Current Bid: 125 kr
+2025-10-22 16:20:34,641 - __main__ - INFO -     Found via: 'förstärkare'
+2025-10-22 16:20:34,642 - __main__ - INFO -   NEW AUCTION:
+2025-10-22 16:20:34,642 - __main__ - INFO -     Title: Förstärkare Pioneer A-207R - Sikö Auktioner
+2025-10-22 16:20:34,642 - __main__ - INFO -     URL: https://sikoauktioner.se/auktion/840450
+2025-10-22 16:20:34,642 - __main__ - INFO -     Time Left: 1d, 4h, 39m, 44s
+2025-10-22 16:20:34,642 - __main__ - INFO -     Current Bid: 50 kr
+2025-10-22 16:20:34,642 - __main__ - INFO -     Found via: 'förstärkare'
+2025-10-22 16:20:34,642 - __main__ - INFO -   NEW AUCTION:
+2025-10-22 16:20:34,642 - __main__ - INFO -     Title: Förstärkare - Sikö Auktioner
+2025-10-22 16:20:34,642 - __main__ - INFO -     URL: https://sikoauktioner.se/auktion/841000
+2025-10-22 16:20:34,642 - __main__ - INFO -     Time Left: 4d, 4h, 2m, 43s
+2025-10-22 16:20:34,642 - __main__ - INFO -     Current Bid: 175 kr
+2025-10-22 16:20:34,642 - __main__ - INFO -     Found via: 'förstärkare'
+2025-10-22 16:20:34,642 - __main__ - INFO -   NEW AUCTION:
+2025-10-22 16:20:34,642 - __main__ - INFO -     Title: Förstärkare - Sikö Auktioner
+2025-10-22 16:20:34,642 - __main__ - INFO -     URL: https://sikoauktioner.se/auktion/841001
+2025-10-22 16:20:34,642 - __main__ - INFO -     Time Left: 4d, 4h, 3m, 42s
+2025-10-22 16:20:34,642 - __main__ - INFO -     Current Bid: 75 kr
+2025-10-22 16:20:34,642 - __main__ - INFO -     Found via: 'förstärkare'
+2025-10-22 16:20:34,642 - __main__ - INFO -   NEW AUCTION:
+2025-10-22 16:20:34,643 - __main__ - INFO -     Title: Förstärkare Rank Arena - Sikö Auktioner
+2025-10-22 16:20:34,643 - __main__ - INFO -     URL: https://sikoauktioner.se/auktion/840987
+2025-10-22 16:20:34,643 - __main__ - INFO -     Time Left: 5d, 3h, 59m, 41s
+2025-10-22 16:20:34,643 - __main__ - INFO -     Current Bid: 125 kr
+2025-10-22 16:20:34,643 - __main__ - INFO -     Found via: 'förstärkare'
+2025-10-22 16:20:34,643 - __main__ - INFO -   NEW AUCTION:
+2025-10-22 16:20:34,643 - __main__ - INFO -     Title: Gitarrpedal - Sikö Auktioner
+2025-10-22 16:20:34,643 - __main__ - INFO -     URL: https://sikoauktioner.se/auktion/840143
+2025-10-22 16:20:34,643 - __main__ - INFO -     Time Left: 2h, 59m, 38s
+2025-10-22 16:20:34,643 - __main__ - INFO -     Current Bid: 1 000 kr
+2025-10-22 16:20:34,643 - __main__ - INFO -     Found via: 'gitarr'
+2025-10-22 16:20:34,643 - __main__ - INFO -   NEW AUCTION:
+2025-10-22 16:20:34,643 - __main__ - INFO -     Title: Gitarrpedal - Sikö Auktioner
+2025-10-22 16:20:34,643 - __main__ - INFO -     URL: https://sikoauktioner.se/auktion/840144
+2025-10-22 16:20:34,643 - __main__ - INFO -     Time Left: 3h, 1m, 37s
+2025-10-22 16:20:34,643 - __main__ - INFO -     Current Bid: 450 kr
+2025-10-22 16:20:34,643 - __main__ - INFO -     Found via: 'gitarr'
+2025-10-22 16:20:34,643 - __main__ - INFO -   NEW AUCTION:
+2025-10-22 16:20:34,643 - __main__ - INFO -     Title: Gitarrpedal - Sikö Auktioner
+2025-10-22 16:20:34,644 - __main__ - INFO -     URL: https://sikoauktioner.se/auktion/840145
+2025-10-22 16:20:34,644 - __main__ - INFO -     Time Left: 3h, 3m, 36s
+2025-10-22 16:20:34,644 - __main__ - INFO -     Current Bid: 700 kr
+2025-10-22 16:20:34,644 - __main__ - INFO -     Found via: 'gitarr'
+2025-10-22 16:20:34,644 - __main__ - INFO -   NEW AUCTION:
+2025-10-22 16:20:34,644 - __main__ - INFO -     Title: Gitarrpedaler - Sikö Auktioner
+2025-10-22 16:20:34,644 - __main__ - INFO -     URL: https://sikoauktioner.se/auktion/840147
+2025-10-22 16:20:34,644 - __main__ - INFO -     Time Left: 3h, 5m, 35s
+2025-10-22 16:20:34,644 - __main__ - INFO -     Current Bid: 250 kr
+2025-10-22 16:20:34,644 - __main__ - INFO -     Found via: 'gitarr'
+2025-10-22 16:20:34,644 - __main__ - INFO -   NEW AUCTION:
+2025-10-22 16:20:34,644 - __main__ - INFO -     Title: El-gitarr - Sikö Auktioner
+2025-10-22 16:20:34,644 - __main__ - INFO -     URL: https://sikoauktioner.se/auktion/841073
+2025-10-22 16:20:34,644 - __main__ - INFO -     Time Left: 4d, 4h, 33m, 33s
+2025-10-22 16:20:34,644 - __main__ - INFO -     Current Bid: 950 kr
+2025-10-22 16:20:34,644 - __main__ - INFO -     Found via: 'gitarr'

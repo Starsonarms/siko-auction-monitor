@@ -39,7 +39,10 @@ class SikoScraper:
             )
             response.raise_for_status()
             
-            soup = BeautifulSoup(response.content, 'html.parser')
+            # Ensure correct encoding
+            response.encoding = 'utf-8'
+            
+            soup = BeautifulSoup(response.text, 'html.parser', from_encoding='utf-8')
             auction_urls = []
             
             # Find auction item links - look for auction item numbers
@@ -77,7 +80,10 @@ class SikoScraper:
             response = self.session.get(auction_url, timeout=self.config.request_timeout)
             response.raise_for_status()
             
-            soup = BeautifulSoup(response.content, 'html.parser')
+            # Ensure correct encoding
+            response.encoding = 'utf-8'
+            
+            soup = BeautifulSoup(response.text, 'html.parser', from_encoding='utf-8')
             
             # Extract auction details - updated based on actual sikoauktioner.se structure
             time_left = self._extract_time_left(soup)
@@ -178,7 +184,10 @@ class SikoScraper:
             )
             response.raise_for_status()
             
-            soup = BeautifulSoup(response.content, 'html.parser')
+            # Ensure correct encoding
+            response.encoding = 'utf-8'
+            
+            soup = BeautifulSoup(response.text, 'html.parser', from_encoding='utf-8')
             auctions = []
             
             # Extract auction URLs from search results
