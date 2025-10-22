@@ -30,10 +30,10 @@ class SearchManager:
                     data = json.load(f)
                     # Handle both old list format and new dict format
                     if isinstance(data, list):
-                        return set(word.lower().strip() for word in data if word.strip())
+                        return set(word.strip() for word in data if word.strip())
                     elif isinstance(data, dict):
                         words = data.get('search_words', [])
-                        return set(word.lower().strip() for word in words if word.strip())
+                        return set(word.strip() for word in words if word.strip())
             return set()
         except Exception as e:
             logger.error(f"Error loading search words: {e}")
@@ -61,19 +61,26 @@ class SearchManager:
     def add_search_word(self, word: str) -> bool:
         """Add a search word"""
         try:
-            word = word.strip().lower()
+            word = word.strip()
             if not word:
                 return False
             
+            # Preserve quotes for exact phrase matching, lowercase for non-quoted terms
+            if word.startswith('"') and word.endswith('"'):
+                # Keep quotes and lowercase the phrase inside
+                normalized_word = '"' + word[1:-1].lower() + '"'
+            else:
+                normalized_word = word.lower()
+            
             search_words = self._load_search_words()
-            if word in search_words:
-                logger.info(f"Search word '{word}' already exists")
+            if normalized_word in search_words:
+                logger.info(f"Search word '{normalized_word}' already exists")
                 return True
             
-            search_words.add(word)
+            search_words.add(normalized_word)
             self._save_search_words(search_words)
             
-            logger.info(f"Added search word: '{word}'")
+            logger.info(f"Added search word: '{normalized_word}'")
             return True
         except Exception as e:
             logger.error(f"Error adding search word '{word}': {e}")
@@ -82,17 +89,23 @@ class SearchManager:
     def remove_search_word(self, word: str) -> bool:
         """Remove a search word"""
         try:
-            word = word.strip().lower()
+            word = word.strip()
+            # Normalize the same way as add_search_word
+            if word.startswith('"') and word.endswith('"'):
+                normalized_word = '"' + word[1:-1].lower() + '"'
+            else:
+                normalized_word = word.lower()
+            
             search_words = self._load_search_words()
             
-            if word not in search_words:
-                logger.warning(f"Search word '{word}' not found")
+            if normalized_word not in search_words:
+                logger.warning(f"Search word '{normalized_word}' not found")
                 return False
             
-            search_words.remove(word)
+            search_words.remove(normalized_word)
             self._save_search_words(search_words)
             
-            logger.info(f"Removed search word: '{word}'")
+            logger.info(f"Removed search word: '{normalized_word}'")
             return True
         except Exception as e:
             logger.error(f"Error removing search word '{word}': {e}")
@@ -109,33 +122,78 @@ class SearchManager:
             return False
     
     def matches_search_word(self, auction: Dict, search_word: str) -> bool:
-        """Check if an auction matches a search word"""
+        """Check if an auction matches a search word
+        
+        Search terms within quotes are treated as exact phrases.
+        Example: "vintage tools" matches only "vintage tools" as a phrase
+        
+        Search terms without quotes match any of the words.
+        Example: vintage tools matches either "vintage" OR "tools"
+        """
         try:
-            search_word = search_word.lower().strip()
+            search_word = search_word.strip()
             if not search_word:
                 return False
             
-            # Fields to search in
-            searchable_fields = [
-                auction.get('title', ''),
-                auction.get('description', ''),
-                auction.get('location', ''),
-            ]
+            # Check if search term is in quotes for exact phrase matching
+            is_exact_phrase = search_word.startswith('"') and search_word.endswith('"')
             
-            # Also search in items
-            for item in auction.get('items', []):
-                searchable_fields.extend([
-                    item.get('title', ''),
-                    item.get('description', ''),
-                ])
-            
-            # Search in all fields
-            for field_value in searchable_fields:
-                if field_value and search_word in field_value.lower():
-                    logger.debug(f"Found match for '{search_word}' in: {field_value[:100]}")
-                    return True
-            
-            return False
+            if is_exact_phrase:
+                # Extract phrase from quotes and search for exact match
+                exact_phrase = search_word[1:-1].lower().strip()
+                if not exact_phrase:
+                    return False
+                
+                # Fields to search in
+                searchable_fields = [
+                    auction.get('title', ''),
+                    auction.get('description', ''),
+                    auction.get('location', ''),
+                ]
+                
+                # Also search in items
+                for item in auction.get('items', []):
+                    searchable_fields.extend([
+                        item.get('title', ''),
+                        item.get('description', ''),
+                    ])
+                
+                # Search for exact phrase
+                for field_value in searchable_fields:
+                    if field_value and exact_phrase in field_value.lower():
+                        logger.debug(f"Found exact phrase match for '{exact_phrase}' in: {field_value[:100]}")
+                        return True
+                
+                return False
+            else:
+                # Split into individual words and match any of them
+                search_words = search_word.lower().split()
+                
+                # Fields to search in
+                searchable_fields = [
+                    auction.get('title', ''),
+                    auction.get('description', ''),
+                    auction.get('location', ''),
+                ]
+                
+                # Also search in items
+                for item in auction.get('items', []):
+                    searchable_fields.extend([
+                        item.get('title', ''),
+                        item.get('description', ''),
+                    ])
+                
+                # Search in all fields for any of the words
+                for field_value in searchable_fields:
+                    if not field_value:
+                        continue
+                    field_lower = field_value.lower()
+                    for word in search_words:
+                        if word in field_lower:
+                            logger.debug(f"Found match for '{word}' in: {field_value[:100]}")
+                            return True
+                
+                return False
             
         except Exception as e:
             logger.error(f"Error checking match for search word '{search_word}': {e}")
