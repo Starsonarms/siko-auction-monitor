@@ -262,6 +262,7 @@ Access at `http://your-pi-ip:5000`:
 #### Key Web Features
 
 - **Inline Search Phrase Management**: Add search phrases directly without popup dialogs - instant and streamlined
+- **Interactive Search Term Filtering**: Click search term badges to filter auctions by that term, with "×" button to remove terms
 - **Auto-Refresh on Changes**: Auction list updates automatically when adding/removing search terms - no page reload needed
 - **Smart Sorting Controls**: Sort auctions by time left (ending soonest) or by search term with interactive buttons
 - **Compact Visual Auction Cards**: 150px images with hover effects and clickable auction links (4 per row on desktop)

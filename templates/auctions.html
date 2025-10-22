@@ -44,7 +44,14 @@
                 {% if stats.search_words_tested %}
                     <div class="d-flex align-items-center gap-1 flex-wrap">
                         {% for word in stats.search_words_tested %}
-                            <span class="badge bg-secondary bg-opacity-75" style="font-size: 0.7rem;">{{ word }}</span>
+                            <span class="badge search-term-badge" data-search-term="{{ word }}" style="font-size: 0.7rem; cursor: pointer; position: relative; padding-right: 1.5rem;">
+                                {{ word }}
+                                <button class="btn-remove-search" onclick="removeSearchTerm(event, '{{ word }}')"
+                                        style="position: absolute; right: 2px; top: 50%; transform: translateY(-50%); background: none; border: none; color: white; padding: 0; width: 16px; height: 16px; cursor: pointer; font-size: 0.9rem; line-height: 1;" 
+                                        title="Remove search term">
+                                    ×
+                                </button>
+                            </span>
                         {% endfor %}
                     </div>
                 {% endif %}
@@ -88,7 +95,7 @@
     {% else %}
         <!-- Display auctions -->
         {% for auction in auctions %}
-        <div class="col-md-6 col-lg-3 mb-4">
+        <div class="col-md-6 col-lg-3 mb-4 auction-card" data-search-term="{{ auction.found_via }}">
             <div class="card h-100">
                 <!-- Auction Image -->
                 {% if auction.get('image_url') %}
@@ -344,9 +351,107 @@
 .pricing-info {
     font-size: 0.8rem;
 }
+
+/* Search term badge styles */
+.search-term-badge {
+    background-color: var(--color-blue-green) !important;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.search-term-badge:hover {
+    background-color: var(--color-prussian-blue) !important;
+    transform: scale(1.05);
+}
+
+.search-term-badge.active {
+    background-color: var(--color-yellow) !important;
+    color: black !important;
+    box-shadow: 0 0 8px rgba(255, 193, 7, 0.6);
+}
+
+.search-term-badge.active .btn-remove-search {
+    color: black !important;
+}
+
+.btn-remove-search:hover {
+    transform: translateY(-50%) scale(1.2);
+    font-weight: bold;
+}
+
+.auction-card-filtered {
+    display: none !important;
+}
 </style>
 
 <script>
+    // Track active filter
+    let activeSearchTerm = null;
+    
+    // Toggle filter for search term
+    function toggleSearchTermFilter(searchTerm) {
+        const badges = document.querySelectorAll('.search-term-badge');
+        const auctionCards = document.querySelectorAll('.auction-card');
+        
+        // If clicking the same badge, deactivate filter
+        if (activeSearchTerm === searchTerm) {
+            activeSearchTerm = null;
+            badges.forEach(badge => badge.classList.remove('active'));
+            auctionCards.forEach(card => card.classList.remove('auction-card-filtered'));
+            return;
+        }
+        
+        // Activate new filter
+        activeSearchTerm = searchTerm;
+        
+        // Update badge styles
+        badges.forEach(badge => {
+            if (badge.dataset.searchTerm === searchTerm) {
+                badge.classList.add('active');
+            } else {
+                badge.classList.remove('active');
+            }
+        });
+        
+        // Filter auction cards
+        auctionCards.forEach(card => {
+            if (card.dataset.searchTerm === searchTerm) {
+                card.classList.remove('auction-card-filtered');
+            } else {
+                card.classList.add('auction-card-filtered');
+            }
+        });
+    }
+    
+    // Remove search term
+    function removeSearchTerm(event, searchTerm) {
+        event.stopPropagation(); // Prevent badge click from firing
+        
+        if (!confirm(`Remove search term "${searchTerm}"?`)) {
+            return;
+        }
+        
+        fetch(`/api/search-words/${encodeURIComponent(searchTerm)}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showTemporaryMessage(data.message, 'success');
+                // Reload page after a short delay
+                setTimeout(() => {
+                    location.reload();
+                }, 500);
+            } else {
+                alert('Error removing search term: ' + (data.error || data.message));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error removing search term: ' + error);
+        });
+    }
+    
     function sortAuctions(sortBy) {
         // Add sort parameter to current URL and reload
         const url = new URL(window.location.href);
@@ -591,6 +696,17 @@
             const now = new Date();
             document.getElementById('last-updated').textContent = now.toLocaleTimeString();
         }
+        
+        // Add click handlers to search term badges
+        document.querySelectorAll('.search-term-badge').forEach(badge => {
+            badge.addEventListener('click', function(e) {
+                // Don't trigger if clicking the remove button
+                if (e.target.classList.contains('btn-remove-search') || e.target.closest('.btn-remove-search')) {
+                    return;
+                }
+                toggleSearchTermFilter(this.dataset.searchTerm);
+            });
+        });
     });
     
     function loadCachedAuctionsIfAvailable() {

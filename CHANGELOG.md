@@ -7,6 +7,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- **Interactive Search Term Badges**: Clickable search term badges with filtering and removal
+  - Click any search term badge to filter auctions by that search term
+  - Click again to show all auctions
+  - Active filter shown with yellow highlight and glow effect
+  - Each badge has an "×" button to remove the search term entirely
+  - Smooth animations and visual feedback
+  - Instant client-side filtering without page reloads
 - **Enhanced Search Syntax**: Support for exact phrase matching with quotes
   - `"vintage tools"` (with quotes) matches only the exact phrase "vintage tools"
   - `vintage tools` (without quotes) matches either "vintage" OR "tools"
