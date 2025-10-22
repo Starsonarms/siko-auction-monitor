@@ -109,33 +109,78 @@ class SearchManager:
             return False
     
     def matches_search_word(self, auction: Dict, search_word: str) -> bool:
-        """Check if an auction matches a search word"""
+        """Check if an auction matches a search word
+        
+        Search terms within parentheses are treated as exact phrases.
+        Example: "vintage tools" matches only "vintage tools" as a phrase
+        
+        Search terms without parentheses match any of the words.
+        Example: vintage tools matches either "vintage" OR "tools"
+        """
         try:
-            search_word = search_word.lower().strip()
+            search_word = search_word.strip()
             if not search_word:
                 return False
             
-            # Fields to search in
-            searchable_fields = [
-                auction.get('title', ''),
-                auction.get('description', ''),
-                auction.get('location', ''),
-            ]
+            # Check if search term is in parentheses for exact phrase matching
+            is_exact_phrase = search_word.startswith('"') and search_word.endswith('"')
             
-            # Also search in items
-            for item in auction.get('items', []):
-                searchable_fields.extend([
-                    item.get('title', ''),
-                    item.get('description', ''),
-                ])
-            
-            # Search in all fields
-            for field_value in searchable_fields:
-                if field_value and search_word in field_value.lower():
-                    logger.debug(f"Found match for '{search_word}' in: {field_value[:100]}")
-                    return True
-            
-            return False
+            if is_exact_phrase:
+                # Extract phrase from quotes and search for exact match
+                exact_phrase = search_word[1:-1].lower().strip()
+                if not exact_phrase:
+                    return False
+                
+                # Fields to search in
+                searchable_fields = [
+                    auction.get('title', ''),
+                    auction.get('description', ''),
+                    auction.get('location', ''),
+                ]
+                
+                # Also search in items
+                for item in auction.get('items', []):
+                    searchable_fields.extend([
+                        item.get('title', ''),
+                        item.get('description', ''),
+                    ])
+                
+                # Search for exact phrase
+                for field_value in searchable_fields:
+                    if field_value and exact_phrase in field_value.lower():
+                        logger.debug(f"Found exact phrase match for '{exact_phrase}' in: {field_value[:100]}")
+                        return True
+                
+                return False
+            else:
+                # Split into individual words and match any of them
+                search_words = search_word.lower().split()
+                
+                # Fields to search in
+                searchable_fields = [
+                    auction.get('title', ''),
+                    auction.get('description', ''),
+                    auction.get('location', ''),
+                ]
+                
+                # Also search in items
+                for item in auction.get('items', []):
+                    searchable_fields.extend([
+                        item.get('title', ''),
+                        item.get('description', ''),
+                    ])
+                
+                # Search in all fields for any of the words
+                for field_value in searchable_fields:
+                    if not field_value:
+                        continue
+                    field_lower = field_value.lower()
+                    for word in search_words:
+                        if word in field_lower:
+                            logger.debug(f"Found match for '{word}' in: {field_value[:100]}")
+                            return True
+                
+                return False
             
         except Exception as e:
             logger.error(f"Error checking match for search word '{search_word}': {e}")

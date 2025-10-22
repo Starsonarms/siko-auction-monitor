@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- **Enhanced Search Syntax**: Support for exact phrase matching with quotes
+  - `"vintage tools"` (with quotes) matches only the exact phrase "vintage tools"
+  - `vintage tools` (without quotes) matches either "vintage" OR "tools"
+  - Provides better control over search precision
+  - Case-insensitive matching for all search types
 - **Comprehensive Logging System**: Detailed auction information logging
   - NEW AUCTION entries with full details (Title, URL, Time Left, Current Bid, Found via)
   - ✓/✗ indicators for notification success/failure

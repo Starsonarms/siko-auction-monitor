@@ -283,10 +283,23 @@ Search words are matched against:
 - Auction locations
 - Individual item titles and descriptions
 
+#### Search Syntax
+
+The system supports two types of search matching:
+
+**Exact Phrase Matching (with quotes):**
+- `"vintage tools"` - matches only auctions containing the exact phrase "vintage tools"
+- `"lego technic"` - matches only the complete phrase "lego technic"
+
+**Word Matching (without quotes):**
+- `vintage tools` - matches auctions containing either "vintage" OR "tools"
+- `lego technic` - matches auctions containing either "lego" OR "technic"
+
 Examples:
-- `"antique"` - matches any auction containing "antique"
-- `"vintage tools"` - matches auctions with both "vintage" and "tools"
-- `"möbler"` - matches Swedish furniture auctions
+- `antique` - matches any auction containing "antique"
+- `vintage tools` - matches auctions with "vintage" or "tools" (either word)
+- `"vintage tools"` - matches only auctions with the complete phrase "vintage tools"
+- `möbler` - matches Swedish furniture auctions
 
 ### Hidden Auctions (Blacklist)
 
