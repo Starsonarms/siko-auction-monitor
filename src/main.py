@@ -63,8 +63,66 @@ class AuctionMonitor:
             self.config.home_assistant_url,
             self.config.home_assistant_token
         )
+        
+        # Initialize MongoDB collections for tracking
+        from .mongodb_client import MongoDBClient
+        mongo_client = MongoDBClient()
+        self.processed_collection = mongo_client.get_collection('processed_auctions', self.config.mongodb_database)
+        self.urgent_collection = mongo_client.get_collection('urgent_notifications', self.config.mongodb_database)
+        
+        # Load processed auctions from MongoDB
         self.processed_auctions = set()
-        self.urgent_notifications_sent = set()  # Track urgent notifications sent
+        self._load_processed_auctions()
+        
+        # Load urgent notifications from MongoDB
+        self.urgent_notifications_sent = set()
+        self._load_urgent_notifications()
+        
+        logger.info(f"Loaded {len(self.processed_auctions)} processed auctions from MongoDB")
+        logger.info(f"Loaded {len(self.urgent_notifications_sent)} urgent notifications from MongoDB")
+    
+    def _load_processed_auctions(self):
+        """Load processed auction IDs from MongoDB"""
+        try:
+            docs = self.processed_collection.find()
+            self.processed_auctions = set(doc['auction_id'] for doc in docs)
+        except Exception as e:
+            logger.error(f"Error loading processed auctions from MongoDB: {e}")
+            self.processed_auctions = set()
+    
+    def _save_processed_auction(self, auction_id: str, auction_data: dict = None):
+        """Save a processed auction to MongoDB"""
+        try:
+            self.processed_collection.insert_one({
+                'auction_id': auction_id,
+                'processed_at': time.time(),
+                'title': auction_data.get('title') if auction_data else None,
+                'url': auction_data.get('url') if auction_data else None
+            })
+        except Exception as e:
+            logger.error(f"Error saving processed auction to MongoDB: {e}")
+    
+    def _load_urgent_notifications(self):
+        """Load urgent notification IDs from MongoDB"""
+        try:
+            docs = self.urgent_collection.find()
+            self.urgent_notifications_sent = set(doc['auction_id'] for doc in docs)
+        except Exception as e:
+            logger.error(f"Error loading urgent notifications from MongoDB: {e}")
+            self.urgent_notifications_sent = set()
+    
+    def _save_urgent_notification(self, auction_id: str, auction_data: dict = None):
+        """Save an urgent notification to MongoDB"""
+        try:
+            self.urgent_collection.insert_one({
+                'auction_id': auction_id,
+                'sent_at': time.time(),
+                'title': auction_data.get('title') if auction_data else None,
+                'url': auction_data.get('url') if auction_data else None,
+                'minutes_remaining': auction_data.get('minutes_remaining') if auction_data else None
+            })
+        except Exception as e:
+            logger.error(f"Error saving urgent notification to MongoDB: {e}")
 
     def check_auctions(self):
         """Check for new auctions matching search words"""
@@ -99,6 +157,7 @@ class AuctionMonitor:
                 
                 # Mark as processed and add to new auctions
                 self.processed_auctions.add(auction_id)
+                self._save_processed_auction(auction_id, auction)
                 new_auctions.append(auction)
                 
                 # Add which search word found this auction
@@ -135,6 +194,7 @@ class AuctionMonitor:
                     logger.info(f"Auction '{auction.get('title', 'Unknown')}' qualifies for urgent notification ({minutes_remaining} <= {self.config.urgent_notification_threshold_minutes} min)")
                     urgent_auctions.append(auction)
                     self.urgent_notifications_sent.add(auction_id)
+                    self._save_urgent_notification(auction_id, auction)
             
             # Send urgent notifications (these bypass time restrictions)
             for auction in urgent_auctions:

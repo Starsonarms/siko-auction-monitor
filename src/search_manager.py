@@ -5,7 +5,8 @@ Search word management and auction filtering
 import json
 import os
 import logging
-from typing import List, Dict, Set
+import time
+from typing import List, Dict, Set, Optional
 from .config import get_config
 
 logger = logging.getLogger(__name__)
@@ -15,44 +16,35 @@ class SearchManager:
     
     def __init__(self):
         self.config = get_config()
-        self.search_words_file = self.config.search_words_file
-        self._ensure_config_directory()
-    
-    def _ensure_config_directory(self):
-        """Ensure the config directory exists"""
-        os.makedirs(os.path.dirname(self.search_words_file), exist_ok=True)
+        
+        # Initialize MongoDB collection
+        from .mongodb_client import MongoDBClient
+        mongo_client = MongoDBClient()
+        self.mongo_collection = mongo_client.get_collection('search_words', self.config.mongodb_database)
+        logger.info("SearchManager using MongoDB storage")
     
     def _load_search_words(self) -> Set[str]:
-        """Load search words from file"""
+        """Load search words from MongoDB"""
         try:
-            if os.path.exists(self.search_words_file):
-                with open(self.search_words_file, 'r', encoding='utf-8') as f:
-                    data = json.load(f)
-                    # Handle both old list format and new dict format
-                    if isinstance(data, list):
-                        return set(word.lower().strip() for word in data if word.strip())
-                    elif isinstance(data, dict):
-                        words = data.get('search_words', [])
-                        return set(word.lower().strip() for word in words if word.strip())
-            return set()
+            search_docs = self.mongo_collection.find()
+            words = set(doc['word'].lower().strip() for doc in search_docs if doc.get('word'))
+            logger.debug(f"Loaded {len(words)} search words from MongoDB")
+            return words
         except Exception as e:
-            logger.error(f"Error loading search words: {e}")
+            logger.error(f"Error loading search words from MongoDB: {e}")
             return set()
     
     def _save_search_words(self, search_words: Set[str]):
-        """Save search words to file"""
+        """Save search words to MongoDB"""
         try:
-            data = {
-                'search_words': sorted(list(search_words)),
-                'updated_at': time.time()
-            }
-            
-            with open(self.search_words_file, 'w', encoding='utf-8') as f:
-                json.dump(data, f, indent=2, ensure_ascii=False)
-            
-            logger.info(f"Saved {len(search_words)} search words")
+            # Clear and re-save to MongoDB
+            self.mongo_collection.delete_many({})
+            if search_words:
+                docs = [{'word': word, 'added_at': time.time()} for word in search_words]
+                self.mongo_collection.insert_many(docs)
+            logger.info(f"Saved {len(search_words)} search words to MongoDB")
         except Exception as e:
-            logger.error(f"Error saving search words: {e}")
+            logger.error(f"Error saving search words to MongoDB: {e}")
     
     def get_search_words(self) -> List[str]:
         """Get all search words"""
@@ -214,9 +206,7 @@ class SearchManager:
         return {
             'total_search_words': len(search_words),
             'search_words': sorted(list(search_words)),
-            'config_file': self.search_words_file,
-            'config_exists': os.path.exists(self.search_words_file),
+            'storage': 'MongoDB',
+            'database': self.config.mongodb_database,
+            'collection': 'search_words'
         }
-
-# Add missing import
-import time

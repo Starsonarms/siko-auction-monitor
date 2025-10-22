@@ -2,18 +2,22 @@
 Web interface for managing the Siko Auction Monitor
 """
 
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, send_file, Response
 from flask_cors import CORS
 import logging
 import os
 from datetime import datetime
 from typing import Dict, List
+from io import BytesIO
 from .search_manager import SearchManager
 from .blacklist_manager import BlacklistManager
 from .home_assistant import HomeAssistantNotifier
 from .scraper import SikoScraper
 from .config import get_config
 from .cache_factory import get_cache
+from .image_storage import ImageStorage
+from .mongodb_client import MongoDBClient
+from .auction_updater import AuctionUpdater
 
 logger = logging.getLogger(__name__)
 
@@ -30,8 +34,17 @@ def create_app():
     blacklist_manager = BlacklistManager()
     auction_cache = get_cache()
     
+    # Initialize image storage
+    mongo_client = MongoDBClient()
+    image_storage = ImageStorage(mongo_client, config.mongodb_database)
+    
+    # Initialize and start background auction updater
+    auction_updater = AuctionUpdater()
+    auction_updater.start()
+    logger.info("Background auction updater started (syncs hourly)")
+    
     def get_current_auctions(include_hidden=False):
-        """Shared function to get current auctions with caching
+        """Shared function to get current auctions from MongoDB
         
         Args:
             include_hidden (bool): If True, include hidden/blacklisted auctions
@@ -42,64 +55,44 @@ def create_app():
         if not search_words:
             return [], search_words
         
-        # For dashboard view (include_hidden=True), we don't use cache to always get fresh data
-        # including hidden auctions for management
-        cache_key_suffix = "_with_hidden" if include_hidden else ""
+        # Always load from MongoDB cache (background updater keeps it fresh)
+        cached_auctions = auction_cache.get_cached_auctions(search_words)
         
-        # Try to get from cache first (only for non-hidden view)
-        if not include_hidden:
+        if cached_auctions is None:
+            # No data in MongoDB yet - trigger initial sync
+            logger.info("No cached data, triggering initial sync...")
+            auction_updater.force_sync()
+            # Try again
             cached_auctions = auction_cache.get_cached_auctions(search_words)
-            if cached_auctions is not None:
-                logger.debug(f"Using cached auctions ({len(cached_auctions)} items) - refreshing time_left")
-                # Refresh time_left for all cached auctions
-                scraper = SikoScraper()
-                for auction in cached_auctions:
-                    try:
-                        # Fetch only the time_left from the live page
-                        import requests
-                        from bs4 import BeautifulSoup
-                        response = scraper.session.get(auction['url'], timeout=5)
-                        soup = BeautifulSoup(response.content, 'html.parser')
-                        auction['time_left'] = scraper._extract_time_left(soup)
-                        auction['minutes_remaining'] = scraper._parse_time_to_minutes(auction['time_left'])
-                    except Exception as e:
-                        logger.debug(f"Error refreshing time for auction {auction.get('id')}: {e}")
-                        auction['time_left'] = ''
-                        auction['minutes_remaining'] = None
-                return cached_auctions, search_words
+            if cached_auctions is None:
+                return [], search_words
         
-        # Cache miss or include_hidden=True - fetch fresh data
-        logger.debug("Fetching fresh auction data")
+        # Refresh time_left for display (quick operation)
         scraper = SikoScraper()
-        all_auctions = []
-        
-        for search_word in search_words:
-            auctions = scraper.search_auctions(search_word)
-            for auction in auctions:
-                auction['found_via'] = search_word
-            all_auctions.extend(auctions)
-        
-        # Remove duplicates based on auction ID
-        seen_ids = set()
-        unique_auctions = []
-        for auction in all_auctions:
-            auction_id = auction.get('id')
-            if auction_id and auction_id not in seen_ids:
-                seen_ids.add(auction_id)
-                unique_auctions.append(auction)
+        for auction in cached_auctions:
+            try:
+                # Fetch only the time_left from the live page
+                import requests
+                from bs4 import BeautifulSoup
+                response = scraper.session.get(auction['url'], timeout=5)
+                soup = BeautifulSoup(response.content, 'html.parser')
+                auction['time_left'] = scraper._extract_time_left(soup)
+                auction['minutes_remaining'] = scraper._parse_time_to_minutes(auction['time_left'])
+            except Exception as e:
+                logger.debug(f"Error refreshing time for auction {auction.get('id')}: {e}")
+                auction['time_left'] = ''
+                auction['minutes_remaining'] = None
         
         # Mark which auctions are hidden for UI display
         blacklisted_ids = blacklist_manager.get_blacklisted_ids()
-        for auction in unique_auctions:
+        for auction in cached_auctions:
             auction['is_hidden'] = auction.get('id') in blacklisted_ids
         
         # Filter out blacklisted auctions unless include_hidden is True
         if not include_hidden:
-            unique_auctions = blacklist_manager.filter_auctions(unique_auctions)
-            # Cache the filtered results
-            auction_cache.cache_auctions(search_words, unique_auctions)
+            cached_auctions = blacklist_manager.filter_auctions(cached_auctions)
         
-        return unique_auctions, search_words
+        return cached_auctions, search_words
     
     @app.after_request
     def after_request(response):
@@ -109,6 +102,20 @@ def create_app():
             response.headers['Pragma'] = 'no-cache'
             response.headers['Expires'] = '0'
         return response
+    
+    @app.route('/api/image/<auction_id>')
+    def get_auction_image(auction_id):
+        """Serve auction image from MongoDB GridFS"""
+        try:
+            image_data = image_storage.get_image_by_auction_id(auction_id)
+            if image_data:
+                return Response(image_data, mimetype='image/jpeg')
+            else:
+                # Return placeholder or 404
+                return jsonify({'error': 'Image not found', 'status': 'error'}), 404
+        except Exception as e:
+            logger.error(f"Error serving image for auction {auction_id}: {e}")
+            return jsonify({'error': str(e), 'status': 'error'}), 500
     
     @app.route('/')
     def index():
@@ -147,8 +154,8 @@ def create_app():
             
             success = search_manager.add_search_word(word)
             if success:
-                # Invalidate cache since search words changed
-                auction_cache.invalidate_cache()
+                # Trigger immediate sync with new search word
+                auction_updater.force_sync()
                 return jsonify({'message': f'Added search word: {word}', 'status': 'success'})
             else:
                 return jsonify({'error': 'Failed to add search word', 'status': 'error'}), 500
@@ -162,8 +169,8 @@ def create_app():
         try:
             success = search_manager.remove_search_word(word)
             if success:
-                # Invalidate cache since search words changed
-                auction_cache.invalidate_cache()
+                # Trigger immediate sync with updated search words
+                auction_updater.force_sync()
                 return jsonify({'message': f'Removed search word: {word}', 'status': 'success'})
             else:
                 return jsonify({'error': 'Search word not found', 'status': 'error'}), 404
@@ -480,19 +487,22 @@ def create_app():
     
     @app.route('/api/status')
     def get_status():
-        """Get system status"""
+        """Get system status including auction updater"""
         try:
+            updater_status = auction_updater.get_status()
+            
             status = {
                 'search_words_count': len(search_manager.get_search_words()),
+                'auction_updater': updater_status,
                 'config': {
                     'ha_url': config.home_assistant_url,
                     'ha_service': config.home_assistant_service,
                     'check_interval': config.check_interval_minutes,
                     'web_port': config.web_port,
                 },
-                'files': {
-                    'search_words_exists': os.path.exists(config.search_words_file),
-                    'search_words_file': config.search_words_file,
+                'mongodb': {
+                    'database': config.mongodb_database,
+                    'storage': 'MongoDB (exclusive)'
                 }
             }
             

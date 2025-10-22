@@ -7,6 +7,7 @@ import logging
 from typing import Dict, List, Optional
 from datetime import datetime
 from .mongodb_client import MongoDBClient
+from .image_storage import ImageStorage
 
 logger = logging.getLogger(__name__)
 
@@ -18,15 +19,10 @@ class MongoDBCache:
         self.cache_duration = cache_duration_minutes * 60  # Convert to seconds
         self.mongo_client = MongoDBClient()
         self.collection = self.mongo_client.get_collection('auctions', db_name)
-        
-        # Ensure indexes are created
-        try:
-            self.collection.create_index('search_key', unique=True)
-            self.collection.create_index('timestamp')
-            # TTL index will auto-delete expired documents
-            self.collection.create_index([('timestamp', 1)], expireAfterSeconds=cache_duration_minutes * 60)
-        except Exception as e:
-            logger.warning(f"Could not create indexes (may already exist): {e}")
+        # Initialize image storage
+        self.image_storage = ImageStorage(self.mongo_client, db_name)
+        # Note: Indexes are created by fix_mongodb.py or initialize_collections()
+        logger.debug(f"MongoDBCache initialized (cache duration: {cache_duration_minutes} min)")
     
     def _is_cache_valid(self, cached_time: float) -> bool:
         """Check if cached data is still valid"""
@@ -37,57 +33,93 @@ class MongoDBCache:
         try:
             cache_key = self._get_cache_key(search_words)
             
-            # Find the cached entry
-            cached_entry = self.collection.find_one({'search_key': cache_key})
+            # Find all cached auction documents for this search key
+            cached_entries = list(self.collection.find({'search_key': cache_key}))
             
-            if cached_entry and self._is_cache_valid(cached_entry['timestamp']):
-                logger.debug(f"Cache HIT for search words: {search_words}")
-                return cached_entry['auctions']
-            elif cached_entry:
-                logger.debug(f"Cache EXPIRED for search words: {search_words}")
-                # Delete expired entry
-                self.collection.delete_one({'search_key': cache_key})
-            else:
+            if not cached_entries:
                 logger.debug(f"Cache MISS for search words: {search_words}")
+                return None
             
-            return None
+            # Check if any entry is still valid
+            valid_entries = []
+            expired_ids = []
+            
+            for entry in cached_entries:
+                if self._is_cache_valid(entry['timestamp']):
+                    valid_entries.append(entry)
+                else:
+                    expired_ids.append(entry['_id'])
+            
+            # Delete expired entries
+            if expired_ids:
+                self.collection.delete_many({'_id': {'$in': expired_ids}})
+                logger.debug(f"Deleted {len(expired_ids)} expired cache entries")
+            
+            if valid_entries:
+                logger.debug(f"Cache HIT for search words: {search_words} ({len(valid_entries)} auctions)")
+                # Convert back to auction format (strip cache metadata)
+                auctions = []
+                for entry in valid_entries:
+                    auction = entry.copy()
+                    auction.pop('_id', None)
+                    auction.pop('search_key', None)
+                    auction.pop('timestamp', None)
+                    auctions.append(auction)
+                return auctions
+            else:
+                logger.debug(f"Cache EXPIRED for search words: {search_words}")
+                return None
+            
         except Exception as e:
             logger.error(f"Error retrieving from cache: {e}")
             return None
     
     def cache_auctions(self, search_words: List[str], auctions: List[Dict]):
-        """Cache auctions for given search words (excludes time_left to keep it fresh)"""
+        """Cache auctions for given search words (each auction as separate document)"""
         try:
             cache_key = self._get_cache_key(search_words)
+            current_time = time.time()
             
-            # Add cache metadata to each auction
-            # Exclude time-sensitive fields from cache
-            cached_auctions = []
-            for auction in auctions:
-                cached_auction = auction.copy()
-                cached_auction['cached_at'] = time.time()
-                # Remove time-sensitive fields that should always be fresh
-                cached_auction.pop('time_left', None)
-                cached_auction.pop('minutes_remaining', None)
-                cached_auctions.append(cached_auction)
+            # First, delete existing cached entries for this search key
+            self.collection.delete_many({'search_key': cache_key})
             
-            # Prepare cache document
-            cache_doc = {
-                'search_key': cache_key,
-                'timestamp': time.time(),
-                'search_words': search_words,
-                'auctions': cached_auctions,
-                'count': len(cached_auctions)
-            }
-            
-            # Upsert (update or insert) the cache entry
-            self.collection.replace_one(
-                {'search_key': cache_key},
-                cache_doc,
-                upsert=True
-            )
-            
-            logger.debug(f"Cached {len(auctions)} auctions for search words: {search_words}")
+            # Insert each auction as a separate document
+            if auctions:
+                auction_docs = []
+                for auction in auctions:
+                    cached_auction = auction.copy()
+                    
+                    # Download and store image if available
+                    image_url = auction.get('image_url')
+                    auction_id = auction.get('id') or auction.get('auction_id')
+                    
+                    if image_url and auction_id:
+                        # Check if image already exists
+                        if not self.image_storage.image_exists(auction_id):
+                            image_metadata = self.image_storage.download_and_store_image(image_url, auction_id)
+                            if image_metadata:
+                                cached_auction['image_file_id'] = image_metadata['file_id']
+                                cached_auction['image_stored'] = True
+                                logger.debug(f"Stored image for auction {auction_id}")
+                        else:
+                            cached_auction['image_stored'] = True
+                            logger.debug(f"Image already exists for auction {auction_id}")
+                    
+                    # Add cache metadata
+                    cached_auction['search_key'] = cache_key
+                    cached_auction['timestamp'] = current_time
+                    cached_auction['cached_at'] = current_time
+                    
+                    # Remove time-sensitive fields that should always be fresh
+                    cached_auction.pop('time_left', None)
+                    cached_auction.pop('minutes_remaining', None)
+                    
+                    auction_docs.append(cached_auction)
+                
+                # Insert all auction documents
+                self.collection.insert_many(auction_docs, ordered=False)
+                
+                logger.debug(f"Cached {len(auctions)} auctions (as separate documents) for search words: {search_words}")
         except Exception as e:
             logger.error(f"Error caching auctions: {e}")
     
@@ -111,21 +143,22 @@ class MongoDBCache:
             total_entries = self.collection.count_documents({})
             valid_entries = 0
             expired_entries = 0
-            total_auctions = 0
             
             current_time = time.time()
             for entry in self.collection.find():
-                total_auctions += entry.get('count', 0)
                 if self._is_cache_valid(entry['timestamp']):
                     valid_entries += 1
                 else:
                     expired_entries += 1
             
+            # Count unique search keys
+            unique_search_keys = len(self.collection.distinct('search_key'))
+            
             return {
-                'total_entries': total_entries,
-                'valid_entries': valid_entries,
-                'expired_entries': expired_entries,
-                'total_auctions': total_auctions,
+                'total_auction_documents': total_entries,
+                'valid_auction_documents': valid_entries,
+                'expired_auction_documents': expired_entries,
+                'unique_search_queries': unique_search_keys,
                 'cache_duration_minutes': self.cache_duration / 60,
                 'storage': 'MongoDB',
                 'database': self.db_name,

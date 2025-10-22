@@ -6,7 +6,8 @@ Blacklist Manager - Manage hidden/blacklisted auctions
 import json
 import os
 import logging
-from typing import List, Dict, Set
+import time
+from typing import List, Dict, Set, Optional
 from .config import get_config
 
 logger = logging.getLogger(__name__)
@@ -16,53 +17,30 @@ class BlacklistManager:
     
     def __init__(self):
         self.config = get_config()
-        # Use the same config directory as search_words_file
-        config_dir = os.path.dirname(self.config.search_words_file)
-        self.blacklist_file = os.path.join(config_dir, 'blacklisted_auctions.json')
-        self._ensure_config_dir()
         self._blacklisted_ids: Set[str] = set()
+        
+        # Initialize MongoDB collection
+        from .mongodb_client import MongoDBClient
+        mongo_client = MongoDBClient()
+        self.mongo_collection = mongo_client.get_collection('blacklist', self.config.mongodb_database)
+        logger.info("BlacklistManager using MongoDB storage")
+        
         self.load_blacklist()
     
-    def _ensure_config_dir(self):
-        """Ensure config directory exists"""
-        os.makedirs(os.path.dirname(self.blacklist_file), exist_ok=True)
-    
     def load_blacklist(self):
-        """Load blacklisted auction IDs from file"""
+        """Load blacklisted auction IDs from MongoDB"""
         try:
-            if os.path.exists(self.blacklist_file):
-                with open(self.blacklist_file, 'r', encoding='utf-8') as f:
-                    data = json.load(f)
-                    # Support both old format (list of IDs) and new format (dict with metadata)
-                    if isinstance(data, list):
-                        self._blacklisted_ids = set(data)
-                    elif isinstance(data, dict):
-                        self._blacklisted_ids = set(data.get('blacklisted_ids', []))
-                    
-                logger.info(f"Loaded {len(self._blacklisted_ids)} blacklisted auctions")
-            else:
-                self._blacklisted_ids = set()
-                logger.info("No blacklist file found, starting with empty blacklist")
+            blacklisted_docs = self.mongo_collection.find()
+            self._blacklisted_ids = set(doc['auction_id'] for doc in blacklisted_docs)
+            logger.info(f"Loaded {len(self._blacklisted_ids)} blacklisted auctions from MongoDB")
         except Exception as e:
-            logger.error(f"Error loading blacklist: {e}")
+            logger.error(f"Error loading blacklist from MongoDB: {e}")
             self._blacklisted_ids = set()
     
     def save_blacklist(self):
-        """Save blacklisted auction IDs to file"""
-        try:
-            # Get detailed info for blacklisted auctions for better management
-            blacklist_data = {
-                'blacklisted_ids': list(self._blacklisted_ids),
-                'count': len(self._blacklisted_ids),
-                'last_updated': str(len(self._blacklisted_ids))  # Simple tracking
-            }
-            
-            with open(self.blacklist_file, 'w', encoding='utf-8') as f:
-                json.dump(blacklist_data, f, indent=2, ensure_ascii=False)
-            
-            logger.info(f"Saved {len(self._blacklisted_ids)} blacklisted auctions")
-        except Exception as e:
-            logger.error(f"Error saving blacklist: {e}")
+        """Save blacklisted auction IDs to MongoDB (no-op, updates happen per-auction)"""
+        # MongoDB updates happen per-auction in add/remove methods
+        logger.debug(f"Blacklist synchronized with MongoDB ({len(self._blacklisted_ids)} entries)")
     
     def add_auction(self, auction_id: str, auction_title: str = None, auction_url: str = None):
         """
@@ -78,7 +56,17 @@ class BlacklistManager:
             return False
         
         self._blacklisted_ids.add(auction_id)
-        self.save_blacklist()
+        
+        # Save to MongoDB
+        try:
+            self.mongo_collection.insert_one({
+                'auction_id': auction_id,
+                'title': auction_title,
+                'url': auction_url,
+                'added_at': time.time()
+            })
+        except Exception as e:
+            logger.error(f"Error saving to MongoDB: {e}")
         
         title_info = f" '{auction_title}'" if auction_title else ""
         url_info = f" ({auction_url})" if auction_url else ""
@@ -97,7 +85,12 @@ class BlacklistManager:
             return False
         
         self._blacklisted_ids.remove(auction_id)
-        self.save_blacklist()
+        
+        # Remove from MongoDB
+        try:
+            self.mongo_collection.delete_one({'auction_id': auction_id})
+        except Exception as e:
+            logger.error(f"Error removing from MongoDB: {e}")
         
         logger.info(f"Removed auction {auction_id} from blacklist")
         return True
@@ -126,7 +119,13 @@ class BlacklistManager:
         """Clear all blacklisted auctions (use with caution)"""
         count = len(self._blacklisted_ids)
         self._blacklisted_ids.clear()
-        self.save_blacklist()
+        
+        # Clear from MongoDB
+        try:
+            self.mongo_collection.delete_many({})
+        except Exception as e:
+            logger.error(f"Error clearing MongoDB blacklist: {e}")
+        
         logger.info(f"Cleared {count} auctions from blacklist")
     
     def filter_auctions(self, auctions: List[Dict]) -> List[Dict]:

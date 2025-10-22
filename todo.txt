@@ -1,5 +1,5 @@
 Sikö
-* Loggning fungerar inte. Inga nya loggar.
+X Loggning fungerar inte. Inga nya loggar.
 X Om jag lägger till/tar bort ett ord så borde listan med auktioner uppdateras.
 * Om jag lägger till ett nytt ord och det hittas en auktion så borde jag få meddelande på telefonen.
 X När jag ska lägga till ett nytt ord så borde fältet där jag skriver in ordet redan vara markerad
@@ -10,6 +10,7 @@ X Auktionerna borde oxå vara listade efter när de går ut.
 X Om det är kort tid kvar på en auktion så visas ingen tid. Se bild SIKÖ på skrivbordet
 * En auktion som har mindre än en timme kvar borde vara markerad på något sätt.
 * Under current auctions borde det gå att klicka bort "kort"
-* antique" - matches any auction containing "antique"
+x antique" - matches any auction containing "antique"
   "vintage tools" - matches auctions with both "vintage" and "tools" <- detta borde ändras til att matcha bara söktermen
   "möbler" - matches Swedish furniture auctions
+* what does the check interval do now?

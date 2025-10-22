@@ -97,21 +97,33 @@ class MongoDBClient:
             
             # Create auctions collection with indexes
             auctions_collection = db['auctions']
-            safe_create_index(auctions_collection, 'search_key', unique=True)
+            
+            # Drop old conflicting indexes if they exist
+            try:
+                auctions_collection.drop_index('search_key_1')
+                logger.info("Dropped old search_key_1 unique index")
+            except:
+                pass
+            
+            # Each auction is now a separate document
+            # auction_id should be unique per auction (if present)
+            safe_create_index(auctions_collection, 'auction_id', unique=True, sparse=True)
+            # search_key is non-unique now (multiple auctions can match same search)
+            safe_create_index(auctions_collection, 'search_key')
             safe_create_index(auctions_collection, 'timestamp')
             safe_create_index(auctions_collection, [('timestamp', 1)], expireAfterSeconds=300)  # TTL index
-            # Note: auction_id index removed - not needed for cache, only for processed_auctions
-            logger.info("✓ 'auctions' collection initialized")
+            logger.info("✓ 'auctions' collection initialized (cache - one document per auction)")
             
             # Create search_words collection
             search_words_collection = db['search_words']
             safe_create_index(search_words_collection, 'word', unique=True)
             logger.info("✓ 'search_words' collection initialized")
             
-            # Create blacklist collection
+            # Create blacklist collection (store blacklisted auction IDs)
             blacklist_collection = db['blacklist']
-            safe_create_index(blacklist_collection, 'pattern', unique=True)
-            logger.info("✓ 'blacklist' collection initialized")
+            safe_create_index(blacklist_collection, 'auction_id', unique=True)
+            safe_create_index(blacklist_collection, 'added_at')
+            logger.info("✓ 'blacklist' collection initialized (auctions you don't want to see)")
             
             # Create processed_auctions collection (track which auctions we've sent notifications for)
             processed_collection = db['processed_auctions']

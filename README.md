@@ -15,7 +15,10 @@ Perfect for running on a Raspberry Pi as a continuous monitoring service.
 - 📱 **iPhone Notifications**: Get instant alerts via Home Assistant companion app
 - 🌐 **Modern Web Interface**: Clean, responsive web UI with real-time auction viewing
 - 🖼️ **Visual Auction Cards**: Beautiful auction displays with images, prices, and descriptions
-- ⚡ **Lightning Fast**: Advanced caching system for instant page loading (>95% speed improvement)
+- ⚡ **Lightning Fast**: MongoDB-backed storage with hourly background sync (instant page loads!)
+- 💾 **MongoDB Storage**: All data (auctions, images, search words, blacklist) stored in MongoDB
+- 🖼️ **Image Storage**: Auction images downloaded and stored in MongoDB GridFS (persist forever)
+- ⏰ **Hourly Sync**: Background thread syncs auctions from sikoauktioner.se every hour
 - 📋 **Dedicated Auctions Page**: Browse all current matching auctions with detailed information
 - 🚫 **Smart Blacklist System**: Hide false-positive auctions with one-click - they'll never appear again
 - 🎯 **Smart Notifications**: Deep links that open directly in Home Assistant companion app
@@ -38,6 +41,8 @@ cd siko-auction-monitor
 pip install -r requirements.txt
 ```
 
+**Note**: Includes Pillow for image processing and PyMongo for MongoDB.
+
 ### 3. Configure
 
 Copy the example configuration:
@@ -54,6 +59,9 @@ Required settings:
 - `HA_URL`: Your Home Assistant URL (e.g., `http://192.168.1.100:8123`)
 - `HA_TOKEN`: Long-lived access token from Home Assistant
 - `HA_SERVICE`: Notification service (e.g., `notify.mobile_app_your_iphone`)
+- `MONGODB_USERNAME`: MongoDB Atlas username
+- `MONGODB_PASSWORD`: MongoDB Atlas password
+- `MONGODB_DATABASE`: Database name (default: `siko_auctions`)
 
 > **🔒 Security Note**: Your `.env` file contains sensitive credentials and is protected by `.gitignore`. It will never be committed to git. Keep this file secure and never share it publicly.
 
@@ -65,7 +73,17 @@ python manage.py add-search "vintage tools"
 python manage.py list-searches
 ```
 
-### 5. Test the Setup
+### 5. Initialize MongoDB
+
+```bash
+# Setup MongoDB collections and indexes
+python fix_mongodb.py
+
+# Migrate existing search words (if any)
+python migrate_search_words.py
+```
+
+### 6. Test the Setup
 
 ```bash
 # Test the scraper
@@ -73,11 +91,13 @@ python manage.py test-scraper
 python manage.py test-search tamiya
 python manage.py check-once
 
-# Start the web interface
+# Start the web interface (includes hourly background sync)
 python manage.py start-web
 ```
 
 Visit `http://localhost:5000` to access the web interface.
+
+**On startup**: The app will run an initial sync to populate MongoDB with auctions.
 
 ## Updating
 
@@ -338,9 +358,16 @@ Hidden auctions:
 ### Files
 
 - `.env` - Environment configuration
-- `config/search_words.json` - Search words storage
-- `config/blacklisted_auctions.json` - Hidden auctions storage
 - `logs/auction_monitor.log` - Application logs
+
+### MongoDB Collections
+
+- `auctions` - Cached auction data (7-day TTL)
+- `images.files` / `images.chunks` - GridFS image storage
+- `search_words` - Your search keywords
+- `blacklist` - Hidden auction IDs
+- `processed_auctions` - Notification tracking
+- `urgent_notifications` - Alert history
 
 ## Troubleshooting
 
@@ -404,17 +431,28 @@ Enable debug logging:
 echo "LOG_LEVEL=DEBUG" >> .env
 ```
 
-## Performance & Caching
+## Performance & Storage
 
-The system includes an advanced caching mechanism for optimal performance:
+### MongoDB-Only Storage
 
-- **5-minute cache duration**: Fresh enough for real-time data, fast enough for instant loading
-- **Intelligent cache invalidation**: Automatically refreshes when needed
-- **Shared cache**: Dashboard and Auctions pages use the same cached data
-- **95%+ speed improvement**: Page switching from 3+ seconds to <0.1 seconds
-- **File-based storage**: Cache survives application restarts
+All data is stored exclusively in MongoDB:
 
-Cache files are stored in `cache/auction_cache.json` and managed automatically.
+- **Auctions**: Cached with 7-day TTL, one document per auction
+- **Images**: Stored in GridFS (downloaded once, served forever)
+- **Search Words**: MongoDB collection with instant updates
+- **Blacklist**: Persisted auction IDs you've hidden
+- **Processed Auctions**: Notification tracking
+- **Urgent Notifications**: Alert history
+
+### Hourly Background Sync
+
+- **Automatic Updates**: Background thread syncs every hour
+- **Initial Sync**: Runs immediately on startup
+- **Smart Updates**: Adding/removing search words triggers immediate sync
+- **Instant Loading**: UI always loads from MongoDB (< 1 second)
+- **Fresh Data**: Time_left refreshed on display
+
+See `HOURLY_SYNC.md` and `MONGODB_ONLY.md` for details.
 
 ### Dashboard Enhancements (v2024.1)
 
