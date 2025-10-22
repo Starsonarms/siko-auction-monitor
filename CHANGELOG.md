@@ -7,6 +7,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- **Comprehensive Logging System**: Detailed auction information logging
+  - NEW AUCTION entries with full details (Title, URL, Time Left, Current Bid, Found via)
+  - ✓/✗ indicators for notification success/failure
+  - Immediate logging when auctions are scraped
+  - Automatic logs directory creation
+- **Perfect Swedish Character Support**: Full UTF-8 encoding support for å, ä, ö
+  - Fixed web scraper encoding (response.encoding = 'utf-8')
+  - Windows console UTF-8 configuration
+  - manage.py UTF-8 support with emoji characters
+  - All Swedish characters display correctly in logs and output
 - **Automatic Auction Sorting**: Auctions now sorted by time left (ending soonest first) by default
   - Sort by time left (default): Shows auctions ending soonest at the top
   - Sort by search term: Groups auctions by search term, then by time within each group
@@ -45,6 +55,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - `time_left` and `minutes_remaining` excluded from cache
   - Keeps cached data fresh while maintaining performance
   - Reduces stale time display issues
+
+### Fixed
+- **Logging Issues**: Auctions now properly logged with full details
+  - Fixed missing auction entries in logs
+  - Fixed notification success/failure reporting
+  - Added structured NEW AUCTION log format
+- **Swedish Character Encoding**: Fixed å, ä, ö display issues
+  - No more "FÃ¶rstÃ¤rkare" instead of "Förstärkare"
+  - No more "SikÃ¶" instead of "Sikö"
+  - Fixed web scraper to use UTF-8 encoding
+  - Fixed Windows console output encoding
+- **Windows Compatibility**: Improved UTF-8 handling on Windows
+  - Fixed UnicodeEncodeError with emoji characters in manage.py
+  - Added sys.stdout.reconfigure() for Python 3.7+
+  - Graceful fallback for older Python versions
 
 ## [2024.1.1] - 2025-10-21
 

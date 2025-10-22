@@ -7,6 +7,8 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 Siko Auction Monitor is a Python application that monitors sikoauktioner.se for auctions matching user-defined search words and sends notifications via Home Assistant. Designed for continuous operation on Raspberry Pi as a system service.
 
 **Recent Improvements**: See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
+- Comprehensive logging system with detailed auction information
+- Perfect Swedish character support (å, ä, ö) in logs and output
 - Inline search phrase management (no popups)
 - Real-time tab synchronization
 - Smart caching system (95% speed improvement)
@@ -91,6 +93,12 @@ tail -f logs/auction_monitor.log
 - `AuctionMonitor` orchestrates the entire monitoring process
 - Scheduled execution using `schedule` library (default: 15 minutes)
 - Maintains processed auctions set to prevent duplicate notifications
+- **Comprehensive Logging**: Detailed auction information tracking
+  - NEW AUCTION entries with full details (Title, URL, Time Left, Current Bid, Found via)
+  - ✓/✗ indicators for notification success/failure
+  - Immediate logging when auctions are scraped
+  - Automatic logs directory creation
+  - Windows UTF-8 console configuration for Swedish characters
 - Urgent notification system with configurable threshold (default: 60 minutes)
   - Only sends notifications for auctions within threshold
   - Debug logging for notification decisions
@@ -101,6 +109,10 @@ tail -f logs/auction_monitor.log
 - `SikoScraper` handles all sikoauktioner.se interactions
 - Two-phase scraping: fetch auction URLs, then detailed page scraping
 - Respectful scraping with configurable delays and request limits
+- **UTF-8 Encoding**: Explicit encoding configuration for Swedish characters
+  - Sets `response.encoding = 'utf-8'` before parsing
+  - Uses `response.text` instead of `response.content`
+  - Properly displays å, ä, ö in all output
 - Extracts auction details and individual items within auctions
 - Advanced time parsing with `_parse_time_to_minutes()` method
   - Handles complex Swedish time formats: "2d, 5h, 42m, 59s"

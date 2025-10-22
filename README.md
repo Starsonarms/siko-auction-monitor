@@ -362,6 +362,17 @@ Hidden auctions:
 - Check that the script uses the correct username in the path
 - Verify the script works manually: `./start-service.sh`
 
+**Logging issues (Windows):**
+- Auctions not appearing in logs: Make sure you've pulled the latest changes with `git pull`
+- Swedish characters (å, ä, ö) appearing as garbled text: The latest version fixes this automatically
+- Check log file encoding with: `Get-Content logs\auction_monitor.log -Encoding UTF8`
+- Logs are automatically created in the `logs/` directory on first run
+
+**Swedish character display issues:**
+- If you see "FÃ¶rstÃ¤rkare" instead of "Förstärkare", update to the latest version
+- The web scraper now properly handles UTF-8 encoding for all Swedish characters
+- Both logs and web interface display Swedish characters correctly
+
 ### Logs
 
 ```bash
