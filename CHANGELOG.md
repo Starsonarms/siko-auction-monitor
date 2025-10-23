@@ -7,6 +7,68 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- **Visual Feedback System**: Enhanced UI responsiveness
+  - Spinner → checkmark animation when adding search terms (0.6s)
+  - Fade-out and scale animation when removing search terms (0.2s)
+  - Smooth height collapse animations
+  - Toast notifications reduced to 2 seconds
+  - Clear button state transitions with proper animations
+- **Search Term Management Instructions**: Clear guidance for users
+  - Help tooltip explaining plain text vs quoted phrase matching
+  - Inline hint text: "💡 Plain text matches any word • Quotes match exact phrase"
+  - Example placeholder: `e.g. gitarr or "vintage tools"`
+  - Better user onboarding
+- **MongoDB-Only Architecture**: Fully migrated to MongoDB for all data
+  - Blacklist stored in MongoDB (not local cache)
+  - Auction cache in MongoDB with 7-day TTL
+  - Search words in MongoDB collection
+  - No more local JSON files
+  - Single source of truth for all data
+- **Detailed Logging**: Comprehensive debugging logs
+  - BlacklistManager logs MongoDB insert operations
+  - Console logging for search word add/remove
+  - Response status and data logging
+  - Better error tracking
+- **Raspberry Pi System Dependencies Guide**: Complete setup documentation
+  - RASPBERRY_PI_SETUP.md with all required system libraries
+  - Explains why libopenjp2-7 and other libs are needed
+  - Quick install script for one-command setup
+  - Distinction between system libs and Python packages
+
+### Changed
+- **Background Sync on Search Word Removal**: Non-blocking sync operations
+  - Sync runs in background thread when removing search words
+  - API returns immediately for instant UI response
+  - No more waiting for full scrape to complete
+  - Better user experience with responsive interface
+- **Removed Cache Invalidation Calls**: Simplified architecture
+  - No need to invalidate cache when hiding/unhiding auctions
+  - MongoDB is the single source of truth
+  - Cleaner code with better performance
+- **Data Attributes for Event Handlers**: More robust JavaScript
+  - Replaced onclick handlers with data attributes
+  - Better handling of special characters in search terms
+  - No more JavaScript escaping issues
+  - Event listeners properly attached on page load
+
+### Fixed
+- **MongoDB Duplicate Key Error**: Resolved blacklist collection index conflict
+  - Removed incorrect `pattern_1` index from blacklist collection
+  - Fixed E11000 duplicate key errors
+  - Blacklist now saves correctly to MongoDB
+- **LocalStorage Cache Manipulation**: Eliminated cache synchronization issues
+  - Now simply clears cache instead of trying to update it
+  - Prevents cache from getting out of sync with MongoDB
+  - Next page load always fetches fresh data from MongoDB
+- **Search Word Removal Issues**: Fixed unresponsive delete buttons
+  - Proper escaping of quoted search phrases
+  - Event listeners correctly bound to dynamically generated elements
+  - Console logging for better debugging
+- **JavaScript Syntax Errors**: Fixed broken removeSearchWord function
+  - Removed extra closing brace that broke updateSearchWordsList
+  - Updated Jinja template to include index parameter
+  - Added type="button" to prevent form submission
+
 - **Interactive Search Term Badges**: Clickable search term badges with filtering and removal
   - Click any search term badge to filter auctions by that search term
   - Click again to show all auctions
