@@ -150,11 +150,13 @@
             return;
         }
         
-        // Show loading state
+        // Show loading state with animation
         const btn = document.getElementById('addSearchBtn');
         const originalHtml = btn.innerHTML;
+        const originalBg = btn.style.backgroundColor;
         console.log('Setting button to loading state');
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        btn.style.transition = 'all 0.15s ease';
         btn.disabled = true;
 
         fetch('/api/search-words', {
@@ -193,12 +195,12 @@
                 // Refresh auctions with new search term
                 refreshAuctions(null);
                 
-                // Reset button after 1 second
+                // Reset button after brief success display
                 setTimeout(() => {
                     btn.innerHTML = originalHtml;
                     btn.style.backgroundColor = 'var(--color-blue-green)';
                     btn.disabled = false;
-                }, 1000);
+                }, 600);
             } else {
                 alert('Error: ' + data.error);
                 btn.innerHTML = originalHtml;
@@ -274,13 +276,14 @@
     function removeSearchWord(word, index) {
         console.log('removeSearchWord called with word:', word, 'index:', index);
         
-        // Show fade-out animation
+        // Show immediate fade-out animation
         const element = document.getElementById(`search-word-${index}`);
         console.log('Found element:', element);
         
         if (element) {
-            element.style.opacity = '0.5';
-            element.style.transition = 'opacity 0.3s';
+            element.style.transition = 'all 0.2s ease';
+            element.style.opacity = '0.3';
+            element.style.transform = 'scale(0.95)';
         }
         
         const url = `/api/search-words/${encodeURIComponent(word)}`;
@@ -297,8 +300,23 @@
             console.log('Response data:', data);
             
             if (data.status === 'success') {
-                // Show success message
-                showTemporaryMessage(`Removed "${word}"`, 'success');
+                // Immediately remove the element
+                if (element) {
+                    element.style.height = element.offsetHeight + 'px';
+                    setTimeout(() => {
+                        element.style.height = '0';
+                        element.style.marginBottom = '0';
+                        element.style.paddingTop = '0';
+                        element.style.paddingBottom = '0';
+                        element.style.overflow = 'hidden';
+                    }, 10);
+                    setTimeout(() => {
+                        element.remove();
+                    }, 250);
+                }
+                
+                // Show brief success message
+                showTemporaryMessage(`✓ Removed "${word}"`, 'success');
                 
                 // Clear cache to force fresh data
                 try {
@@ -307,8 +325,10 @@
                     console.log('Could not clear cache:', e);
                 }
                 
-                // Update the search words list
-                updateSearchWordsList();
+                // Update the search words list after animation
+                setTimeout(() => {
+                    updateSearchWordsList();
+                }, 300);
                 
                 // Refresh auctions with remaining search terms
                 refreshAuctions(null);
@@ -520,12 +540,12 @@
         
         document.body.appendChild(alertDiv);
         
-        // Auto-remove after 3 seconds
+        // Auto-remove after 2 seconds
         setTimeout(() => {
             if (alertDiv.parentNode) {
                 alertDiv.parentNode.removeChild(alertDiv);
             }
-        }, 3000);
+        }, 2000);
     }
     
     let isRefreshing = false;
