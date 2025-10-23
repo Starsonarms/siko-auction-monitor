@@ -74,9 +74,9 @@
                 <div id="search-words-list">
                     {% if search_words %}
                         {% for word in search_words %}
-                        <div class="d-flex justify-content-between align-items-center mb-2 p-1 bg-light rounded">
+                        <div class="d-flex justify-content-between align-items-center mb-2 p-1 bg-light rounded" id="search-word-{{ loop.index0 }}">
                             <span class="small"><i class="fas fa-search text-muted me-1"></i>{{ word }}</span>
-                            <button class="btn btn-sm btn-outline-danger" onclick="removeSearchWord('{{ word }}')" title="Remove">
+                            <button class="btn btn-sm btn-outline-danger" onclick="removeSearchWord('{{ word }}', {{ loop.index0 }})" title="Remove">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -241,7 +241,6 @@
         .catch(error => {
             console.error('Error updating search words list:', error);
         });
-    }
     }
     
     function removeSearchWord(word, index) {
