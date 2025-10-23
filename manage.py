@@ -34,7 +34,7 @@ def run_command(cmd):
 
 def main():
     if len(sys.argv) < 2:
-        print("🔨 Siko Auction Monitor - Management Script")
+        print("🔨 Siko Auction Monitor - Management Script (Web App Only)")
         print()
         print("Available commands:")
         print("  test-scraper     - Test if the auction scraper is working")
@@ -46,14 +46,14 @@ def main():
         print("  hide-auction ID  - Hide/blacklist an auction by ID")
         print("  unhide-auction ID - Unhide/unblacklist an auction by ID")
         print("  list-hidden      - List all hidden/blacklisted auctions")
-        print("  check-once       - Run a single auction check")
         print("  start-web        - Start the web interface")
-        print("  start-monitor    - Start continuous monitoring")
         print()
         print("Examples:")
         print("  python manage.py add-search vintage")
-        print("  python manage.py check-once")
         print("  python manage.py start-web")
+        print()
+        print("⚠️  Note: Standalone monitoring (start-monitor, check-once) is not available")
+        print("    in this branch. Use the web interface instead.")
         sys.exit(1)
     
     command = sys.argv[1].lower()
@@ -96,17 +96,57 @@ def main():
             sys.exit(1)
         search_word = sys.argv[2]
         print(f"➕ Adding search word: {search_word}")
-        result = run_command(f'-m src.main --add-search "{search_word}"')
+        
+        # Create a simple script
+        script_content = f'''from src.search_manager import SearchManager
+sm = SearchManager()
+result = sm.add_search_word("{search_word}")
+if result:
+    print("Search word added successfully")
+else:
+    print("Failed to add search word")
+'''
+        with open('temp_add_search_script.py', 'w', encoding='utf-8') as f:
+            f.write(script_content)
+        
+        result = run_command('temp_add_search_script.py')
         print(result.stdout.strip())
         if result.returncode != 0:
             print("❌ Failed to add search word:", result.stderr.strip())
+        
+        # Clean up temp file
+        try:
+            os.remove('temp_add_search_script.py')
+        except:
+            pass
     
     elif command == "list-searches":
         print("📝 Current search words:")
-        result = run_command('-m src.main --list-searches')
+        
+        # Create a simple script
+        script_content = '''from src.search_manager import SearchManager
+sm = SearchManager()
+words = sm.get_search_words()
+if words:
+    print("Current search words:")
+    for word in words:
+        print(f"  - {word}")
+else:
+    print("No search words configured")
+'''
+        with open('temp_list_search_script.py', 'w', encoding='utf-8') as f:
+            f.write(script_content)
+        
+        result = run_command('temp_list_search_script.py')
         print(result.stdout.strip())
         if result.returncode != 0:
             print("❌ Failed to list search words:", result.stderr.strip())
+        
+        # Clean up temp file
+        try:
+            os.remove('temp_list_search_script.py')
+        except:
+            pass
     
     elif command == "hide-auction":
         if len(sys.argv) < 3:
@@ -200,11 +240,10 @@ else:
             pass
     
     elif command == "check-once":
-        print("🔍 Running single auction check...")
-        result = run_command('-m src.main --once')
-        print(result.stdout.strip())
-        if result.returncode != 0:
-            print("❌ Auction check failed:", result.stderr.strip())
+        print("❌ Command 'check-once' is not available in this branch (mongodb-integration).")
+        print("   This branch only supports the web interface.")
+        print("   Switch to the main branch for standalone monitoring.")
+        sys.exit(1)
     
     elif command == "start-web":
         print("Starting web interface at http://localhost:5000")
@@ -215,12 +254,10 @@ else:
             print("❌ Web interface failed:", result.stderr.strip())
     
     elif command == "start-monitor":
-        print("⏰ Starting continuous monitoring...")
-        print("Press Ctrl+C to stop")
-        result = run_command('-m src.main')
-        print(result.stdout.strip())
-        if result.returncode != 0:
-            print("❌ Monitoring failed:", result.stderr.strip())
+        print("❌ Command 'start-monitor' is not available in this branch (mongodb-integration).")
+        print("   This branch only supports the web interface.")
+        print("   Switch to the main branch for standalone monitoring.")
+        sys.exit(1)
     
     else:
         print(f"❌ Unknown command: {command}")

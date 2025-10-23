@@ -137,9 +137,11 @@
             <div class="alert alert-info">
                 <h6>💡 Configuration Notes:</h6>
                 <ul>
-                    <li>Changes take effect immediately for new monitoring cycles</li>
-                    <li>Urgent notifications bypass time restrictions</li>
-                    <li>Time settings use 24-hour format (0-23)</li>
+                    <li><strong>Check Interval:</strong> How often to check for new auctions (1-1440 minutes)</li>
+                    <li><strong>Urgent Threshold:</strong> Send urgent notifications when auctions have this many minutes left (1-120 minutes)</li>
+                    <li><strong>Time Settings:</strong> Control when notifications are sent (use 24-hour format: 0-23)</li>
+                    <li><strong>Urgent notifications</strong> bypass time restrictions and are always sent</li>
+                    <li>Changes to check interval apply immediately to the background sync</li>
                 </ul>
             </div>
         </div>

@@ -1,5 +1,5 @@
 """
-Background auction updater - Syncs auctions from sikoauktioner.se to MongoDB hourly
+Background auction updater - Syncs auctions from sikoauktioner.se to MongoDB
 """
 
 import logging
@@ -9,6 +9,9 @@ from typing import List, Dict
 from .scraper import SikoScraper
 from .search_manager import SearchManager
 from .mongodb_cache import MongoDBCache
+from .blacklist_manager import BlacklistManager
+from .home_assistant import HomeAssistantNotifier
+from .mongodb_client import MongoDBClient
 from .config import get_config
 
 logger = logging.getLogger(__name__)
@@ -20,12 +23,30 @@ class AuctionUpdater:
         self.config = get_config()
         self.scraper = SikoScraper()
         self.search_manager = SearchManager()
+        self.blacklist_manager = BlacklistManager()
         self.cache = MongoDBCache(cache_duration_minutes=60*24*7)  # 7 day cache for persistence
+        self.notifier = HomeAssistantNotifier(
+            self.config.home_assistant_url,
+            self.config.home_assistant_token
+        )
         self.running = False
         self.thread = None
-        self.update_interval = 3600  # 1 hour in seconds
+        self.update_interval = self.config.check_interval_minutes * 60  # Convert minutes to seconds
         self.last_update = 0
-        logger.info("AuctionUpdater initialized")
+        
+        # Initialize MongoDB collections for tracking notifications
+        mongo_client = MongoDBClient()
+        self.processed_collection = mongo_client.get_collection('processed_auctions', self.config.mongodb_database)
+        self.urgent_collection = mongo_client.get_collection('urgent_notifications', self.config.mongodb_database)
+        
+        # Load processed auctions and urgent notifications from MongoDB
+        self.processed_auctions = set()
+        self.urgent_notifications_sent = set()
+        self._load_processed_auctions()
+        self._load_urgent_notifications()
+        
+        logger.info(f"AuctionUpdater initialized (check interval: {self.config.check_interval_minutes} minutes)")
+        logger.info(f"Loaded {len(self.processed_auctions)} processed auctions, {len(self.urgent_notifications_sent)} urgent notifications")
     
     def start(self):
         """Start the background updater thread"""
@@ -44,6 +65,49 @@ class AuctionUpdater:
         if self.thread:
             self.thread.join(timeout=5)
         logger.info("AuctionUpdater stopped")
+    
+    def _load_processed_auctions(self):
+        """Load processed auction IDs from MongoDB"""
+        try:
+            docs = self.processed_collection.find()
+            self.processed_auctions = set(doc['auction_id'] for doc in docs)
+        except Exception as e:
+            logger.error(f"Error loading processed auctions: {e}")
+            self.processed_auctions = set()
+    
+    def _save_processed_auction(self, auction_id: str, auction_data: dict = None):
+        """Save a processed auction to MongoDB"""
+        try:
+            self.processed_collection.insert_one({
+                'auction_id': auction_id,
+                'processed_at': time.time(),
+                'title': auction_data.get('title') if auction_data else None,
+                'url': auction_data.get('url') if auction_data else None
+            })
+        except Exception as e:
+            logger.error(f"Error saving processed auction: {e}")
+    
+    def _load_urgent_notifications(self):
+        """Load urgent notification IDs from MongoDB"""
+        try:
+            docs = self.urgent_collection.find()
+            self.urgent_notifications_sent = set(doc['auction_id'] for doc in docs)
+        except Exception as e:
+            logger.error(f"Error loading urgent notifications: {e}")
+            self.urgent_notifications_sent = set()
+    
+    def _save_urgent_notification(self, auction_id: str, auction_data: dict = None):
+        """Save an urgent notification to MongoDB"""
+        try:
+            self.urgent_collection.insert_one({
+                'auction_id': auction_id,
+                'sent_at': time.time(),
+                'title': auction_data.get('title') if auction_data else None,
+                'url': auction_data.get('url') if auction_data else None,
+                'minutes_remaining': auction_data.get('minutes_remaining') if auction_data else None
+            })
+        except Exception as e:
+            logger.error(f"Error saving urgent notification: {e}")
     
     def _update_loop(self):
         """Main update loop - runs in background thread"""
@@ -109,6 +173,10 @@ class AuctionUpdater:
                     seen_ids.add(auction_id)
                     unique_auctions.append(auction)
             
+            # Filter out blacklisted auctions
+            unique_auctions = self.blacklist_manager.filter_auctions(unique_auctions)
+            logger.info(f"After blacklist filtering: {len(unique_auctions)} auctions remaining")
+            
             # Update MongoDB cache (this will download and store images too)
             if unique_auctions:
                 # Clear old cache for these search words
@@ -118,6 +186,63 @@ class AuctionUpdater:
                 logger.info(f"✓ Synced {len(unique_auctions)} unique auctions in {elapsed:.1f}s")
             else:
                 logger.info("No auctions found matching search words")
+            
+            # Process new auctions for notifications
+            new_auctions = []
+            for auction in unique_auctions:
+                auction_id = auction.get('id', auction.get('url', ''))
+                
+                # Skip if already processed
+                if auction_id in self.processed_auctions:
+                    continue
+                
+                # Mark as processed
+                self.processed_auctions.add(auction_id)
+                self._save_processed_auction(auction_id, auction)
+                new_auctions.append(auction)
+            
+            # Send notifications for new auctions
+            for auction in new_auctions:
+                try:
+                    success = self.notifier.send_notification(auction)
+                    if success:
+                        logger.info(f"✓ Notification sent: {auction.get('title', 'Unknown')} (found via '{auction.get('found_via', 'unknown')}')")
+                    else:
+                        logger.warning(f"✗ Failed to send notification: {auction.get('title', 'Unknown')}")
+                except Exception as e:
+                    logger.error(f"✗ Error sending notification for {auction.get('id', 'unknown')}: {e}")
+            
+            # Check for urgent notifications (ending soon)
+            urgent_auctions = []
+            for auction in unique_auctions:
+                auction_id = auction.get('id', auction.get('url', ''))
+                
+                # Skip if we already sent urgent notification
+                if auction_id in self.urgent_notifications_sent:
+                    continue
+                
+                # Check if auction is ending soon
+                minutes_remaining = auction.get('minutes_remaining')
+                if minutes_remaining is not None and minutes_remaining <= self.config.urgent_notification_threshold_minutes:
+                    urgent_auctions.append(auction)
+                    self.urgent_notifications_sent.add(auction_id)
+                    self._save_urgent_notification(auction_id, auction)
+            
+            # Send urgent notifications (bypass time restrictions)
+            for auction in urgent_auctions:
+                try:
+                    success = self.notifier.send_notification(auction, urgent=True)
+                    if success:
+                        logger.info(f"⚡ Urgent notification sent: {auction.get('title', 'Unknown')} ({auction.get('minutes_remaining')} min left)")
+                    else:
+                        logger.error(f"✗ Failed to send urgent notification: {auction.get('title', 'Unknown')}")
+                except Exception as e:
+                    logger.error(f"✗ Error sending urgent notification for {auction.get('id', 'unknown')}: {e}")
+            
+            if new_auctions:
+                logger.info(f"Found {len(new_auctions)} new auctions, sent notifications")
+            if urgent_auctions:
+                logger.info(f"Sent {len(urgent_auctions)} urgent notifications")
             
             self.last_update = time.time()
             
@@ -130,6 +255,14 @@ class AuctionUpdater:
         """Force immediate sync (called when search words change)"""
         logger.info("Force sync triggered (search words changed)")
         self.sync_auctions()
+    
+    def update_interval_from_config(self):
+        """Update the check interval from config (called when config changes)"""
+        new_interval = self.config.check_interval_minutes * 60
+        if new_interval != self.update_interval:
+            old_interval_min = self.update_interval / 60
+            self.update_interval = new_interval
+            logger.info(f"Check interval updated: {old_interval_min:.0f} min -> {self.config.check_interval_minutes} min")
     
     def get_status(self) -> Dict:
         """Get updater status"""

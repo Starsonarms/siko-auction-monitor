@@ -21,6 +21,58 @@ from .auction_updater import AuctionUpdater
 
 logger = logging.getLogger(__name__)
 
+def update_env_file(updates: Dict[str, str]):
+    """Update .env file with new values"""
+    env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
+    
+    if not os.path.exists(env_path):
+        logger.warning(f".env file not found at {env_path}")
+        return False
+    
+    try:
+        # Read existing .env file
+        with open(env_path, 'r') as f:
+            lines = f.readlines()
+        
+        # Update values
+        updated_lines = []
+        updated_keys = set()
+        
+        for line in lines:
+            stripped = line.strip()
+            # Skip comments and empty lines
+            if not stripped or stripped.startswith('#'):
+                updated_lines.append(line)
+                continue
+            
+            # Check if this line contains a key we want to update
+            key_found = False
+            for key, value in updates.items():
+                if stripped.startswith(f"{key}="):
+                    updated_lines.append(f"{key}={value}\r\n")
+                    updated_keys.add(key)
+                    key_found = True
+                    break
+            
+            if not key_found:
+                updated_lines.append(line)
+        
+        # Add any new keys that weren't found
+        for key, value in updates.items():
+            if key not in updated_keys:
+                updated_lines.append(f"{key}={value}\r\n")
+        
+        # Write back to file
+        with open(env_path, 'w') as f:
+            f.writelines(updated_lines)
+        
+        logger.info(f"Updated .env file with: {list(updates.keys())}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error updating .env file: {e}")
+        return False
+
 def create_app():
     """Create and configure the Flask app"""
     app = Flask(__name__, template_folder='../templates', static_folder='../static')
@@ -266,7 +318,7 @@ def create_app():
     
     @app.route('/api/config/monitoring', methods=['POST'])
     def update_monitoring_config():
-        """Update monitoring configuration"""
+        """Update monitoring configuration and apply to AuctionUpdater"""
         try:
             data = request.get_json()
             
@@ -286,15 +338,25 @@ def create_app():
                     'error': 'Urgent threshold must be between 1 and 120 minutes'
                 }), 400
             
-            # Update configuration
+            # Update configuration in memory
             config.check_interval_minutes = check_interval
             config.urgent_notification_threshold_minutes = urgent_threshold
+            
+            # Update the AuctionUpdater interval immediately
+            auction_updater.update_interval_from_config()
+            
+            # Persist to .env file
+            env_updates = {
+                'CHECK_INTERVAL_MINUTES': str(check_interval),
+                'URGENT_NOTIFICATION_THRESHOLD_MINUTES': str(urgent_threshold)
+            }
+            update_env_file(env_updates)
             
             logger.info(f"Configuration updated: check_interval={check_interval}min, urgent_threshold={urgent_threshold}min")
             
             return jsonify({
                 'status': 'success',
-                'message': 'Monitoring settings updated successfully'
+                'message': f'Settings saved! Background sync will now run every {check_interval} minutes.'
             })
             
         except Exception as e:
@@ -326,17 +388,26 @@ def create_app():
                         'error': f'{name} must be between 0 and 23'
                     }), 400
             
-            # Update configuration
+            # Update configuration in memory
             config.weekday_notification_start_hour = weekday_start
             config.weekday_notification_end_hour = weekday_end
             config.weekend_notification_start_hour = weekend_start
             config.weekend_notification_end_hour = weekend_end
             
+            # Persist to .env file
+            env_updates = {
+                'WEEKDAY_NOTIFICATION_START_HOUR': str(weekday_start),
+                'WEEKDAY_NOTIFICATION_END_HOUR': str(weekday_end),
+                'WEEKEND_NOTIFICATION_START_HOUR': str(weekend_start),
+                'WEEKEND_NOTIFICATION_END_HOUR': str(weekend_end)
+            }
+            update_env_file(env_updates)
+            
             logger.info(f"Time settings updated: weekdays {weekday_start}-{weekday_end}, weekends {weekend_start}-{weekend_end}")
             
             return jsonify({
                 'status': 'success',
-                'message': 'Time settings updated successfully'
+                'message': 'Time settings saved successfully! (These can be used for future notification features)'
             })
             
         except Exception as e:

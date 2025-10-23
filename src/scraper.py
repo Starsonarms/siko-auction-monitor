@@ -87,6 +87,7 @@ class SikoScraper:
             
             # Extract auction details - updated based on actual sikoauktioner.se structure
             time_left = self._extract_time_left(soup)
+            images = self._extract_all_images(soup, auction_url)
             auction = {
                 'id': self._extract_auction_id(auction_url),
                 'url': auction_url,
@@ -98,7 +99,8 @@ class SikoScraper:
                 'minutes_remaining': self._parse_time_to_minutes(time_left),
                 'location': self._extract_location(soup),
                 'auction_number': self._extract_auction_number(soup),
-                'image_url': self._extract_image(soup, auction_url),
+                'image_url': images[0] if images else '',  # First image for backwards compatibility
+                'images': images,  # All images for carousel
                 'items': [],  # Single items rather than collections for this site
             }
             
@@ -500,16 +502,29 @@ class SikoScraper:
             logger.error(f"Error extracting location: {e}")
             return ""
     
-    def _extract_image(self, soup: BeautifulSoup, auction_url: str) -> str:
-        """Extract main auction image URL"""
+    def _extract_all_images(self, soup: BeautifulSoup, auction_url: str) -> List[str]:
+        """Extract all auction image URLs"""
         try:
             from urllib.parse import urljoin
             
             # Find all images first
             all_images = soup.find_all('img', src=True)
+            image_urls = []
+            seen_urls = set()  # Track seen URLs to avoid duplicates
             
             if not all_images:
-                return ""
+                return []
+            
+            def normalize_url(src):
+                """Normalize and return full URL"""
+                if src.startswith('//'):
+                    return f"https:{src}"
+                elif src.startswith('http'):
+                    return src
+                elif src.startswith('/'):
+                    return urljoin(self.base_url, src)
+                else:
+                    return urljoin(auction_url, src)
             
             # For Siko auctions, look for CDN images first (most likely to be main auction images)
             for img in all_images:
@@ -517,14 +532,10 @@ class SikoScraper:
                 
                 # Siko uses DigitalOcean Spaces CDN for auction images
                 if 'digitaloceanspaces.com' in src or 'siko-im' in src:
-                    if src.startswith('//'):
-                        return f"https:{src}"
-                    elif src.startswith('http'):
-                        return src
-                    elif src.startswith('/'):
-                        return urljoin(self.base_url, src)
-                    else:
-                        return urljoin(auction_url, src)
+                    full_url = normalize_url(src)
+                    if full_url not in seen_urls:
+                        seen_urls.add(full_url)
+                        image_urls.append(full_url)
             
             # Next priority: images with auction-related patterns
             image_patterns = [
@@ -542,14 +553,10 @@ class SikoScraper:
                 for img in all_images:
                     src = img.get('src', '')
                     if pattern in src.lower():
-                        if src.startswith('http'):
-                            return src
-                        elif src.startswith('//'):
-                            return f"https:{src}"
-                        elif src.startswith('/'):
-                            return urljoin(self.base_url, src)
-                        else:
-                            return urljoin(auction_url, src)
+                        full_url = normalize_url(src)
+                        if full_url not in seen_urls:
+                            seen_urls.add(full_url)
+                            image_urls.append(full_url)
             
             # Check for images with good alt text (like the LEGO Technic example)
             for img in all_images:
@@ -565,14 +572,10 @@ class SikoScraper:
                 
                 # If alt text seems meaningful (more than just generic words), use it
                 if len(alt) > 3 and alt != 'image' and alt != 'photo':
-                    if src.startswith('http'):
-                        return src
-                    elif src.startswith('//'):
-                        return f"https:{src}"
-                    elif src.startswith('/'):
-                        return urljoin(self.base_url, src)
-                    else:
-                        return urljoin(auction_url, src)
+                    full_url = normalize_url(src)
+                    if full_url not in seen_urls:
+                        seen_urls.add(full_url)
+                        image_urls.append(full_url)
             
             # Fallback: any remaining image that's not obviously an icon/logo
             for img in all_images:
@@ -590,33 +593,31 @@ class SikoScraper:
                     try:
                         w, h = int(width), int(height)
                         if w > 50 and h > 50:  # Reasonable size for content image
-                            if src.startswith('http'):
-                                return src
-                            elif src.startswith('//'):
-                                return f"https:{src}"
-                            elif src.startswith('/'):
-                                return urljoin(self.base_url, src)
-                            else:
-                                return urljoin(auction_url, src)
+                            full_url = normalize_url(src)
+                            if full_url not in seen_urls:
+                                seen_urls.add(full_url)
+                                image_urls.append(full_url)
+                            continue
                     except ValueError:
                         pass
                 
-                # If no dimensions info, just use the first non-excluded image
+                # If no dimensions info, just use any non-excluded image
                 if src and '.' in src:  # Has file extension
-                    if src.startswith('http'):
-                        return src
-                    elif src.startswith('//'):
-                        return f"https:{src}"
-                    elif src.startswith('/'):
-                        return urljoin(self.base_url, src)
-                    else:
-                        return urljoin(auction_url, src)
+                    full_url = normalize_url(src)
+                    if full_url not in seen_urls:
+                        seen_urls.add(full_url)
+                        image_urls.append(full_url)
             
-            return ""  # No suitable image found
+            return image_urls  # Return all found images
             
         except Exception as e:
-            logger.error(f"Error extracting image: {e}")
-            return ""
+            logger.error(f"Error extracting images: {e}")
+            return []
+    
+    def _extract_image(self, soup: BeautifulSoup, auction_url: str) -> str:
+        """Extract main auction image URL (backwards compatibility)"""
+        images = self._extract_all_images(soup, auction_url)
+        return images[0] if images else ""
     
     def _extract_text(self, soup: BeautifulSoup, selectors: str, field_name: str) -> str:
         """Extract text using CSS selectors"""

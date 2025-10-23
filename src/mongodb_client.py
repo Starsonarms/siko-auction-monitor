@@ -38,13 +38,12 @@ class MongoDBClient:
             uri = f"mongodb+srv://{db_username}:{db_password}@sikoauctions.cruyizj.mongodb.net/?retryWrites=true&w=majority&appName=SikoAuctions"
             
             # Create client and connect with SSL/TLS settings
-            # Note: Using ssl.CERT_NONE for development/testing - in production, use proper certificates
+            # Note: Using tlsAllowInvalidCertificates for development/testing - in production, use proper certificates
             self._client = MongoClient(
                 uri, 
                 server_api=ServerApi('1'),
                 tls=True,
-                tlsAllowInvalidCertificates=True,
-                ssl_cert_reqs=ssl.CERT_NONE
+                tlsAllowInvalidCertificates=True
             )
             
             # Test connection
