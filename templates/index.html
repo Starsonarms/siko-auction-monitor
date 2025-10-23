@@ -78,7 +78,7 @@
                         {% for word in search_words %}
                         <div class="d-flex justify-content-between align-items-center mb-2 p-1 bg-light rounded" id="search-word-{{ loop.index0 }}">
                             <span class="small"><i class="fas fa-search text-muted me-1"></i>{{ word }}</span>
-                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeSearchWord({{ word|tojson }}, {{ loop.index0 }})" title="Remove">
+                            <button type="button" class="btn btn-sm btn-outline-danger remove-search-word" data-word="{{ word }}" data-index="{{ loop.index0 }}" title="Remove">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -231,17 +231,20 @@
                 } else {
                     let html = '';
                     searchWords.forEach((word, index) => {
-                        const escapedWord = JSON.stringify(word);
+                        const escapedWord = word.replace(/"/g, '&quot;');
                         html += `
                             <div class="d-flex justify-content-between align-items-center mb-2 p-1 bg-light rounded" id="search-word-${index}">
                                 <span class="small"><i class="fas fa-search text-muted me-1"></i>${word}</span>
-                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeSearchWord(${escapedWord}, ${index})" title="Remove">
+                                <button type="button" class="btn btn-sm btn-outline-danger remove-search-word" data-word="${escapedWord}" data-index="${index}" title="Remove">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
                         `;
                     });
                     searchWordsList.innerHTML = html;
+                    
+                    // Reattach event listeners
+                    attachRemoveListeners();
                 }
                 
                 // Update the stats counter if it exists
@@ -253,6 +256,18 @@
         })
         .catch(error => {
             console.error('Error updating search words list:', error);
+        });
+    }
+    
+    function attachRemoveListeners() {
+        console.log('Attaching remove listeners');
+        document.querySelectorAll('.remove-search-word').forEach(button => {
+            button.addEventListener('click', function() {
+                const word = this.getAttribute('data-word');
+                const index = parseInt(this.getAttribute('data-index'));
+                console.log('Remove button clicked:', word, index);
+                removeSearchWord(word, index);
+            });
         });
     }
     
@@ -709,6 +724,9 @@
         tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });
+        
+        // Attach remove button listeners
+        attachRemoveListeners();
         
         // Try to load from cache first
         const usedCache = loadCachedAuctions();
