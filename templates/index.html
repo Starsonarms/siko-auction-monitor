@@ -76,7 +76,7 @@
                         {% for word in search_words %}
                         <div class="d-flex justify-content-between align-items-center mb-2 p-1 bg-light rounded" id="search-word-{{ loop.index0 }}">
                             <span class="small"><i class="fas fa-search text-muted me-1"></i>{{ word }}</span>
-                            <button class="btn btn-sm btn-outline-danger" onclick="removeSearchWord('{{ word }}', {{ loop.index0 }})" title="Remove">
+                            <button class="btn btn-sm btn-outline-danger" onclick="removeSearchWord({{ word|tojson }}, {{ loop.index0 }})" title="Remove">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -141,13 +141,17 @@
 <script>
     function addSearchWord() {
         const word = document.getElementById('searchWord').value.trim();
+        console.log('addSearchWord called with:', word);
+        
         if (!word) {
+            console.log('Empty word, returning');
             return;
         }
         
         // Show loading state
         const btn = document.getElementById('addSearchBtn');
         const originalHtml = btn.innerHTML;
+        console.log('Setting button to loading state');
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
         btn.disabled = true;
 
@@ -158,9 +162,15 @@
             },
             body: JSON.stringify({word: word})
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('Add search word response status:', response.status);
+            return response.json();
+        })
         .then(data => {
+            console.log('Add search word response data:', data);
+            
             if (data.status === 'success') {
+                console.log('Success! Showing success state');
                 // Show success state briefly
                 btn.innerHTML = '<i class="fas fa-check"></i>';
                 btn.style.backgroundColor = '#28a745';
@@ -219,10 +229,11 @@
                 } else {
                     let html = '';
                     searchWords.forEach((word, index) => {
+                        const escapedWord = JSON.stringify(word);
                         html += `
                             <div class="d-flex justify-content-between align-items-center mb-2 p-1 bg-light rounded" id="search-word-${index}">
                                 <span class="small"><i class="fas fa-search text-muted me-1"></i>${word}</span>
-                                <button class="btn btn-sm btn-outline-danger" onclick="removeSearchWord('${word}', ${index})" title="Remove">
+                                <button class="btn btn-sm btn-outline-danger" onclick="removeSearchWord(${escapedWord}, ${index})" title="Remove">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
@@ -244,18 +255,30 @@
     }
     
     function removeSearchWord(word, index) {
+        console.log('removeSearchWord called with word:', word, 'index:', index);
+        
         // Show fade-out animation
         const element = document.getElementById(`search-word-${index}`);
+        console.log('Found element:', element);
+        
         if (element) {
             element.style.opacity = '0.5';
             element.style.transition = 'opacity 0.3s';
         }
         
-        fetch(`/api/search-words/${encodeURIComponent(word)}`, {
+        const url = `/api/search-words/${encodeURIComponent(word)}`;
+        console.log('Deleting search word at URL:', url);
+        
+        fetch(url, {
             method: 'DELETE'
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('Response status:', response.status);
+            return response.json();
+        })
         .then(data => {
+            console.log('Response data:', data);
+            
             if (data.status === 'success') {
                 // Show success message
                 showTemporaryMessage(`Removed "${word}"`, 'success');
@@ -273,13 +296,15 @@
                 // Refresh auctions with remaining search terms
                 refreshAuctions(null);
             } else {
-                alert('Error: ' + data.error);
+                console.error('Error removing search word:', data.error);
+                alert('Error: ' + (data.error || 'Unknown error'));
                 if (element) {
                     element.style.opacity = '1';
                 }
             }
         })
         .catch(error => {
+            console.error('Fetch error:', error);
             alert('Error: ' + error);
             if (element) {
                 element.style.opacity = '1';
