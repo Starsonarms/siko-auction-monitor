@@ -53,17 +53,23 @@
 <div class="row mb-3">
     <div class="col-md-4">
         <div class="card h-100">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <span><i class="fas fa-list"></i> Search Words</span>
+                <button class="btn btn-sm btn-link p-0 text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="Enter plain text (e.g. 'gitarr') or quoted phrases for exact matches (e.g. '&quot;vintage tools&quot;')">
+                    <i class="fas fa-question-circle"></i>
+                </button>
             </div>
             <div class="card-body">
                 <form id="addWordForm" onsubmit="addSearchWord(); return false;" class="mb-3">
                     <div class="input-group input-group-sm">
-                        <input type="text" class="form-control" id="searchWord" placeholder="Add search phrase..." required>
-                        <button type="submit" class="btn" style="background-color: var(--color-blue-green); color: white;">
+                        <input type="text" class="form-control" id="searchWord" placeholder="e.g. gitarr or &quot;vintage tools&quot;" required>
+                        <button type="submit" class="btn" id="addSearchBtn" style="background-color: var(--color-blue-green); color: white;">
                             <i class="fas fa-plus"></i>
                         </button>
                     </div>
+                    <small class="text-muted d-block mt-1">
+                        💡 <strong>Plain text</strong> matches any word • <strong>&quot;Quotes&quot;</strong> match exact phrase
+                    </small>
                 </form>
                 <div id="search-words-list">
                     {% if search_words %}
@@ -138,6 +144,12 @@
         if (!word) {
             return;
         }
+        
+        // Show loading state
+        const btn = document.getElementById('addSearchBtn');
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        btn.disabled = true;
 
         fetch('/api/search-words', {
             method: 'POST',
@@ -149,6 +161,10 @@
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
+                // Show success state briefly
+                btn.innerHTML = '<i class="fas fa-check"></i>';
+                btn.style.backgroundColor = '#28a745';
+                
                 // Clear input
                 document.getElementById('searchWord').value = '';
                 
@@ -164,12 +180,23 @@
                 
                 // Refresh auctions with new search term
                 refreshAuctions(null);
+                
+                // Reset button after 1 second
+                setTimeout(() => {
+                    btn.innerHTML = originalHtml;
+                    btn.style.backgroundColor = 'var(--color-blue-green)';
+                    btn.disabled = false;
+                }, 1000);
             } else {
                 alert('Error: ' + data.error);
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
             }
         })
         .catch(error => {
             alert('Error: ' + error);
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
         });
     }
 
@@ -191,11 +218,11 @@
                     `;
                 } else {
                     let html = '';
-                    searchWords.forEach(word => {
+                    searchWords.forEach((word, index) => {
                         html += `
-                            <div class="d-flex justify-content-between align-items-center mb-2 p-1 bg-light rounded">
+                            <div class="d-flex justify-content-between align-items-center mb-2 p-1 bg-light rounded" id="search-word-${index}">
                                 <span class="small"><i class="fas fa-search text-muted me-1"></i>${word}</span>
-                                <button class="btn btn-sm btn-outline-danger" onclick="removeSearchWord('${word}')" title="Remove">
+                                <button class="btn btn-sm btn-outline-danger" onclick="removeSearchWord('${word}', ${index})" title="Remove">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
@@ -215,14 +242,25 @@
             console.error('Error updating search words list:', error);
         });
     }
+    }
     
-    function removeSearchWord(word) {
+    function removeSearchWord(word, index) {
+        // Show fade-out animation
+        const element = document.getElementById(`search-word-${index}`);
+        if (element) {
+            element.style.opacity = '0.5';
+            element.style.transition = 'opacity 0.3s';
+        }
+        
         fetch(`/api/search-words/${encodeURIComponent(word)}`, {
             method: 'DELETE'
         })
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
+                // Show success message
+                showTemporaryMessage(`Removed "${word}"`, 'success');
+                
                 // Clear cache to force fresh data
                 try {
                     localStorage.removeItem('auctionData');
@@ -237,13 +275,19 @@
                 refreshAuctions(null);
             } else {
                 alert('Error: ' + data.error);
+                if (element) {
+                    element.style.opacity = '1';
+                }
             }
         })
         .catch(error => {
             alert('Error: ' + error);
+            if (element) {
+                element.style.opacity = '1';
+            }
         });
     }
-
+    
     function testScraper() {
         const button = event.target;
         const originalText = button.innerHTML;
@@ -633,6 +677,13 @@
     // Auto-load auctions when page loads - try cache first
     document.addEventListener('DOMContentLoaded', function() {
         console.log('DOMContentLoaded fired');
+        
+        // Initialize Bootstrap tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+        
         // Try to load from cache first
         const usedCache = loadCachedAuctions();
         console.log('Used cache:', usedCache);
