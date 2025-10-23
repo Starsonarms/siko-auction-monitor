@@ -70,13 +70,15 @@
                     <small class="text-muted d-block mt-1">
                         💡 <strong>Plain text</strong> matches any word • <strong>&quot;Quotes&quot;</strong> match exact phrase
                     </small>
+                    <!-- Debug test button -->
+                    <button type="button" class="btn btn-sm btn-warning" onclick="console.log('Test button clicked'); alert('Onclick works!')" style="display:none;" id="test-onclick">Test</button>
                 </form>
                 <div id="search-words-list">
                     {% if search_words %}
                         {% for word in search_words %}
                         <div class="d-flex justify-content-between align-items-center mb-2 p-1 bg-light rounded" id="search-word-{{ loop.index0 }}">
                             <span class="small"><i class="fas fa-search text-muted me-1"></i>{{ word }}</span>
-                            <button class="btn btn-sm btn-outline-danger" onclick="removeSearchWord({{ word|tojson }}, {{ loop.index0 }})" title="Remove">
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeSearchWord({{ word|tojson }}, {{ loop.index0 }})" title="Remove">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -233,7 +235,7 @@
                         html += `
                             <div class="d-flex justify-content-between align-items-center mb-2 p-1 bg-light rounded" id="search-word-${index}">
                                 <span class="small"><i class="fas fa-search text-muted me-1"></i>${word}</span>
-                                <button class="btn btn-sm btn-outline-danger" onclick="removeSearchWord(${escapedWord}, ${index})" title="Remove">
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeSearchWord(${escapedWord}, ${index})" title="Remove">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
