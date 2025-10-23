@@ -741,18 +741,25 @@
             }
         });
         
+        const requestBody = {
+            auction_id: auctionId,
+            auction_title: auctionTitle
+        };
+        console.log('Sending blacklist request:', requestBody);
+        
         fetch('/api/blacklist', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                auction_id: auctionId,
-                auction_title: auctionTitle
-            })
+            body: JSON.stringify(requestBody)
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('Blacklist response status:', response.status, response.statusText);
+            return response.json();
+        })
         .then(data => {
+            console.log('Blacklist response data:', data);
             if (data.status === 'success' || data.status === 'warning') {
                 // Show success message
                 showTemporaryMessage(data.message, data.status === 'success' ? 'success' : 'warning');
