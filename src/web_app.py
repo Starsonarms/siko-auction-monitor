@@ -257,8 +257,7 @@ def create_app():
             
             success = blacklist_manager.add_auction(auction_id, auction_title, auction_url)
             if success:
-                # Invalidate cache to reflect the change immediately
-                auction_cache.invalidate_cache()
+                # Blacklist is already persisted in MongoDB
                 return jsonify({
                     'message': f'Auction {auction_id} hidden successfully',
                     'status': 'success'
@@ -278,8 +277,7 @@ def create_app():
         try:
             success = blacklist_manager.remove_auction(auction_id)
             if success:
-                # Invalidate cache to reflect the change immediately
-                auction_cache.invalidate_cache()
+                # Blacklist is already persisted in MongoDB
                 return jsonify({
                     'message': f'Auction {auction_id} unhidden successfully',
                     'status': 'success'
@@ -304,8 +302,7 @@ def create_app():
             for auction_id in blacklisted_ids:
                 blacklist_manager.remove_auction(auction_id)
             
-            # Invalidate cache to reflect the change immediately
-            auction_cache.invalidate_cache()
+            # Blacklist is already persisted in MongoDB
             
             return jsonify({
                 'message': f'All {count} hidden auctions have been unhidden',
