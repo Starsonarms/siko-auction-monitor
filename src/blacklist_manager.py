@@ -59,14 +59,17 @@ class BlacklistManager:
         
         # Save to MongoDB
         try:
-            self.mongo_collection.insert_one({
+            doc = {
                 'auction_id': auction_id,
                 'title': auction_title,
                 'url': auction_url,
                 'added_at': time.time()
-            })
+            }
+            logger.info(f"Attempting to insert into MongoDB blacklist: {doc}")
+            result = self.mongo_collection.insert_one(doc)
+            logger.info(f"Successfully inserted into MongoDB, inserted_id: {result.inserted_id}")
         except Exception as e:
-            logger.error(f"Error saving to MongoDB: {e}")
+            logger.error(f"Error saving to MongoDB: {e}", exc_info=True)
         
         title_info = f" '{auction_title}'" if auction_title else ""
         url_info = f" ({auction_url})" if auction_url else ""
