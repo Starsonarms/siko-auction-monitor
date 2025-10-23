@@ -221,8 +221,8 @@ def create_app():
         try:
             success = search_manager.remove_search_word(word)
             if success:
-                # Trigger immediate sync with updated search words
-                auction_updater.force_sync()
+                # No need to sync - just removed a search term
+                # Background updater will handle it on next scheduled sync
                 return jsonify({'message': f'Removed search word: {word}', 'status': 'success'})
             else:
                 return jsonify({'error': 'Search word not found', 'status': 'error'}), 404
