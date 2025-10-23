@@ -221,8 +221,9 @@ def create_app():
         try:
             success = search_manager.remove_search_word(word)
             if success:
-                # No need to sync - just removed a search term
-                # Background updater will handle it on next scheduled sync
+                # Trigger sync in background (non-blocking)
+                import threading
+                threading.Thread(target=auction_updater.force_sync, daemon=True).start()
                 return jsonify({'message': f'Removed search word: {word}', 'status': 'success'})
             else:
                 return jsonify({'error': 'Search word not found', 'status': 'error'}), 404
