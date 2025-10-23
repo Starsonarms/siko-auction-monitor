@@ -757,8 +757,13 @@
                 // Show success message
                 showTemporaryMessage(data.message, data.status === 'success' ? 'success' : 'warning');
                 
-                // Update cached data to reflect the hidden auction immediately
-                updateCachedAuctionStatus(auctionId, true);
+                // Clear cache so next load fetches fresh data from MongoDB
+                try {
+                    localStorage.removeItem('auctionData');
+                    console.log('Cleared cache - will reload from MongoDB');
+                } catch (e) {
+                    console.log('Could not clear cache:', e);
+                }
                 
                 // Animate and remove the card
                 if (cardToHide) {
@@ -822,8 +827,13 @@
             if (data.status === 'success') {
                 showTemporaryMessage(data.message, 'success');
                 
-                // Update cached data to unhide all auctions
-                updateCachedAuctionStatus(null, false); // null means all auctions
+                // Clear cache so next load fetches fresh data from MongoDB
+                try {
+                    localStorage.removeItem('auctionData');
+                    console.log('Cleared cache - will reload from MongoDB');
+                } catch (e) {
+                    console.log('Could not clear cache:', e);
+                }
                 
                 // Update hidden count immediately
                 updateHiddenCount();
@@ -888,38 +898,6 @@
         }, 3000);
     }
     
-    function updateCachedAuctionStatus(auctionId, isHidden) {
-        try {
-            const cachedData = localStorage.getItem('auctionData');
-            if (cachedData) {
-                const data = JSON.parse(cachedData);
-                
-                if (auctionId === null) {
-                    // Unhide all auctions
-                    data.auctions.forEach(auction => {
-                        auction.is_hidden = false;
-                    });
-                    data.hidden_count = 0;
-                    console.log('Updated cache: unhidden all auctions');
-                } else {
-                    // Update specific auction
-                    const auction = data.auctions.find(a => a.id === auctionId);
-                    if (auction) {
-                        auction.is_hidden = isHidden;
-                        // Update hidden count
-                        data.hidden_count = data.auctions.filter(a => a.is_hidden).length;
-                        console.log(`Updated cache: auction ${auctionId} hidden status = ${isHidden}`);
-                    }
-                }
-                
-                // Save updated cache
-                localStorage.setItem('auctionData', JSON.stringify(data));
-                console.log('Cache updated successfully');
-            }
-        } catch (e) {
-            console.log('Error updating cached auction status:', e);
-        }
-    }
     
     // Update timestamp and hidden count on load
     document.addEventListener('DOMContentLoaded', function() {
