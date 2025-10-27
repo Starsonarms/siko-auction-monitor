@@ -13,4 +13,12 @@ X Om det är kort tid kvar på en auktion så visas ingen tid. Se bild SIKÖ på
 x antique" - matches any auction containing "antique"
   "vintage tools" - matches auctions with both "vintage" and "tools" <- detta borde ändras til att matcha bara söktermen
   "möbler" - matches Swedish furniture auctions
-* what does the check interval do now?
+X what does the check interval do now?
+* new function: add watchlist for auctions i want notifications for.
+You need to add this to the database as well
+
+
+
+cd ~/siko-auction-monitor
+git pull origin main
+sudo systemctl restart siko-auction-monitor.service

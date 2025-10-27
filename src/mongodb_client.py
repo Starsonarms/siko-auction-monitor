@@ -136,6 +136,12 @@ class MongoDBClient:
             safe_create_index(urgent_collection, 'sent_at')
             logger.info("✓ 'urgent_notifications' collection initialized")
             
+            # Create watchlist collection (auctions user wants to be notified about)
+            watchlist_collection = db['watchlist']
+            safe_create_index(watchlist_collection, 'auction_id', unique=True)
+            safe_create_index(watchlist_collection, 'added_at')
+            logger.info("✓ 'watchlist' collection initialized (auctions you want notifications for)")
+            
             logger.info(f"\n✓ Successfully initialized all collections in database '{db_name}'")
             
         except Exception as e:

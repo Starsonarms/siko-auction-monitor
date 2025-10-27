@@ -11,6 +11,7 @@ from typing import Dict, List
 from io import BytesIO
 from .search_manager import SearchManager
 from .blacklist_manager import BlacklistManager
+from .watchlist_manager import WatchlistManager
 from .home_assistant import HomeAssistantNotifier
 from .scraper import SikoScraper
 from .config import get_config
@@ -84,6 +85,7 @@ def create_app():
     config = get_config()
     search_manager = SearchManager()
     blacklist_manager = BlacklistManager()
+    watchlist_manager = WatchlistManager()
     auction_cache = get_cache()
     
     # Initialize image storage
@@ -137,8 +139,10 @@ def create_app():
         
         # Mark which auctions are hidden for UI display
         blacklisted_ids = blacklist_manager.get_blacklisted_ids()
+        watched_ids = watchlist_manager.get_watched_auction_ids()
         for auction in cached_auctions:
             auction['is_hidden'] = auction.get('id') in blacklisted_ids
+            auction['is_watched'] = auction.get('id') in watched_ids
         
         # Filter out blacklisted auctions unless include_hidden is True
         if not include_hidden:
@@ -257,6 +261,12 @@ def create_app():
                 return jsonify({'error': 'Auction ID cannot be empty', 'status': 'error'}), 400
             
             success = blacklist_manager.add_auction(auction_id, auction_title, auction_url)
+            
+            # Also remove from watchlist if it's there
+            if watchlist_manager.is_watched(auction_id):
+                watchlist_manager.remove_from_watchlist(auction_id)
+                logger.info(f"Removed auction {auction_id} from watchlist (was hidden)")
+            
             if success:
                 # Blacklist is already persisted in MongoDB
                 return jsonify({
@@ -310,6 +320,89 @@ def create_app():
                 'status': 'success',
                 'count': count
             })
+                
+        except Exception as e:
+            return jsonify({'error': str(e), 'status': 'error'}), 500
+    
+    @app.route('/api/watchlist', methods=['GET'])
+    def get_watchlist():
+        """Get all watched auctions"""
+        try:
+            watchlist = watchlist_manager.get_watchlist()
+            return jsonify({
+                'watchlist': watchlist,
+                'count': len(watchlist),
+                'status': 'success'
+            })
+        except Exception as e:
+            return jsonify({'error': str(e), 'status': 'error'}), 500
+    
+    @app.route('/api/watchlist', methods=['POST'])
+    def add_to_watchlist():
+        """Add an auction to the watchlist"""
+        try:
+            data = request.get_json()
+            auction_id = data.get('auction_id', '').strip()
+            
+            if not auction_id:
+                return jsonify({'error': 'Auction ID cannot be empty', 'status': 'error'}), 400
+            
+            # Optional auction data to store
+            auction_data = {
+                'title': data.get('auction_title', ''),
+                'url': data.get('auction_url', ''),
+                'end_date': data.get('end_date', '')
+            }
+            
+            success = watchlist_manager.add_to_watchlist(auction_id, auction_data)
+            if success:
+                return jsonify({
+                    'message': f'Auction {auction_id} added to watchlist',
+                    'status': 'success'
+                })
+            else:
+                return jsonify({
+                    'error': 'Failed to add to watchlist',
+                    'status': 'error'
+                }), 500
+                
+        except Exception as e:
+            return jsonify({'error': str(e), 'status': 'error'}), 500
+    
+    @app.route('/api/watchlist/<auction_id>', methods=['DELETE'])
+    def remove_from_watchlist(auction_id):
+        """Remove an auction from the watchlist"""
+        try:
+            success = watchlist_manager.remove_from_watchlist(auction_id)
+            if success:
+                return jsonify({
+                    'message': f'Auction {auction_id} removed from watchlist',
+                    'status': 'success'
+                })
+            else:
+                return jsonify({
+                    'error': 'Auction not found in watchlist',
+                    'status': 'error'
+                }), 404
+                
+        except Exception as e:
+            return jsonify({'error': str(e), 'status': 'error'}), 500
+    
+    @app.route('/api/watchlist/clear', methods=['DELETE'])
+    def clear_watchlist():
+        """Clear all auctions from watchlist"""
+        try:
+            success = watchlist_manager.clear_watchlist()
+            if success:
+                return jsonify({
+                    'message': 'Watchlist cleared successfully',
+                    'status': 'success'
+                })
+            else:
+                return jsonify({
+                    'error': 'Failed to clear watchlist',
+                    'status': 'error'
+                }), 500
                 
         except Exception as e:
             return jsonify({'error': str(e), 'status': 'error'}), 500
@@ -594,8 +687,23 @@ def create_app():
     def auctions_page():
         """Auctions page - shows current auctions"""
         try:
-            # Use cached auction data
-            unique_auctions, search_words = get_current_auctions()
+            # Get view parameter (all, watchlist, hidden)
+            view = request.args.get('view', 'all')
+            
+            # Get all auctions including hidden ones
+            all_auctions, search_words = get_current_auctions(include_hidden=True)
+            
+            # Filter based on view
+            if view == 'watchlist':
+                # Show only watched auctions
+                watched_ids = watchlist_manager.get_watched_auction_ids()
+                unique_auctions = [a for a in all_auctions if a.get('id') in watched_ids]
+            elif view == 'hidden':
+                # Show hidden auctions from blacklist (they don't exist in cache)
+                unique_auctions = blacklist_manager.get_blacklist_details()
+            else:  # view == 'all'
+                # Show only non-hidden auctions (default behavior)
+                unique_auctions = [a for a in all_auctions if not a.get('is_hidden', False)]
             
             # Get sort parameter (default: time)
             sort_by = request.args.get('sort', 'time')
@@ -610,7 +718,8 @@ def create_app():
             
             stats = {
                 'total_auctions': len(unique_auctions),
-                'search_words_tested': search_words
+                'search_words_tested': search_words,
+                'view': view
             }
             
             return render_template('auctions.html', 
@@ -618,7 +727,8 @@ def create_app():
                                  search_words=search_words,
                                  stats=stats,
                                  config=config,
-                                 sort_by=sort_by)
+                                 sort_by=sort_by,
+                                 view=view)
             
         except Exception as e:
             logger.error(f"Error loading auctions page: {e}")

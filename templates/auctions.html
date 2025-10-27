@@ -10,9 +10,21 @@
                 <h1><i class="fas fa-hammer"></i> Current Auctions</h1>
                 <p class="text-muted">
                     {% if stats.total_auctions > 0 %}
-                        Found {{ stats.total_auctions }} auction{{ "s" if stats.total_auctions != 1 else "" }} matching your search terms
+                        {% if view == 'watchlist' %}
+                            {{ stats.total_auctions }} auction{{ "s" if stats.total_auctions != 1 else "" }} in your watchlist
+                        {% elif view == 'hidden' %}
+                            {{ stats.total_auctions }} hidden auction{{ "s" if stats.total_auctions != 1 else "" }}
+                        {% else %}
+                            Found {{ stats.total_auctions }} auction{{ "s" if stats.total_auctions != 1 else "" }} matching your search terms
+                        {% endif %}
                     {% else %}
-                        No auctions currently match your search terms
+                        {% if view == 'watchlist' %}
+                            No auctions in your watchlist
+                        {% elif view == 'hidden' %}
+                            No hidden auctions
+                        {% else %}
+                            No auctions currently match your search terms
+                        {% endif %}
                     {% endif %}
                 </p>
             </div>
@@ -28,6 +40,23 @@
                 <button class="btn" style="background-color: var(--color-blue-green); color: white;" onclick="refreshAuctions()" id="refresh-btn">
                     <i class="fas fa-sync"></i> Refresh
                 </button>
+            </div>
+        </div>
+        
+        <!-- View Filter Buttons -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="btn-group w-100" role="group">
+                    <a href="/auctions?view=all&sort={{ sort_by }}" class="btn btn-sm {{ 'btn-primary' if view == 'all' else 'btn-outline-secondary' }}" style="{% if view == 'all' %}background-color: var(--color-blue-green); border-color: var(--color-blue-green);{% endif %}">
+                        <i class="fas fa-list"></i> All Auctions
+                    </a>
+                    <a href="/auctions?view=watchlist&sort={{ sort_by }}" class="btn btn-sm {{ 'btn-success' if view == 'watchlist' else 'btn-outline-secondary' }}" style="{% if view == 'watchlist' %}background-color: #28a745; border-color: #28a745;{% endif %}">
+                        <i class="fas fa-star"></i> Watchlist
+                    </a>
+                    <a href="/auctions?view=hidden&sort={{ sort_by }}" class="btn btn-sm {{ 'btn-warning' if view == 'hidden' else 'btn-outline-secondary' }}" style="{% if view == 'hidden' %}background-color: var(--color-yellow); border-color: var(--color-yellow); color: #000;{% endif %}">
+                        <i class="fas fa-eye-slash"></i> Hidden
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -235,6 +264,17 @@
                         <a href="{{ auction.url }}" target="_blank" class="btn btn-sm" style="background-color: var(--color-blue-green); color: white;">
                             <i class="fas fa-external-link-alt"></i> View Auction
                         </a>
+                        {% if auction.get('is_watched') %}
+                            <button class="btn btn-sm watchlist-btn" style="background-color: #28a745; color: white; border: none;" onclick="removeFromWatchlist('{{ auction.get('id', '') }}')"
+                                    data-auction-id="{{ auction.get('id', '') }}">
+                                <i class="fas fa-star"></i> Watching
+                            </button>
+                        {% else %}
+                            <button class="btn btn-outline btn-sm watchlist-btn" style="border-color: #28a745; color: #28a745;" onclick="addToWatchlist('{{ auction.get('id', '') }}', '{{ auction.title|replace("'", "\\'")|replace('"', '\\"') }}', '{{ auction.url }}', '{{ auction.get('end_date', '') }}')"
+                                    data-auction-id="{{ auction.get('id', '') }}">
+                                <i class="far fa-star"></i> Add to Watchlist
+                            </button>
+                        {% endif %}
                         <button class="btn btn-outline btn-sm hide-btn" style="border-color: var(--color-yellow); color: var(--color-yellow);" onclick="hideAuction('{{ auction.get('id', '') }}', '{{ auction.title|replace("'", "\\'")|replace('"', '\\"') }}')">
                             <i class="fas fa-eye-slash"></i> Hide This Auction
                         </button>
@@ -661,9 +701,13 @@
     }
     
     function sortAuctions(sortBy) {
-        // Add sort parameter to current URL and reload
+        // Add sort parameter to current URL and reload (preserve view parameter)
         const url = new URL(window.location.href);
         url.searchParams.set('sort', sortBy);
+        // Preserve view parameter if it exists
+        if (!url.searchParams.has('view')) {
+            url.searchParams.set('view', 'all');
+        }
         window.location.href = url.toString();
     }
     
@@ -903,6 +947,87 @@
                 alertDiv.parentNode.removeChild(alertDiv);
             }
         }, 3000);
+    }
+    
+    // Watchlist functions
+    function addToWatchlist(auctionId, auctionTitle, auctionUrl, endDate) {
+        if (!auctionId) {
+            alert('Unable to add to watchlist: No auction ID available');
+            return;
+        }
+        
+        const requestBody = {
+            auction_id: auctionId,
+            auction_title: auctionTitle,
+            auction_url: auctionUrl,
+            end_date: endDate
+        };
+        
+        fetch('/api/watchlist', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showTemporaryMessage(data.message, 'success');
+                
+                // Update button to "Watching" state
+                const buttons = document.querySelectorAll(`.watchlist-btn[data-auction-id="${auctionId}"]`);
+                buttons.forEach(btn => {
+                    btn.style.backgroundColor = '#28a745';
+                    btn.style.color = 'white';
+                    btn.style.borderColor = '#28a745';
+                    btn.innerHTML = '<i class="fas fa-star"></i> Watching';
+                    btn.onclick = function() { removeFromWatchlist(auctionId); };
+                });
+            } else {
+                alert('Error adding to watchlist: ' + (data.error || data.message));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error adding to watchlist: ' + error);
+        });
+    }
+    
+    function removeFromWatchlist(auctionId) {
+        if (!auctionId) {
+            alert('Unable to remove from watchlist: No auction ID available');
+            return;
+        }
+        
+        fetch(`/api/watchlist/${encodeURIComponent(auctionId)}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showTemporaryMessage(data.message, 'success');
+                
+                // Update button to "Add to Watchlist" state
+                const buttons = document.querySelectorAll(`.watchlist-btn[data-auction-id="${auctionId}"]`);
+                buttons.forEach(btn => {
+                    btn.style.backgroundColor = '';
+                    btn.style.color = '#28a745';
+                    btn.style.borderColor = '#28a745';
+                    btn.classList.add('btn-outline');
+                    btn.innerHTML = '<i class="far fa-star"></i> Add to Watchlist';
+                    // Note: You'll need to get auction details from somewhere to restore the onclick
+                    // For now, we'll reload the page
+                    setTimeout(() => location.reload(), 500);
+                });
+            } else {
+                alert('Error removing from watchlist: ' + (data.error || data.message));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error removing from watchlist: ' + error);
+        });
     }
     
     

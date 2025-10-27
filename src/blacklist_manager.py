@@ -114,6 +114,21 @@ class BlacklistManager:
         """Get list of all blacklisted auction IDs"""
         return list(self._blacklisted_ids)
     
+    def get_blacklist_details(self) -> List[Dict]:
+        """Get detailed information about all blacklisted auctions"""
+        try:
+            blacklisted_docs = list(self.mongo_collection.find())
+            # Remove MongoDB _id field
+            for doc in blacklisted_docs:
+                doc.pop('_id', None)
+                # Rename fields to match auction format
+                doc['id'] = doc.pop('auction_id', '')
+                doc['is_hidden'] = True
+            return blacklisted_docs
+        except Exception as e:
+            logger.error(f"Error getting blacklist details: {e}")
+            return []
+    
     def get_blacklist_count(self) -> int:
         """Get number of blacklisted auctions"""
         return len(self._blacklisted_ids)

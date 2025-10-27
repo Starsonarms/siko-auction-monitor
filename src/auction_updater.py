@@ -10,6 +10,7 @@ from .scraper import SikoScraper
 from .search_manager import SearchManager
 from .mongodb_cache import MongoDBCache
 from .blacklist_manager import BlacklistManager
+from .watchlist_manager import WatchlistManager
 from .home_assistant import HomeAssistantNotifier
 from .mongodb_client import MongoDBClient
 from .config import get_config
@@ -24,6 +25,7 @@ class AuctionUpdater:
         self.scraper = SikoScraper()
         self.search_manager = SearchManager()
         self.blacklist_manager = BlacklistManager()
+        self.watchlist_manager = WatchlistManager()
         self.cache = MongoDBCache(cache_duration_minutes=60*24*7)  # 7 day cache for persistence
         self.notifier = HomeAssistantNotifier(
             self.config.home_assistant_url,
@@ -38,6 +40,7 @@ class AuctionUpdater:
         mongo_client = MongoDBClient()
         self.processed_collection = mongo_client.get_collection('processed_auctions', self.config.mongodb_database)
         self.urgent_collection = mongo_client.get_collection('urgent_notifications', self.config.mongodb_database)
+        self.pending_collection = mongo_client.get_collection('pending_notifications', self.config.mongodb_database)
         
         # Load processed auctions and urgent notifications from MongoDB
         self.processed_auctions = set()
@@ -108,6 +111,38 @@ class AuctionUpdater:
             })
         except Exception as e:
             logger.error(f"Error saving urgent notification: {e}")
+    
+    def _save_pending_notification(self, auction_data: dict):
+        """Save a pending notification to MongoDB"""
+        try:
+            auction_id = auction_data.get('id', auction_data.get('url', ''))
+            # Remove any existing pending notification for this auction
+            self.pending_collection.delete_many({'auction_id': auction_id})
+            # Save new pending notification
+            self.pending_collection.insert_one({
+                'auction_id': auction_id,
+                'queued_at': time.time(),
+                'auction_data': auction_data
+            })
+            logger.info(f"Queued notification for later: {auction_data.get('title', 'Unknown')}")
+        except Exception as e:
+            logger.error(f"Error saving pending notification: {e}")
+    
+    def _get_pending_notifications(self) -> List[Dict]:
+        """Get all pending notifications from MongoDB"""
+        try:
+            docs = self.pending_collection.find()
+            return [doc['auction_data'] for doc in docs if 'auction_data' in doc]
+        except Exception as e:
+            logger.error(f"Error loading pending notifications: {e}")
+            return []
+    
+    def _remove_pending_notification(self, auction_id: str):
+        """Remove a pending notification from MongoDB"""
+        try:
+            self.pending_collection.delete_many({'auction_id': auction_id})
+        except Exception as e:
+            logger.error(f"Error removing pending notification: {e}")
     
     def _update_loop(self):
         """Main update loop - runs in background thread"""
@@ -187,32 +222,7 @@ class AuctionUpdater:
             else:
                 logger.info("No auctions found matching search words")
             
-            # Process new auctions for notifications
-            new_auctions = []
-            for auction in unique_auctions:
-                auction_id = auction.get('id', auction.get('url', ''))
-                
-                # Skip if already processed
-                if auction_id in self.processed_auctions:
-                    continue
-                
-                # Mark as processed
-                self.processed_auctions.add(auction_id)
-                self._save_processed_auction(auction_id, auction)
-                new_auctions.append(auction)
-            
-            # Send notifications for new auctions
-            for auction in new_auctions:
-                try:
-                    success = self.notifier.send_notification(auction)
-                    if success:
-                        logger.info(f"✓ Notification sent: {auction.get('title', 'Unknown')} (found via '{auction.get('found_via', 'unknown')}')")
-                    else:
-                        logger.warning(f"✗ Failed to send notification: {auction.get('title', 'Unknown')}")
-                except Exception as e:
-                    logger.error(f"✗ Error sending notification for {auction.get('id', 'unknown')}: {e}")
-            
-            # Check for urgent notifications (ending soon)
+            # Check for urgent notifications FIRST (ending soon)
             urgent_auctions = []
             for auction in unique_auctions:
                 auction_id = auction.get('id', auction.get('url', ''))
@@ -228,6 +238,50 @@ class AuctionUpdater:
                     self.urgent_notifications_sent.add(auction_id)
                     self._save_urgent_notification(auction_id, auction)
             
+            # Process new auctions for notifications
+            new_auctions = []
+            for auction in unique_auctions:
+                auction_id = auction.get('id', auction.get('url', ''))
+                
+                # Skip if already processed
+                if auction_id in self.processed_auctions:
+                    continue
+                
+                # Mark as processed
+                self.processed_auctions.add(auction_id)
+                self._save_processed_auction(auction_id, auction)
+                new_auctions.append(auction)
+            
+            # Try to send pending notifications first (if we're in allowed time)
+            pending_auctions = self._get_pending_notifications()
+            if pending_auctions and self.notifier._is_notification_time_allowed():
+                logger.info(f"Attempting to send {len(pending_auctions)} pending notifications...")
+                for auction in pending_auctions:
+                    try:
+                        auction_id = auction.get('id', auction.get('url', ''))
+                        success = self.notifier.send_notification(auction, urgent=False)
+                        if success:
+                            logger.info(f"✓ Pending notification sent: {auction.get('title', 'Unknown')}")
+                            self._remove_pending_notification(auction_id)
+                        else:
+                            logger.debug(f"Pending notification still blocked: {auction.get('title', 'Unknown')}")
+                    except Exception as e:
+                        logger.error(f"✗ Error sending pending notification for {auction.get('id', 'unknown')}: {e}")
+            
+            # Send notifications for new auctions
+            for auction in new_auctions:
+                try:
+                    success = self.notifier.send_notification(auction)
+                    if success:
+                        logger.info(f"✓ Notification sent: {auction.get('title', 'Unknown')} (found via '{auction.get('found_via', 'unknown')}')")
+                    elif not success and not self.notifier._is_notification_time_allowed():
+                        # Queue notification for later if blocked by time restrictions
+                        self._save_pending_notification(auction)
+                    else:
+                        logger.warning(f"✗ Failed to send notification: {auction.get('title', 'Unknown')}")
+                except Exception as e:
+                    logger.error(f"✗ Error sending notification for {auction.get('id', 'unknown')}: {e}")
+            
             # Send urgent notifications (bypass time restrictions)
             for auction in urgent_auctions:
                 try:
@@ -239,10 +293,38 @@ class AuctionUpdater:
                 except Exception as e:
                     logger.error(f"✗ Error sending urgent notification for {auction.get('id', 'unknown')}: {e}")
             
+            # Check for watchlist notifications (auctions user wants alerts for)
+            watched_ids = self.watchlist_manager.get_watched_auction_ids()
+            watchlist_notifications = []
+            for auction in unique_auctions:
+                auction_id = auction.get('id', auction.get('url', ''))
+                
+                # Check if auction is watched and if we haven't sent a notification yet
+                if auction_id in watched_ids and auction_id not in self.urgent_notifications_sent:
+                    # Check if auction is ending within threshold
+                    minutes_remaining = auction.get('minutes_remaining')
+                    if minutes_remaining is not None and minutes_remaining <= self.config.urgent_notification_threshold_minutes:
+                        watchlist_notifications.append(auction)
+                        self.urgent_notifications_sent.add(auction_id)
+                        self._save_urgent_notification(auction_id, auction)
+            
+            # Send watchlist notifications
+            for auction in watchlist_notifications:
+                try:
+                    success = self.notifier.send_notification(auction, urgent=True)
+                    if success:
+                        logger.info(f"⭐ Watchlist notification sent: {auction.get('title', 'Unknown')} ({auction.get('minutes_remaining')} min left)")
+                    else:
+                        logger.error(f"✗ Failed to send watchlist notification: {auction.get('title', 'Unknown')}")
+                except Exception as e:
+                    logger.error(f"✗ Error sending watchlist notification for {auction.get('id', 'unknown')}: {e}")
+            
             if new_auctions:
                 logger.info(f"Found {len(new_auctions)} new auctions, sent notifications")
             if urgent_auctions:
                 logger.info(f"Sent {len(urgent_auctions)} urgent notifications")
+            if watchlist_notifications:
+                logger.info(f"Sent {len(watchlist_notifications)} watchlist notifications")
             
             self.last_update = time.time()
             

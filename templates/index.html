@@ -466,9 +466,11 @@
         let html = '';
         for (let auction of allAuctions) {
             const isHidden = auction.is_hidden || false;
+            const isWatched = auction.is_watched || false;
             const hiddenClass = isHidden ? 'border-warning' : '';
             const hiddenStyle = isHidden ? 'style="background-color: #FFB70320; border-color: var(--color-yellow);"' : '';
             const hiddenBadge = isHidden ? '<span class="badge text-dark me-1" style="background-color: var(--color-yellow);"><small><i class="fas fa-eye-slash"></i></small></span>' : '';
+            const watchedBadge = isWatched ? '<span class="badge text-white me-1" style="background-color: #28a745;"><small><i class="fas fa-star"></i></small></span>' : '';
             const titleClass = isHidden ? 'text-muted' : '';
             const auctionTitle = auction.title || 'No title';
             const escapedTitle = auctionTitle.replace(/'/g, "\\'").replace(/"/g, '\\"');
@@ -477,6 +479,7 @@
             html += '<div class="border-bottom py-1 px-1 mb-1 ' + hiddenClass + '" ' + hiddenStyle + '>' +
                 '<div class="d-flex justify-content-between align-items-start">' +
                 '<div class="flex-grow-1">' +
+                watchedBadge +
                 hiddenBadge +
                 '<a href="' + (auction.url || '#') + '" target="_blank" class="text-decoration-none ' + titleClass + ' small fw-bold" style="' + (isHidden ? '' : 'color: var(--color-blue-green);') + '">' +
                 truncatedTitle +
@@ -487,7 +490,10 @@
                 '🔍 ' + (auction.found_via || 'Unknown') +
                 '</div>' +
                 '</div>' +
+                '<div class="d-flex gap-1">' +
+                (isWatched ? '<button class="btn btn-xs btn-outline-danger" onclick="unwatchAuction(\'' + (auction.id || '') + '\', \'' + escapedTitle + '\')" title="Remove from Watchlist"><i class="fas fa-star-slash"></i></button>' : '<button class="btn btn-xs btn-outline-success" onclick="watchAuction(\'' + (auction.id || '') + '\', \'' + escapedTitle + '\')" title="Add to Watchlist"><i class="fas fa-star"></i></button>') +
                 (isHidden ? '<button class="btn btn-xs btn-outline-success" onclick="unhideAuction(\'' + (auction.id || '') + '\', \'' + escapedTitle + '\')" title="Unhide"><i class="fas fa-eye"></i></button>' : '') +
+                '</div>' +
                 '</div>' +
                 '</div>';
         }
@@ -499,6 +505,58 @@
         console.log('New container content length:', container.innerHTML.length);
         console.log('Container children count:', container.children.length);
         console.log('First 50 chars of new content:', container.innerHTML.substring(0, 50) + '...');
+    }
+    
+    function watchAuction(auctionId, auctionTitle) {
+        if (!auctionId) {
+            alert('Unable to watch auction: No auction ID available');
+            return;
+        }
+        
+        fetch('/api/watchlist', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ auction_id: auctionId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showTemporaryMessage(data.message, 'success');
+                refreshAuctions(null);
+            } else {
+                alert('Error adding to watchlist: ' + (data.error || data.message));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error adding to watchlist: ' + error);
+        });
+    }
+    
+    function unwatchAuction(auctionId, auctionTitle) {
+        if (!auctionId) {
+            alert('Unable to unwatch auction: No auction ID available');
+            return;
+        }
+        
+        fetch('/api/watchlist/' + encodeURIComponent(auctionId), {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showTemporaryMessage(data.message, 'success');
+                refreshAuctions(null);
+            } else {
+                alert('Error removing from watchlist: ' + (data.error || data.message));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error removing from watchlist: ' + error);
+        });
     }
     
     function unhideAuction(auctionId, auctionTitle) {

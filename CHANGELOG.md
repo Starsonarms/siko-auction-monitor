@@ -7,6 +7,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- **Watchlist Toggle on Dashboard**: Quick watchlist management from dashboard
+  - Star button to add auctions to watchlist
+  - Star-slash button to remove from watchlist
+  - Visual watchlist badge indicators
+  - Instant refresh after watchlist changes
+
+### Fixed
+- **Dashboard Current Auctions Display**: Fixed JavaScript syntax error
+  - Added missing concatenation operator in auction rendering
+  - Current Auctions section now displays properly
+
+### Added
 - **Visual Feedback System**: Enhanced UI responsiveness
   - Spinner → checkmark animation when adding search terms (0.6s)
   - Fade-out and scale animation when removing search terms (0.2s)
