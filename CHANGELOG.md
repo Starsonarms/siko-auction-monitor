@@ -17,6 +17,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Dashboard Current Auctions Display**: Fixed JavaScript syntax error
   - Added missing concatenation operator in auction rendering
   - Current Auctions section now displays properly
+- **Watchlist Badge Display**: Fixed watchlist badges not showing on dashboard
+  - Added `is_watched` field to dashboard API response
+  - Watchlist badges now display correctly for watched auctions
 
 ### Added
 - **Visual Feedback System**: Enhanced UI responsiveness

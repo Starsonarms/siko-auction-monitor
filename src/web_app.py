@@ -589,7 +589,8 @@ def create_app():
                         'minutes_remaining': auction.get('minutes_remaining'),
                         'found_via': auction.get('found_via', 'Unknown'),
                         'id': auction.get('id'),
-                        'is_hidden': auction.get('is_hidden', False)
+                        'is_hidden': auction.get('is_hidden', False),
+                        'is_watched': auction.get('is_watched', False)
                     } for auction in unique_auctions[:15]],  # Show up to 15 auctions
                     'message': f'Found {len(unique_auctions)} unique auction{"s" if len(unique_auctions) != 1 else ""} from {len(search_words)} search term{"s" if len(search_words) != 1 else ""} ({hidden_count} hidden)'
                 })
