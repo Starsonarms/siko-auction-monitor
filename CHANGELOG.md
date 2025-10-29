@@ -20,6 +20,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Watchlist Badge Display**: Fixed watchlist badges not showing on dashboard
   - Added `is_watched` field to dashboard API response
   - Watchlist badges now display correctly for watched auctions
+- **Watchlist Button Icons**: Fixed incorrect icon for remove from watchlist
+  - Changed from non-existent `fa-star-slash` to solid `fa-star` for watched auctions
+  - Unwatched auctions now show outline star (`far fa-star`)
+  - Added min-height to auction container for better scrolling
 
 ### Added
 - **Visual Feedback System**: Enhanced UI responsiveness
