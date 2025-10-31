@@ -41,7 +41,6 @@ class Config(BaseSettings):
     
     # Logging configuration
     log_level: str = "INFO"
-    log_file: str = "logs/auction_monitor.log"
     
     # Notification time restrictions (available for future features)
     weekday_notification_start_hour: int = Field(default=8, alias="WEEKDAY_NOTIFICATION_START_HOUR")

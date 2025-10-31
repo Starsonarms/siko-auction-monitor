@@ -142,6 +142,13 @@ class MongoDBClient:
             safe_create_index(watchlist_collection, 'added_at')
             logger.info("✓ 'watchlist' collection initialized (auctions you want notifications for)")
             
+            # Create logs collection for application logging
+            logs_collection = db['logs']
+            safe_create_index(logs_collection, 'timestamp')
+            safe_create_index(logs_collection, 'level')
+            safe_create_index(logs_collection, [('timestamp', -1)])  # For efficient recent log queries
+            logger.info("✓ 'logs' collection initialized (application logs)")
+            
             logger.info(f"\n✓ Successfully initialized all collections in database '{db_name}'")
             
         except Exception as e:

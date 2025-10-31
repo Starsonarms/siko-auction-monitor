@@ -19,6 +19,7 @@ from .cache_factory import get_cache
 from .image_storage import ImageStorage
 from .mongodb_client import MongoDBClient
 from .auction_updater import AuctionUpdater
+from .mongodb_logger import setup_mongodb_logging
 
 logger = logging.getLogger(__name__)
 
@@ -83,6 +84,9 @@ def create_app():
     CORS(app)
     
     config = get_config()
+    
+    # Setup MongoDB logging
+    setup_mongodb_logging(level=config.log_level, db_name=config.mongodb_database)
     search_manager = SearchManager()
     blacklist_manager = BlacklistManager()
     watchlist_manager = WatchlistManager()
@@ -812,38 +816,6 @@ def create_app():
     def config_page():
         """Configuration page"""
         return render_template('config.html', config=config)
-    
-    @app.route('/logs')
-    def logs_page():
-        """View logs"""
-        try:
-            log_file = config.log_file
-            if os.path.exists(log_file):
-                # Try different encodings for Swedish characters
-                encodings_to_try = ['utf-8', 'iso-8859-1', 'cp1252', 'utf-8-sig']
-                log_content = None
-                
-                for encoding in encodings_to_try:
-                    try:
-                        with open(log_file, 'r', encoding=encoding) as f:
-                            # Get last 100 lines
-                            lines = f.readlines()
-                            recent_lines = lines[-100:] if len(lines) > 100 else lines
-                            log_content = ''.join(recent_lines)
-                            break  # Success, stop trying other encodings
-                    except UnicodeDecodeError:
-                        continue  # Try next encoding
-                
-                if log_content is None:
-                    log_content = "Could not read log file with supported encodings."
-            else:
-                log_content = "Log file not found."
-            
-            return render_template('logs.html', log_content=log_content, log_file=log_file)
-            
-        except Exception as e:
-            logger.error(f"Error reading logs: {e}")
-            return render_template('logs.html', log_content=f"Error reading logs: {e}", log_file="")
     
     @app.errorhandler(404)
     def not_found(error):
