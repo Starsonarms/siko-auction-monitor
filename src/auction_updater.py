@@ -222,6 +222,14 @@ class AuctionUpdater:
             else:
                 logger.info("No auctions found matching search words")
             
+            # Automatically clean up closed auctions
+            try:
+                removed = self.cache.cleanup_closed_auctions()
+                if removed > 0:
+                    logger.info(f"🗑️  Automatically removed {removed} closed auctions")
+            except Exception as e:
+                logger.error(f"Error during automatic cleanup of closed auctions: {e}")
+            
             # Check for urgent notifications FIRST (ending soon)
             urgent_auctions = []
             for auction in unique_auctions:

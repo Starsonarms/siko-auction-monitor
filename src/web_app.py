@@ -116,6 +116,16 @@ def create_app():
         # Always load from MongoDB cache (background updater keeps it fresh)
         cached_auctions = auction_cache.get_cached_auctions(search_words)
         
+        # Automatically clean up closed auctions before displaying
+        try:
+            removed = auction_cache.cleanup_closed_auctions()
+            if removed > 0:
+                logger.debug(f"Removed {removed} closed auctions during fetch")
+                # Refresh the cache after cleanup
+                cached_auctions = auction_cache.get_cached_auctions(search_words)
+        except Exception as e:
+            logger.error(f"Error during automatic cleanup: {e}")
+        
         if cached_auctions is None:
             # No data in MongoDB yet - trigger initial sync
             logger.info("No cached data, triggering initial sync...")

@@ -7,6 +7,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- **Automatic Closed Auction Cleanup**: Closed auctions automatically removed from database
+  - Cleanup runs during background sync (hourly)
+  - Cleanup runs when viewing auctions in web interface
+  - Manual cleanup command: `python manage.py cleanup-closed`
+  - Standalone script: `delete_closed_auctions.py` with `--auto` flag
+  - Auctions deleted when minutes_remaining ≤ 0 or status indicates closed
+  - Keeps database clean and improves performance
+  - See AUTOMATIC_CLEANUP.md for full details
 - **Watchlist Toggle on Dashboard**: Quick watchlist management from dashboard
   - Star button to add auctions to watchlist
   - Star-slash button to remove from watchlist

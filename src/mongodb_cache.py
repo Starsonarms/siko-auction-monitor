@@ -199,3 +199,25 @@ class MongoDBCache:
         except Exception as e:
             logger.error(f"Error cleaning up cache: {e}")
             return 0
+    
+    def cleanup_closed_auctions(self):
+        """Remove closed auctions from the database"""
+        try:
+            # Find auctions where minutes_remaining is 0 or less
+            query = {
+                '$or': [
+                    {'minutes_remaining': {'$lte': 0}},
+                    {'minutes_remaining': {'$exists': False}, 'time_left': {'$regex': '^(Avslutad|Stängd|Closed)', '$options': 'i'}}
+                ]
+            }
+            
+            result = self.collection.delete_many(query)
+            removed_count = result.deleted_count
+            
+            if removed_count > 0:
+                logger.info(f"Cleaned up {removed_count} closed auctions")
+            
+            return removed_count
+        except Exception as e:
+            logger.error(f"Error cleaning up closed auctions: {e}")
+            return 0

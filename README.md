@@ -19,6 +19,7 @@ Perfect for running on a Raspberry Pi as a continuous monitoring service.
 - 💾 **MongoDB Storage**: All data (auctions, images, search words, blacklist) stored in MongoDB
 - 🖼️ **Image Storage**: Auction images downloaded and stored in MongoDB GridFS (persist forever)
 - ⏰ **Hourly Sync**: Background thread syncs auctions from sikoauktioner.se every hour
+- 🗑️ **Automatic Cleanup**: Closed auctions automatically removed from database
 - 📋 **Dedicated Auctions Page**: Browse all current matching auctions with detailed information
 - 🚫 **Smart Blacklist System**: Hide false-positive auctions with one-click - they'll never appear again
 - 🎯 **Smart Notifications**: Deep links that open directly in Home Assistant companion app
@@ -267,6 +268,9 @@ python manage.py list-searches       # List all current search words
 python manage.py hide-auction ID     # Hide a specific auction by ID
 python manage.py unhide-auction ID   # Unhide a previously hidden auction
 python manage.py list-hidden         # List all currently hidden auctions
+
+# Database maintenance
+python manage.py cleanup-closed      # Remove closed auctions from database
 ```
 
 ### Web Interface

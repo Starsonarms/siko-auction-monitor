@@ -46,6 +46,7 @@ def main():
         print("  hide-auction ID  - Hide/blacklist an auction by ID")
         print("  unhide-auction ID - Unhide/unblacklist an auction by ID")
         print("  list-hidden      - List all hidden/blacklisted auctions")
+        print("  cleanup-closed   - Remove closed auctions from database")
         print("  start-web        - Start the web interface")
         print()
         print("Examples:")
@@ -238,6 +239,13 @@ else:
             os.remove('temp_list_script.py')
         except:
             pass
+    
+    elif command == "cleanup-closed":
+        print("🗑️  Removing closed auctions from database...")
+        result = run_command('delete_closed_auctions.py --auto')
+        print(result.stdout.strip())
+        if result.returncode != 0:
+            print("❌ Failed to cleanup closed auctions:", result.stderr.strip())
     
     elif command == "check-once":
         print("❌ Command 'check-once' is not available in this branch (mongodb-integration).")
