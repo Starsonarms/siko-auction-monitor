@@ -450,11 +450,11 @@ All data is stored exclusively in MongoDB:
 
 ### Hourly Background Sync
 
-- **Automatic Updates**: Background thread syncs every hour
+- **Automatic Updates**: Background thread syncs every hour (configurable via CHECK_INTERVAL)
 - **Initial Sync**: Runs immediately on startup
 - **Smart Updates**: Adding/removing search words triggers immediate sync
 - **Instant Loading**: UI always loads from MongoDB (< 1 second)
-- **Fresh Data**: Time_left refreshed on display
+- **Fresh Data**: Time_left updated during background sync (up to 1 hour old)
 
 See `HOURLY_SYNC.md` and `MONGODB_ONLY.md` for details.
 

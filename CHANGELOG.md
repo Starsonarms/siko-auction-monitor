@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed
+- **Page Load Performance**: Dramatically improved page load speed
+  - Removed unnecessary per-auction HTTP requests on page load
+  - Pages now load instantly (< 1 second) instead of taking several seconds
+  - `time_left` data now read directly from MongoDB cache (updated hourly by background sync)
+  - Eliminates 10-50+ HTTP requests per page load depending on auction count
+  - Trade-off: `time_left` values up to 1 hour old (acceptable for monitoring use case)
+
 ### Added
 - **Automatic Closed Auction Cleanup**: Closed auctions automatically removed from database
   - Cleanup runs during background sync (hourly)

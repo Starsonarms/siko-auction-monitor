@@ -135,21 +135,8 @@ def create_app():
             if cached_auctions is None:
                 return [], search_words
         
-        # Refresh time_left for display (quick operation)
-        scraper = SikoScraper()
-        for auction in cached_auctions:
-            try:
-                # Fetch only the time_left from the live page
-                import requests
-                from bs4 import BeautifulSoup
-                response = scraper.session.get(auction['url'], timeout=5)
-                soup = BeautifulSoup(response.content, 'html.parser')
-                auction['time_left'] = scraper._extract_time_left(soup)
-                auction['minutes_remaining'] = scraper._parse_time_to_minutes(auction['time_left'])
-            except Exception as e:
-                logger.debug(f"Error refreshing time for auction {auction.get('id')}: {e}")
-                auction['time_left'] = ''
-                auction['minutes_remaining'] = None
+        # Note: time_left is already stored in MongoDB cache and updated by the hourly background sync
+        # We don't refresh it here to avoid making dozens of HTTP requests on every page load
         
         # Mark which auctions are hidden for UI display
         blacklisted_ids = blacklist_manager.get_blacklisted_ids()
