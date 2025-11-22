@@ -110,9 +110,7 @@ class MongoDBCache:
                     cached_auction['timestamp'] = current_time
                     cached_auction['cached_at'] = current_time
                     
-                    # Remove time-sensitive fields that should always be fresh
-                    cached_auction.pop('time_left', None)
-                    cached_auction.pop('minutes_remaining', None)
+                    # Keep time_left and minutes_remaining - they're updated by hourly background sync
                     
                     auction_docs.append(cached_auction)
                 
