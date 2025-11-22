@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Fixed
+- **Time Left Display**: Fixed missing time_left on auction cards
+  - Removed code that was incorrectly stripping time_left from cached auctions
+  - Time left now displays correctly on both dashboard and auctions page
+  - Values updated hourly by background sync
 - **Page Load Performance**: Dramatically improved page load speed
   - Removed unnecessary per-auction HTTP requests on page load
   - Pages now load instantly (< 1 second) instead of taking several seconds
